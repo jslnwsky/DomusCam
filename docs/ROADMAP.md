@@ -1,8 +1,8 @@
-# Reolens Roadmap
+# DomusCam Roadmap
 
 This file consolidates the "future work" notes scattered across
 `AGENTS.md`, `SECURITY.md`, and the `CHANGELOG.md` headers. The
-roadmap is intentionally loose — Reolens is small and opinionated, and
+roadmap is intentionally loose — DomusCam is small and opinionated, and
 priorities shift with what users surface in the field.
 
 Status keys:
@@ -62,7 +62,7 @@ genuinely minor-bump-worthy storyline turns out to be.
   true ActivityKit push.
 - **Why no true push:** updating a Live Activity via its push token
   requires an APNs provider signed with a `.p8` key — i.e. a server, which
-  AGENTS.md §5 forbids and Reolens will never stand up. The push token is
+  AGENTS.md §5 forbids and DomusCam will never stand up. The push token is
   therefore kept device-local and never transmitted.
 - **Mechanism (honest):** the Hub Mac writes the **same `MotionEvent`
   CKRecord it already publishes** for notifications. The receiving device,
@@ -109,7 +109,7 @@ genuinely minor-bump-worthy storyline turns out to be.
 - **Status:** Planned (0.6.4) — deferred from 0.6.3 because 0.6.3
   became the DDNS-removal pivot release.
 - **Why deferred:** the 0.6.1 OSSignposter instrument on
-  `com.reolens.streaming` / `TTFF` is in place and the live-video
+  `com.75-c.DomusCam.streaming` / `TTFF` is in place and the live-video
   cold-start path emits the interval correctly. Capturing a
   meaningful delta against the 0.6.1 baseline needs device runs
   rather than simulator timings, and the 0.6.2 CHANGELOG entry that
@@ -194,11 +194,11 @@ since 0.6.0); the iOS build job stays informational this cycle.
 
 ## Won't do
 
-- **In-app telemetry** — Reolens has a hard "zero telemetry" rule
+- **In-app telemetry** — DomusCam has a hard "zero telemetry" rule
   ([AGENTS.md §5](../AGENTS.md)). Diagnostics stay local (`AppErrorRecorder`,
   `NotificationHistory`, `RelayDiagnostics`).
-- **Cross-vendor camera support** — Reolens is opinionated about
+- **Cross-vendor camera support** — DomusCam is opinionated about
   Reolink. Wide multi-vendor support would change the product surface.
-- **Cloud relay servers operated by us** — Reolens has no servers and
+- **Cloud relay servers operated by us** — DomusCam has no servers and
   isn't planning any. The CloudKit relay rides the user's own iCloud
   account.

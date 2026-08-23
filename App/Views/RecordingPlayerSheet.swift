@@ -3,7 +3,7 @@ import OSLog
 import ReolinkAPI
 import AppShared
 
-private let log = Logger(subsystem: "com.reolens.app", category: "recordings.player")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "recordings.player")
 
 /// 0.6.2 — extracted from `App/Views/RecordingsView.swift` so the
 /// parent file shrinks under the 800-LOC repo guideline. Hosts the
@@ -259,7 +259,7 @@ struct RawResponseView: View {
             }
             .frame(minWidth: 560, idealWidth: 720, minHeight: 360, idealHeight: 480)
             // 0.5.0 Liquid Glass — raw-JSON popover card.
-            .reolensGlassCard()
+            .domuscamGlassCard()
             .clipShape(.rect(cornerRadius: 6))
         }
         .padding(12)

@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.Reolens", category: "NotificationHistory")
+private let log = Logger(subsystem: "com.75-c.DomusCam", category: "NotificationHistory")
 
 /// A single record in the user-facing notification log.
 ///

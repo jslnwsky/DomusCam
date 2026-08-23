@@ -5,7 +5,7 @@ import SwiftUI
 ///
 /// AGENTS.md §5: this view never sends data off-device. "Copy
 /// diagnostic bundle" emits to the OS share sheet / pasteboard for the
-/// user to forward manually — Reolens itself doesn't transmit
+/// user to forward manually — DomusCam itself doesn't transmit
 /// anything.
 ///
 /// New in 0.6.1.
@@ -71,7 +71,7 @@ public struct DiagnosticsCenterView: View {
         ContentUnavailableView(
             "No errors recorded",
             systemImage: "checkmark.seal",
-            description: Text("Reolens hasn't logged any errors on this device. If something goes wrong while you're using the app, it'll show up here so you can decide whether to share it.")
+            description: Text("DomusCam hasn't logged any errors on this device. If something goes wrong while you're using the app, it'll show up here so you can decide whether to share it.")
         )
     }
 
@@ -168,9 +168,9 @@ public struct DiagnosticsCenterView: View {
 
     static func makeBundle(from records: [AppErrorRecord]) -> String {
         let header = """
-        # Reolens diagnostic bundle
+        # DomusCam diagnostic bundle
         # \(records.count) record\(records.count == 1 ? "" : "s")
-        # Local to this device — Reolens never uploads this.
+        # Local to this device — DomusCam never uploads this.
         """
         let lines = records.map { record -> String in
             let dateString = ISO8601DateFormatter().string(from: record.timestamp)

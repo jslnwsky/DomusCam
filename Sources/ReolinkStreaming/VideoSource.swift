@@ -7,7 +7,7 @@ import CoreMedia
 ///
 /// ## Why this exists
 ///
-/// Reolens started life with a single video path: RTSP/RTP →
+/// DomusCam started life with a single video path: RTSP/RTP →
 /// depacketize H.264 or H.265 NALUs → `CMSampleBuffer` →
 /// `AVSampleBufferDisplayLayer`. The protocol abstracted here
 /// keeps room for a second path (e.g. Baichuan `msg_id=3` frames
@@ -73,7 +73,7 @@ public protocol VideoSource: Sendable {
     /// Stream of audio samples ready for an
     /// `AVAudioConverter` + `AVAudioEngine` sink. A source
     /// that doesn't produce audio (e.g. today's RTSP path
-    /// — Reolens has never played camera audio) returns an
+    /// — DomusCam has never played camera audio) returns an
     /// immediately-finished stream.
     var audio: AsyncStream<AudioSample> { get async }
 }
@@ -127,7 +127,7 @@ public struct AudioSample: Sendable {
     }
 }
 
-/// Audio codecs Reolens may encounter on the wire. Kept
+/// Audio codecs DomusCam may encounter on the wire. Kept
 /// narrow on purpose — adding a codec is a one-line change
 /// when the decoder support actually lands.
 public enum AudioCodec: Sendable, Equatable {

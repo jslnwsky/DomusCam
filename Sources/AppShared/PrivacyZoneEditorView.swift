@@ -57,7 +57,7 @@ public struct PrivacyZoneEditorView: View {
         // 0.5.0 Liquid Glass — the rectangle-drawing surface reads as
         // a glass card lifted above the surrounding Form so the user
         // sees it as the focal point of the section.
-        .reolensGlassCard()
+        .domuscamGlassCard()
         .accessibilityLabel("Motion privacy zone editor")
     }
 

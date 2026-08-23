@@ -46,9 +46,9 @@ public final class CameraKeychainStore {
             message = """
                 The system Keychain rejected the password write.
 
-                If you're running a locally-built Reolens (./Scripts/build-app.sh) and you previously enabled iCloud Keychain Sync, that's the cause — ad-hoc-signed dev builds don't have the iCloud-Keychain entitlement. Turn off iCloud Keychain Sync in Settings → Privacy, or use the Developer-ID-signed release DMG.
+                If you're running a locally-built DomusCam (./Scripts/build-app.sh) and you previously enabled iCloud Keychain Sync, that's the cause — ad-hoc-signed dev builds don't have the iCloud-Keychain entitlement. Turn off iCloud Keychain Sync in Settings → Privacy, or use the Developer-ID-signed release DMG.
 
-                Otherwise, run \u{0060}log show --predicate 'subsystem == "com.reolens.Reolens" AND category == "Keychain"' --info --last 5m\u{0060} in Terminal to see the exact OSStatus.
+                Otherwise, run \u{0060}log show --predicate 'subsystem == "com.75-c.DomusCam" AND category == "Keychain"' --info --last 5m\u{0060} in Terminal to see the exact OSStatus.
                 """
             #else
             message = "The iOS Keychain rejected the password write. If you've enabled iCloud Keychain Sync, try turning it off in Settings → iCloud Keychain Sync and entering the password again."

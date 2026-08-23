@@ -8,7 +8,7 @@ import Foundation
 struct NLSearchHistoryTests {
 
     private func makeFreshDefaults() -> UserDefaults {
-        let suiteName = "reolens-nl-search-history-\(UUID().uuidString)"
+        let suiteName = "domuscam-nl-search-history-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
         return defaults

@@ -19,7 +19,7 @@ import ReolinkAPI
 @Suite("EventNotifier per-tag mute persistence")
 struct EventNotifierPerTagMuteTests {
 
-    private let suite = "test.com.reolens.EventNotifierPerTagMuteTests.\(UUID().uuidString)"
+    private let suite = "test.com.75-c.DomusCam.EventNotifierPerTagMuteTests.\(UUID().uuidString)"
     private let defaults: UserDefaults
 
     init() {
@@ -32,7 +32,7 @@ struct EventNotifierPerTagMuteTests {
         // The notifier reads from `UserDefaults.standard` in
         // production. We mirror its key format here so we can
         // validate the default behavior independently.
-        let key = "com.reolens.notify.perTag.person"
+        let key = "com.75-c.DomusCam.notify.perTag.person"
         #expect(defaults.object(forKey: key) == nil)
         // `bool(forKey:)` returns false for unset keys; the notifier
         // explicitly checks `object(forKey:) != nil` to distinguish
@@ -43,7 +43,7 @@ struct EventNotifierPerTagMuteTests {
 
     @Test("Setting false then true round-trips")
     func roundTripsExplicitSet() {
-        let key = "com.reolens.notify.perTag.vehicle"
+        let key = "com.75-c.DomusCam.notify.perTag.vehicle"
         defaults.set(false, forKey: key)
         #expect(defaults.bool(forKey: key) == false)
         defaults.set(true, forKey: key)

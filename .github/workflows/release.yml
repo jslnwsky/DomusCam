@@ -2,10 +2,10 @@ name: Release
 
 # Tag-driven release pipeline. Push `v0.1.0` (etc.) and this workflow
 # uploads BOTH platforms to App Store Connect / TestFlight under ONE
-# multiplatform app record (shared bundle id com.reolens.Reolens):
-#   • mac-testflight — archives the ReolensMac scheme, exports a signed
+# multiplatform app record (shared bundle id com.75-c.DomusCam):
+#   • mac-testflight — archives the DomusCamMac scheme, exports a signed
 #     .pkg, uploads it to the Mac App Store / TestFlight.
-#   • ios-testflight — archives the ReolensiOS scheme, exports a signed
+#   • ios-testflight — archives the DomusCamiOS scheme, exports a signed
 #     .ipa, uploads it to TestFlight.
 # The two run in parallel and are independent.
 #
@@ -48,13 +48,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # macOS TestFlight upload. Archives the native macOS app (ReolensMac)
+  # macOS TestFlight upload. Archives the native macOS app (DomusCamMac)
   # and ships it to the Mac App Store / TestFlight under the SAME app
   # record as iOS. Runs in parallel with ios-testflight; the two are
   # independent.
   #
   # Prereqs (one-time, in App Store Connect / Developer portal):
-  #   - Bundle ID com.reolens.Reolens registered under Identifiers
+  #   - Bundle ID com.75-c.DomusCam registered under Identifiers
   #     (with iCloud + App Groups + Push), shared by the iOS + macOS apps.
   #   - One multiplatform app record under My Apps for that bundle ID,
   #     with the macOS platform added.
@@ -169,7 +169,7 @@ jobs:
       - name: Bump CURRENT_PROJECT_VERSION to GitHub run number
         # TestFlight rejects duplicate build numbers, so stamp every
         # CURRENT_PROJECT_VERSION with the monotonically-increasing run
-        # number. Only the ReolensMac target is built + uploaded here.
+        # number. Only the DomusCamMac target is built + uploaded here.
         run: |
           set -euo pipefail
           sed -i.bak -E "s/CURRENT_PROJECT_VERSION: \"[0-9]+\"/CURRENT_PROJECT_VERSION: \"${GITHUB_RUN_NUMBER}\"/g" AppiOS/project.yml
@@ -186,7 +186,7 @@ jobs:
   # provisioning-profile auto-creation).
   #
   # Prereqs (one-time, done in App Store Connect UI):
-  #   - Bundle ID com.reolens.Reolens registered under Identifiers.
+  #   - Bundle ID com.75-c.DomusCam registered under Identifiers.
   #   - An app record created under My Apps with that bundle ID.
   #   - The ASC API key has Admin role.
   #
@@ -265,7 +265,7 @@ jobs:
           )
           if [ -z "$XCODE_PATH" ]; then
             echo "No archive-compatible non-beta Xcode 26.x below 26.5 found." >&2
-            echo "Reolens targets iOS 26.0; do not archive against brand-new Xcode 26.5 until GitHub's runner image has the matching iOS platform installed." >&2
+            echo "DomusCam targets iOS 26.0; do not archive against brand-new Xcode 26.5 until GitHub's runner image has the matching iOS platform installed." >&2
             ls /Applications/ | grep -i Xcode || true
             exit 1
           fi
@@ -294,7 +294,7 @@ jobs:
       #
       #   error: No signing certificate "iOS Distribution" found:
       #   No "iOS Distribution" signing certificate matching team ID
-      #   "5M9UT7VQ8Q" with a private key was found.
+      #   "NXVC3868F7" with a private key was found.
       #
       # Same .p12-import pattern the mac-testflight job uses for the
       # Apple Distribution cert — here with iOS-named secrets. (The same
@@ -443,8 +443,8 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
-          name: Reolens ${{ steps.tag.outputs.version }}
+          name: DomusCam ${{ steps.tag.outputs.version }}
           generate_release_notes: true
           body: |
-            Reolens ships on the App Store / TestFlight for iPhone, iPad, and Mac.
+            DomusCam ships on the App Store / TestFlight for iPhone, iPad, and Mac.
             See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for the full notes.

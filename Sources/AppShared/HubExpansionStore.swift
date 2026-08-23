@@ -26,7 +26,7 @@ public final class HubExpansionStore {
 
     private(set) public var collapsedHubs: Set<UUID> = []
 
-    private static let storeKey = "com.reolens.collapsedHubs"
+    private static let storeKey = "com.75-c.DomusCam.collapsedHubs"
     private static let debounceNanos: UInt64 = 750_000_000
 
     private let kv = NSUbiquitousKeyValueStore.default

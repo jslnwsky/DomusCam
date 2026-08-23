@@ -9,7 +9,7 @@ struct NotificationHistoryTests {
 
     private static func makeFreshURL() -> URL {
         let dir = FileManager.default.temporaryDirectory
-            .appending(path: "reolens-notification-history-tests-\(UUID().uuidString)")
+            .appending(path: "domuscam-notification-history-tests-\(UUID().uuidString)")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir.appending(path: "notifications.json")
     }

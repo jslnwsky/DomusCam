@@ -16,7 +16,7 @@ struct DiagnosticsBundleTests {
     @Test("Empty record list produces a header-only bundle")
     func emptyBundle() {
         let bundle = DiagnosticsCenterView.makeBundle(from: [])
-        #expect(bundle.contains("# Reolens diagnostic bundle"))
+        #expect(bundle.contains("# DomusCam diagnostic bundle"))
         #expect(bundle.contains("# 0 records"))
         #expect(bundle.contains("# Local to this device"))
     }

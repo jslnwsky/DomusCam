@@ -186,7 +186,7 @@ public struct DayTimelineStrip: View {
                     Text(scrubTime, format: .dateTime.hour().minute().second())
                         .font(.caption2.weight(.medium).monospacedDigit())
                         // 0.5.0 Liquid Glass — scrub-position bubble.
-                        .reolensGlassToast()
+                        .domuscamGlassToast()
                         .offset(x: max(0, min(x - 32, stripWidth - 64)), y: -22)
                         .accessibilityHidden(true)
                 }

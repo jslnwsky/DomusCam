@@ -19,7 +19,7 @@ struct WatchCameraListView: View {
                 ContentUnavailableView {
                     Label("No cameras yet", systemImage: "video.slash")
                 } description: {
-                    Text("Open Reolens on your iPhone to publish snapshots to your watch.")
+                    Text("Open DomusCam on your iPhone to publish snapshots to your watch.")
                         .multilineTextAlignment(.center)
                 }
             } else {

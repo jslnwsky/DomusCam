@@ -12,7 +12,7 @@ struct AppErrorRecorderTests {
 
     private static func makeFreshURL() -> URL {
         let dir = FileManager.default.temporaryDirectory
-            .appending(path: "reolens-app-error-tests-\(UUID().uuidString)")
+            .appending(path: "domuscam-app-error-tests-\(UUID().uuidString)")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir.appending(path: "app-errors.json")
     }

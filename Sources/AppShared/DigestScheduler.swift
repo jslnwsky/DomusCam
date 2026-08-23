@@ -5,7 +5,7 @@ import OSLog
 import WidgetKit
 #endif
 
-private let log = Logger(subsystem: "com.reolens.app", category: "digest-scheduler")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "digest-scheduler")
 
 /// 0.5.0 Theme A5 — daily-fire scheduler that wakes the app at the
 /// user-configured digest time (default 07:00 local), assembles a
@@ -30,9 +30,9 @@ public actor DigestScheduler {
 
     /// Notification category — the system pairs the tap-handling
     /// routine in `NotificationTapDelegate` with this string.
-    public static let notificationCategory = "reolens.digest"
+    public static let notificationCategory = "domuscam.digest"
     public static let userInfoDigestDayKey = "digestDay"
-    public static let scheduledRequestID = "com.reolens.overnightDigest.daily"
+    public static let scheduledRequestID = "com.75-c.DomusCam.overnightDigest.daily"
 
     private init() {}
 
@@ -168,7 +168,7 @@ public actor DigestScheduler {
         content.userInfo = [Self.userInfoDigestDayKey: digest.day.timeIntervalSince1970]
 
         let request = UNNotificationRequest(
-            identifier: "com.reolens.overnightDigest.fire-\(Int(digest.day.timeIntervalSince1970))",
+            identifier: "com.75-c.DomusCam.overnightDigest.fire-\(Int(digest.day.timeIntervalSince1970))",
             content: content,
             trigger: nil
         )

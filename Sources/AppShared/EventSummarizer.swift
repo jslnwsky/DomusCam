@@ -5,7 +5,7 @@ import ReolinkAPI
 import FoundationModels
 #endif
 
-private let log = Logger(subsystem: "com.reolens.app", category: "event-summarizer")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "event-summarizer")
 
 /// 0.5.1 — Produces a short "what happened today" summary across the
 /// hub's recordings using Apple's on-device FoundationModels framework

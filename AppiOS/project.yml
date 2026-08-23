@@ -1,6 +1,6 @@
-name: ReolensiOS
+name: DomusCamiOS
 options:
-  bundleIdPrefix: com.reolens
+  bundleIdPrefix: com.75-c
   deploymentTarget:
     iOS: "26.0"
   developmentLanguage: en
@@ -13,23 +13,23 @@ settings:
     TARGETED_DEVICE_FAMILY: "1,2"
     ENABLE_USER_SCRIPT_SANDBOXING: NO
     ENABLE_HARDENED_RUNTIME: YES
-    REOLENS_IOS_APP_PROFILE_NAME: ""
-    REOLENS_IOS_APP_PROFILE_UUID: ""
-    REOLENS_IOS_WIDGETS_PROFILE_NAME: ""
-    REOLENS_IOS_WIDGETS_PROFILE_UUID: ""
-    REOLENS_IOS_NOTIFICATION_SERVICE_PROFILE_NAME: ""
-    REOLENS_IOS_NOTIFICATION_SERVICE_PROFILE_UUID: ""
-    # macOS App Store target (ReolensMac). Empty by default so local
+    DOMUSCAM_IOS_APP_PROFILE_NAME: ""
+    DOMUSCAM_IOS_APP_PROFILE_UUID: ""
+    DOMUSCAM_IOS_WIDGETS_PROFILE_NAME: ""
+    DOMUSCAM_IOS_WIDGETS_PROFILE_UUID: ""
+    DOMUSCAM_IOS_NOTIFICATION_SERVICE_PROFILE_NAME: ""
+    DOMUSCAM_IOS_NOTIFICATION_SERVICE_PROFILE_UUID: ""
+    # macOS App Store target (DomusCamMac). Empty by default so local
     # macOS builds use Automatic signing; Scripts/build-mac.sh overrides
     # these via xcodebuild build settings to force Manual + the Mac App
-    # Store profile. Mirrors the REOLENS_IOS_* pattern above.
-    REOLENS_MAC_APP_PROFILE_NAME: ""
-    REOLENS_MAC_APP_PROFILE_UUID: ""
+    # Store profile. Mirrors the DOMUSCAM_IOS_* pattern above.
+    DOMUSCAM_MAC_APP_PROFILE_NAME: ""
+    DOMUSCAM_MAC_APP_PROFILE_UUID: ""
 packages:
-  Reolens:
+  DomusCam:
     path: ..
 targets:
-  ReolensiOS:
+  DomusCamiOS:
     type: application
     platform: iOS
     deploymentTarget: "26.0"
@@ -40,7 +40,7 @@ targets:
     info:
       path: Resources/Info.plist
       properties:
-        CFBundleDisplayName: Reolens
+        CFBundleDisplayName: DomusCam
         CFBundleShortVersionString: "0.9.0"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         # iOS 11+ requires apps using asset-catalog icons to also
@@ -67,7 +67,7 @@ targets:
         # Required for any LAN scan / Bonjour discovery on iOS 14+. Without
         # this string the OS silently denies discovery and RTSP connections
         # to camera IPs on the local network.
-        NSLocalNetworkUsageDescription: "Reolens connects to Reolink cameras on your local Wi-Fi network for live view and recordings."
+        NSLocalNetworkUsageDescription: "DomusCam connects to Reolink cameras on your local Wi-Fi network for live view and recordings."
         NSBonjourServices:
           - _http._tcp
           - _rtsp._tcp
@@ -75,12 +75,12 @@ targets:
         # over Baichuan MSG_ID_TALK. Audio background mode lets a single
         # live-view tile keep its stream open while the app is backgrounded
         # (PiP picks this up too).
-        NSMicrophoneUsageDescription: "Reolens uses the microphone to talk back through your Reolink camera's two-way audio."
+        NSMicrophoneUsageDescription: "DomusCam uses the microphone to talk back through your Reolink camera's two-way audio."
         # Save Snapshot writes the latest decoded camera frame into the
         # Photos library. We request the add-only authorization
-        # (PHPhotoLibrary.requestAuthorization(for: .addOnly)) so Reolens
+        # (PHPhotoLibrary.requestAuthorization(for: .addOnly)) so DomusCam
         # only ever inserts photos — never reads the user's library.
-        NSPhotoLibraryAddUsageDescription: "Reolens saves snapshots of your camera feeds to Photos when you tap Save Snapshot."
+        NSPhotoLibraryAddUsageDescription: "DomusCam saves snapshots of your camera feeds to Photos when you tap Save Snapshot."
         # 0.6.0 Slice B2 — HomeKit usage description. iOS enforces TCC
         # privacy checks at HMHomeManager init time regardless of
         # whether the `com.apple.developer.homekit` entitlement is
@@ -89,7 +89,7 @@ targets:
         # absent, HomeKitBridge surfaces `.entitlementMissing` and
         # never actually touches HMHomeManager. With both present,
         # the user sees the system permission prompt on first launch.
-        NSHomeKitUsageDescription: "Reolens can expose your Reolink cameras as HomeKit cameras so they appear alongside other HomeKit accessories in the Home app."
+        NSHomeKitUsageDescription: "DomusCam can expose your Reolink cameras as HomeKit cameras so they appear alongside other HomeKit accessories in the Home app."
         UIBackgroundModes:
           - audio
           # remote-notification (0.4.1) — required so CloudKit silent
@@ -98,7 +98,7 @@ targets:
           # paired Mac, subscriber here) needs this to deliver
           # notifications while the iOS app is closed. AGENTS.md §5 —
           # the relay rides Apple's CloudKit under the user's own
-          # iCloud account, not a Reolens server.
+          # iCloud account, not a DomusCam server.
           - remote-notification
         # Continuity / Handoff: the user can start a camera on Mac and
         # hand off to iPhone/iPad (and vice-versa). The activity type
@@ -106,18 +106,18 @@ targets:
         # AppShared. AGENTS.md §11: the payload carries only the
         # camera UUID + channel index — no hostnames, no credentials.
         NSUserActivityTypes:
-          - io.reolens.camera-detail
+          - io.domuscam.camera-detail
         # Custom drag-and-drop UTIs for in-app reordering (channels in
         # the grid, devices in the sidebar). Exported with a custom
         # namespace so the payloads can't be consumed by other apps.
         UTExportedTypeDeclarations:
-          - UTTypeIdentifier: com.reolens.channelDrag
-            UTTypeDescription: Reolens channel drag payload
+          - UTTypeIdentifier: com.75-c.DomusCam.channelDrag
+            UTTypeDescription: DomusCam channel drag payload
             UTTypeConformsTo:
               - public.data
             UTTypeTagSpecification: {}
-          - UTTypeIdentifier: com.reolens.deviceDrag
-            UTTypeDescription: Reolens device drag payload
+          - UTTypeIdentifier: com.75-c.DomusCam.deviceDrag
+            UTTypeDescription: DomusCam device drag payload
             UTTypeConformsTo:
               - public.data
             UTTypeTagSpecification: {}
@@ -128,12 +128,12 @@ targets:
           NSAllowsLocalNetworking: true
           NSAllowsArbitraryLoads: true
     entitlements:
-      path: Resources/ReolensiOS.entitlements
+      path: Resources/DomusCamiOS.entitlements
       properties:
         com.apple.developer.icloud-container-identifiers:
-          - "iCloud.com.reolens.Reolens"
+          - "iCloud.com.75-c.DomusCam"
         com.apple.developer.ubiquity-container-identifiers:
-          - "iCloud.com.reolens.Reolens"
+          - "iCloud.com.75-c.DomusCam"
         com.apple.developer.icloud-services:
           - CloudDocuments
           # CloudKit (0.4.1) — motion-event relay uses the private
@@ -146,7 +146,7 @@ targets:
         # the same store. Without this key the OS logs
         # "Unable to find entitlement for KVS store" and KVS calls
         # silently no-op.
-        com.apple.developer.ubiquity-kvstore-identifier: "5M9UT7VQ8Q.com.reolens.Reolens"
+        com.apple.developer.ubiquity-kvstore-identifier: "NXVC3868F7.com.75-c.DomusCam"
         # APNS environment for receiving CloudKit silent pushes.
         # Production for App Store / TestFlight builds; xcodegen
         # automatically swaps in development for debug archives.
@@ -155,56 +155,56 @@ targets:
         # extension + Live Activity assets. Device-local; never
         # CloudKit-synced. AGENTS.md §5, §16.
         com.apple.security.application-groups:
-          - group.com.reolens.Reolens
+          - group.com.75-c.DomusCam
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.reolens.Reolens
-        PRODUCT_NAME: Reolens
+        PRODUCT_BUNDLE_IDENTIFIER: com.75-c.DomusCam
+        PRODUCT_NAME: DomusCam
         MARKETING_VERSION: "0.9.0"
         CURRENT_PROJECT_VERSION: "19"
         # Same Apple Developer team as the macOS app. Xcode's automatic
         # signing uses this to fetch / create the Apple Distribution
         # certificate and the App Store provisioning profile on first
         # archive. CI overrides via -allowProvisioningUpdates anyway.
-        DEVELOPMENT_TEAM: 5M9UT7VQ8Q
+        DEVELOPMENT_TEAM: NXVC3868F7
         CODE_SIGN_STYLE: Automatic
-        PROVISIONING_PROFILE_SPECIFIER: "$(REOLENS_IOS_APP_PROFILE_NAME)"
-        PROVISIONING_PROFILE: "$(REOLENS_IOS_APP_PROFILE_UUID)"
+        PROVISIONING_PROFILE_SPECIFIER: "$(DOMUSCAM_IOS_APP_PROFILE_NAME)"
+        PROVISIONING_PROFILE: "$(DOMUSCAM_IOS_APP_PROFILE_UUID)"
         ENABLE_PREVIEWS: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         GENERATE_INFOPLIST_FILE: NO
     dependencies:
-      - package: Reolens
+      - package: DomusCam
         product: ReolinkAPI
-      - package: Reolens
+      - package: DomusCam
         product: ReolinkStreaming
-      - package: Reolens
+      - package: DomusCam
         product: ReolinkBaichuan
-      - package: Reolens
+      - package: DomusCam
         product: AppShared
-      - target: ReolensiOSWidgets
+      - target: DomusCamiOSWidgets
         embed: true
         codeSign: true
-      - target: ReolensiOSNotificationService
+      - target: DomusCamiOSNotificationService
         embed: true
         codeSign: true
   # ------------------------------------------------------------------
   # WidgetKit + ActivityKit extension (0.5.0).
   #
-  # One iOS extension holds every Reolens widget surface: Home Screen
+  # One iOS extension holds every DomusCam widget surface: Home Screen
   # widgets (CameraSnapshot, MotionDigest), Lock Screen widgets
   # (LastMotion), the Control Center widget (OpenCameraControl), and
   # the in-flight motion-event Live Activity (Dynamic Island +
   # Lock Screen). All read from the App Group shared container
-  # (group.com.reolens.Reolens) — no network, no Keychain.
+  # (group.com.75-c.DomusCam) — no network, no Keychain.
   #
   # The container payloads (LatestSnapshots.plist, RecentMotionEvents.plist,
   # the per-event jpeg blobs, and the daily-digest JSONs) are
   # atomically rewritten by the main app via AppShared/SharedContainer.swift.
   # AGENTS.md §5 (no telemetry), §16 (widgets + Live Activities).
   # ------------------------------------------------------------------
-  ReolensiOSWidgets:
+  DomusCamiOSWidgets:
     type: app-extension
     platform: iOS
     deploymentTarget: "26.0"
@@ -213,35 +213,35 @@ targets:
     info:
       path: Widgets/Info.plist
       properties:
-        CFBundleDisplayName: Reolens Widgets
+        CFBundleDisplayName: DomusCam Widgets
         CFBundleShortVersionString: "0.9.0"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:
-      path: Widgets/ReolensiOSWidgets.entitlements
+      path: Widgets/DomusCamiOSWidgets.entitlements
       properties:
         com.apple.security.application-groups:
-          - group.com.reolens.Reolens
+          - group.com.75-c.DomusCam
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.reolens.Reolens.Widgets
-        PRODUCT_NAME: ReolensiOSWidgets
+        PRODUCT_BUNDLE_IDENTIFIER: com.75-c.DomusCam.Widgets
+        PRODUCT_NAME: DomusCamiOSWidgets
         MARKETING_VERSION: "0.9.0"
         CURRENT_PROJECT_VERSION: "19"
-        DEVELOPMENT_TEAM: 5M9UT7VQ8Q
+        DEVELOPMENT_TEAM: NXVC3868F7
         CODE_SIGN_STYLE: Automatic
-        PROVISIONING_PROFILE_SPECIFIER: "$(REOLENS_IOS_WIDGETS_PROFILE_NAME)"
-        PROVISIONING_PROFILE: "$(REOLENS_IOS_WIDGETS_PROFILE_UUID)"
+        PROVISIONING_PROFILE_SPECIFIER: "$(DOMUSCAM_IOS_WIDGETS_PROFILE_NAME)"
+        PROVISIONING_PROFILE: "$(DOMUSCAM_IOS_WIDGETS_PROFILE_UUID)"
         GENERATE_INFOPLIST_FILE: NO
         SKIP_INSTALL: YES
     dependencies:
-      - package: Reolens
+      - package: DomusCam
         product: AppShared
-      - package: Reolens
+      - package: DomusCam
         product: ReolinkAPI
     # 0.5.1 — Default the widget scheme to render `cameraSnapshot`
-    # so `xcodebuild -scheme ReolensiOSWidgets ... run` doesn't bail
+    # so `xcodebuild -scheme DomusCamiOSWidgets ... run` doesn't bail
     # with `SBAvocadoDebuggingControllerErrorDomain Code=2 "Please
     # specify the widget kind in the scheme's Environment Variables
     # using the key '_XCWidgetKind'"`. The extension hosts four
@@ -254,7 +254,7 @@ targets:
     scheme:
       environmentVariables:
         - variable: _XCWidgetKind
-          value: io.reolens.widget.cameraSnapshot
+          value: io.domuscam.widget.cameraSnapshot
           isEnabled: true
   # ------------------------------------------------------------------
   # Notification Service Extension (0.6.8).
@@ -275,7 +275,7 @@ targets:
   # static strings in NotificationService.swift, marked as needing
   # to stay in sync with AppShared/MotionEventRelay.swift.
   # ------------------------------------------------------------------
-  ReolensiOSNotificationService:
+  DomusCamiOSNotificationService:
     type: app-extension
     platform: iOS
     deploymentTarget: "26.0"
@@ -284,31 +284,31 @@ targets:
     info:
       path: NotificationService/Info.plist
       properties:
-        CFBundleDisplayName: Reolens Notification Service
+        CFBundleDisplayName: DomusCam Notification Service
         CFBundleShortVersionString: "0.9.0"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.usernotifications.service
           NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).NotificationService"
     entitlements:
-      path: NotificationService/ReolensiOSNotificationService.entitlements
+      path: NotificationService/DomusCamiOSNotificationService.entitlements
       properties:
         com.apple.developer.icloud-container-identifiers:
-          - "iCloud.com.reolens.Reolens"
+          - "iCloud.com.75-c.DomusCam"
         com.apple.developer.icloud-services:
           - CloudKit
         com.apple.security.application-groups:
-          - group.com.reolens.Reolens
+          - group.com.75-c.DomusCam
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.reolens.Reolens.NotificationService
-        PRODUCT_NAME: ReolensiOSNotificationService
+        PRODUCT_BUNDLE_IDENTIFIER: com.75-c.DomusCam.NotificationService
+        PRODUCT_NAME: DomusCamiOSNotificationService
         MARKETING_VERSION: "0.9.0"
         CURRENT_PROJECT_VERSION: "19"
-        DEVELOPMENT_TEAM: 5M9UT7VQ8Q
+        DEVELOPMENT_TEAM: NXVC3868F7
         CODE_SIGN_STYLE: Automatic
-        PROVISIONING_PROFILE_SPECIFIER: "$(REOLENS_IOS_NOTIFICATION_SERVICE_PROFILE_NAME)"
-        PROVISIONING_PROFILE: "$(REOLENS_IOS_NOTIFICATION_SERVICE_PROFILE_UUID)"
+        PROVISIONING_PROFILE_SPECIFIER: "$(DOMUSCAM_IOS_NOTIFICATION_SERVICE_PROFILE_NAME)"
+        PROVISIONING_PROFILE: "$(DOMUSCAM_IOS_NOTIFICATION_SERVICE_PROFILE_UUID)"
         GENERATE_INFOPLIST_FILE: NO
         SKIP_INSTALL: YES
   # ------------------------------------------------------------------
@@ -325,7 +325,7 @@ targets:
   # structural regressions (missing nav links, broken section
   # bindings, crashes on first appear).
   # ------------------------------------------------------------------
-  ReolensiOSUITests:
+  DomusCamiOSUITests:
     type: bundle.ui-testing
     platform: iOS
     deploymentTarget: "26.0"
@@ -333,14 +333,14 @@ targets:
       - path: UITests
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.reolens.Reolens.UITests
-        PRODUCT_NAME: ReolensiOSUITests
-        DEVELOPMENT_TEAM: 5M9UT7VQ8Q
+        PRODUCT_BUNDLE_IDENTIFIER: com.75-c.DomusCam.UITests
+        PRODUCT_NAME: DomusCamiOSUITests
+        DEVELOPMENT_TEAM: NXVC3868F7
         CODE_SIGN_STYLE: Automatic
-        TEST_TARGET_NAME: ReolensiOS
+        TEST_TARGET_NAME: DomusCamiOS
         GENERATE_INFOPLIST_FILE: YES
     dependencies:
-      - target: ReolensiOS
+      - target: DomusCamiOS
   # ------------------------------------------------------------------
   # Apple TV living-room viewer (0.7.0).
   #
@@ -351,7 +351,7 @@ targets:
   # the user's private CloudKit DB (published by iOS/macOS when "Stream
   # on Apple TV" is on). All logic is in the AppTVOS SPM library.
   # ------------------------------------------------------------------
-  ReolensTVOS:
+  DomusCamTVOS:
     type: application
     platform: tvOS
     deploymentTarget: "26.0"
@@ -360,37 +360,37 @@ targets:
     info:
       path: TVOS/Info.plist
       properties:
-        CFBundleDisplayName: Reolens
+        CFBundleDisplayName: DomusCam
         CFBundleShortVersionString: "0.9.0"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
     entitlements:
-      path: TVOS/ReolensTVOS.entitlements
+      path: TVOS/DomusCamTVOS.entitlements
       properties:
         com.apple.developer.icloud-container-identifiers:
-          - "iCloud.com.reolens.Reolens"
+          - "iCloud.com.75-c.DomusCam"
         com.apple.developer.ubiquity-container-identifiers:
-          - "iCloud.com.reolens.Reolens"
+          - "iCloud.com.75-c.DomusCam"
         com.apple.developer.icloud-services:
           - CloudDocuments
           - CloudKit
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.reolens.Reolens.tvOS
-        PRODUCT_NAME: Reolens
+        PRODUCT_BUNDLE_IDENTIFIER: com.75-c.DomusCam.tvOS
+        PRODUCT_NAME: DomusCam
         MARKETING_VERSION: "0.9.0"
         CURRENT_PROJECT_VERSION: "19"
-        DEVELOPMENT_TEAM: 5M9UT7VQ8Q
+        DEVELOPMENT_TEAM: NXVC3868F7
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOPLIST_FILE: NO
         TARGETED_DEVICE_FAMILY: "3"
     dependencies:
-      - package: Reolens
+      - package: DomusCam
         product: AppTVOS
   # ------------------------------------------------------------------
   # Native macOS App Store app (0.7.0).
   #
   # Ships on the Mac App Store / TestFlight under the SAME App Store
-  # Connect record as the iOS app (shared bundle id com.reolens.Reolens),
+  # Connect record as the iOS app (shared bundle id com.75-c.DomusCam),
   # so iOS + macOS appear as one multiplatform app. Compiles the App/
   # sources (the existing macOS SwiftUI app) against the shared SPM
   # products — same CloudKit container / App Group / KVS as iOS.
@@ -398,16 +398,16 @@ targets:
   # App-Store-specific vs the Developer-ID/DMG build Scripts/build-app.sh
   # still produces for local dev:
   #   - No Sparkle (the App Store updates the app) — removed from App/.
-  #   - App Store entitlements (App/Reolens.appstore.entitlements): no
+  #   - App Store entitlements (App/DomusCam.appstore.entitlements): no
   #     library-validation, no hand-set application-identifier.
-  #   - The macOS-only Reolens Hub ships its engine but NOT a headless
+  #   - The macOS-only DomusCam Hub ships its engine but NOT a headless
   #     LaunchAgent (App Store can't ship a relaunch-the-binary login
   #     agent) — see App/Hub/HubController.swift.
   #   - Widgets/ deferred (no macOS widget extension yet).
   #
   # Archived + uploaded by Scripts/build-mac.sh, mirroring build-ios.sh.
   # ------------------------------------------------------------------
-  ReolensMac:
+  DomusCamMac:
     type: application
     platform: macOS
     deploymentTarget: "26.0"
@@ -415,69 +415,69 @@ targets:
       - path: ../App
         excludes:
           - "Info.plist"
-          - "Reolens.entitlements"
-          - "Reolens.dev.entitlements"
-          - "Reolens.appstore.entitlements"
+          - "DomusCam.entitlements"
+          - "DomusCam.dev.entitlements"
+          - "DomusCam.appstore.entitlements"
           - "Widgets"
       - path: MacResources/Assets.xcassets
         buildPhase: resources
     info:
       path: MacResources/Info.plist
       properties:
-        CFBundleDisplayName: Reolens
+        CFBundleDisplayName: DomusCam
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleIconName: AppIcon
         LSApplicationCategoryType: public.app-category.video
         LSMinimumSystemVersion: "$(MACOSX_DEPLOYMENT_TARGET)"
         NSHighResolutionCapable: true
-        NSLocalNetworkUsageDescription: "Reolens needs to connect to Reolink cameras, NVRs, and Home Hubs on your local network."
-        NSMicrophoneUsageDescription: "Reolens uses the microphone for two-way talk to your Reolink cameras."
+        NSLocalNetworkUsageDescription: "DomusCam needs to connect to Reolink cameras, NVRs, and Home Hubs on your local network."
+        NSMicrophoneUsageDescription: "DomusCam uses the microphone for two-way talk to your Reolink cameras."
         NSBonjourServices:
           - _http._tcp
           - _rtsp._tcp
         NSUserActivityTypes:
-          - io.reolens.camera-detail
+          - io.domuscam.camera-detail
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
           NSAllowsArbitraryLoads: true
         UTExportedTypeDeclarations:
-          - UTTypeIdentifier: com.reolens.channelDrag
-            UTTypeDescription: Reolens channel drag payload
+          - UTTypeIdentifier: com.75-c.DomusCam.channelDrag
+            UTTypeDescription: DomusCam channel drag payload
             UTTypeConformsTo:
               - public.data
             UTTypeTagSpecification: {}
-          - UTTypeIdentifier: com.reolens.deviceDrag
-            UTTypeDescription: Reolens device drag payload
+          - UTTypeIdentifier: com.75-c.DomusCam.deviceDrag
+            UTTypeDescription: DomusCam device drag payload
             UTTypeConformsTo:
               - public.data
             UTTypeTagSpecification: {}
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.reolens.Reolens
-        PRODUCT_NAME: Reolens
+        PRODUCT_BUNDLE_IDENTIFIER: com.75-c.DomusCam
+        PRODUCT_NAME: DomusCam
         MARKETING_VERSION: "0.9.0"
         CURRENT_PROJECT_VERSION: "19"
         MACOSX_DEPLOYMENT_TARGET: "26.0"
-        DEVELOPMENT_TEAM: 5M9UT7VQ8Q
+        DEVELOPMENT_TEAM: NXVC3868F7
         CODE_SIGN_STYLE: Automatic
-        CODE_SIGN_ENTITLEMENTS: ../App/Reolens.appstore.entitlements
-        PROVISIONING_PROFILE_SPECIFIER: "$(REOLENS_MAC_APP_PROFILE_NAME)"
-        PROVISIONING_PROFILE: "$(REOLENS_MAC_APP_PROFILE_UUID)"
+        CODE_SIGN_ENTITLEMENTS: ../App/DomusCam.appstore.entitlements
+        PROVISIONING_PROFILE_SPECIFIER: "$(DOMUSCAM_MAC_APP_PROFILE_NAME)"
+        PROVISIONING_PROFILE: "$(DOMUSCAM_MAC_APP_PROFILE_UUID)"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_PREVIEWS: YES
         GENERATE_INFOPLIST_FILE: NO
     dependencies:
-      - package: Reolens
+      - package: DomusCam
         product: ReolinkAPI
-      - package: Reolens
+      - package: DomusCam
         product: ReolinkStreaming
-      - package: Reolens
+      - package: DomusCam
         product: ReolinkBaichuan
-      - package: Reolens
+      - package: DomusCam
         product: AppShared
       # 0.9.0 — the macOS app hosts the local /v1 REST API
-      # (App/LocalAPI/LocalAPIController.swift imports ReolensServer). The iOS
+      # (App/LocalAPI/LocalAPIController.swift imports DomusCamServer). The iOS
       # targets don't include ../App, so they don't need it.
-      - package: Reolens
-        product: ReolensServer
+      - package: DomusCam
+        product: DomusCamServer

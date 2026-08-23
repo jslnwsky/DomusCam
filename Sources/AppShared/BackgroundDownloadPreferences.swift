@@ -13,7 +13,7 @@ import Foundation
 /// vary device-to-device, so a per-device preference is the safer
 /// default. Users with multiple devices can flip each independently.
 public enum BackgroundDownloadPreferences {
-    public static let allowCellularKey = "com.reolens.bookmarkDL.allowCellular"
+    public static let allowCellularKey = "com.75-c.DomusCam.bookmarkDL.allowCellular"
 
     public static var allowCellular: Bool {
         get { UserDefaults.standard.bool(forKey: allowCellularKey) }

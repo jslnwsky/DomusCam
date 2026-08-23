@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.baichuan", category: "events")
+private let log = Logger(subsystem: "com.75-c.DomusCam.baichuan", category: "events")
 
 /// A motion / AI event delivered by the camera over the Baichuan TCP push.
 public struct BaichuanEvent: Sendable, Hashable {
@@ -64,7 +64,7 @@ extension BaichuanClient {
                     // Trace at debug — these messages arrive every few
                     // seconds per channel, so logging at info here would
                     // flood the unified log. Maintainers can flip to
-                    // info via `log config --subsystem com.reolens.baichuan
+                    // info via `log config --subsystem com.75-c.DomusCam.baichuan
                     // --mode "level:info"` when chasing a missed event.
                     log.debug("msgID=33 parsed \(events.count) events")
                     for event in events {

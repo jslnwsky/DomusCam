@@ -36,7 +36,7 @@ No issues. Authoritative reference for this audit.
 ### `CONTRIBUTING.md`
 
 - **4.1** Coverage gate phrasing "enforced as of 0.6.0" reads fine now but will get stale. Defer to 0.7.0.
-- **4.2** XCUITest mention could cross-reference `AppiOS/UITests/ReolensiOSUITests.swift`.
+- **4.2** XCUITest mention could cross-reference `AppiOS/UITests/DomusCamiOSUITests.swift`.
 
 ### `SECURITY.md`
 

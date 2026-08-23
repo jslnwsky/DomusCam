@@ -398,7 +398,7 @@ enum DiagnosticsFormatter {
                 "Development/Production iCloud environment mismatch between iOS and the publishing Mac.)"
         }
         if raw == "fetchError:notAuthenticated" {
-            return "Sign in to iCloud in the device's Settings app, then re-open Reolens."
+            return "Sign in to iCloud in the device's Settings app, then re-open DomusCam."
         }
         if raw == "fetchError:missingEntitlement" {
             return "The extension was signed without the iCloud container entitlement — re-archive and reinstall."

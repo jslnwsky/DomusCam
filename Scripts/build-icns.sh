@@ -3,7 +3,7 @@
 #
 # Produces Resources/AppIcon.icns, embedding the canonical macOS icon
 # size ladder (16, 32, 64, 128, 256, 512, 1024 px — each at 1x and 2x).
-# The build-app.sh script copies this file into Reolens.app/Contents/Resources.
+# The build-app.sh script copies this file into DomusCam.app/Contents/Resources.
 #
 # Usage:
 #     ./Scripts/build-icns.sh

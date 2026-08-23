@@ -116,7 +116,7 @@ struct SingleChannelView: View {
         // on the Mac (or another iPhone/iPad). Only the UUID and
         // channel travel — no hostnames or credentials per AGENTS.md
         // §11.
-        .reolensCameraActivity(
+        .domuscamCameraActivity(
             cameraID: session.entry.id,
             cameraName: session.entry.displayName,
             channelID: channel.channel
@@ -439,7 +439,7 @@ private struct FullscreenLiveView: View {
                     // 0.5.0 Liquid Glass — fullscreen-overlay name
                     // pill adapts to the underlying video instead of
                     // a fixed 55 % black tint.
-                    .reolensGlassToast()
+                    .domuscamGlassToast()
                 Spacer()
                 Button {
                     dismiss()

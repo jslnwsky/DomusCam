@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Build, archive, and (optionally) upload the native macOS Reolens app to
+# Build, archive, and (optionally) upload the native macOS DomusCam app to
 # the Mac App Store (TestFlight). Mirror of Scripts/build-ios.sh for the
-# ReolensMac scheme — it ships under the SAME App Store Connect record as
-# the iOS app (shared bundle id com.reolens.Reolens), so iOS + macOS are
+# DomusCamMac scheme — it ships under the SAME App Store Connect record as
+# the iOS app (shared bundle id com.75-c.DomusCam), so iOS + macOS are
 # one multiplatform app.
 #
 # Usage:
@@ -28,17 +28,17 @@
 set -euo pipefail
 
 MODE="${1:-archive}"
-SCHEME="ReolensMac"
+SCHEME="DomusCamMac"
 PROJECT_DIR="AppiOS"
-PROJECT="${PROJECT_DIR}/ReolensiOS.xcodeproj"
+PROJECT="${PROJECT_DIR}/DomusCamiOS.xcodeproj"
 BUILD_DIR="${BUILD_DIR:-build-mac}"
-ARCHIVE_PATH="${BUILD_DIR}/ReolensMac.xcarchive"
+ARCHIVE_PATH="${BUILD_DIR}/DomusCamMac.xcarchive"
 EXPORT_DIR="${BUILD_DIR}/export"
 EXPORT_OPTIONS="${BUILD_DIR}/ExportOptions.plist"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-TEAM_ID="${TEAM_ID:-5M9UT7VQ8Q}"
-MAC_APP_BUNDLE_ID="${MAC_APP_BUNDLE_ID:-com.reolens.Reolens}"
+TEAM_ID="${TEAM_ID:-NXVC3868F7}"
+MAC_APP_BUNDLE_ID="${MAC_APP_BUNDLE_ID:-com.75-c.DomusCam}"
 MAC_INSTALLER_IDENTITY="${MAC_INSTALLER_IDENTITY:-3rd Party Mac Developer Installer}"
 export MAC_APP_BUNDLE_ID
 
@@ -161,7 +161,7 @@ mkdir -p "${BUILD_DIR}"
 # Pin App Store profiles to the local Apple Distribution cert's serial so a
 # stale ASC profile attached to an old/revoked cert doesn't get picked.
 if command -v security >/dev/null 2>&1 && command -v openssl >/dev/null 2>&1; then
-    CERT_PEM="$(mktemp -t reolens-mac-dist-cert.XXXXXX)"
+    CERT_PEM="$(mktemp -t domuscam-mac-dist-cert.XXXXXX)"
     if security find-certificate -c "Apple Distribution" -p > "${CERT_PEM}" 2>/dev/null; then
         CERT_SERIAL="$(
             openssl x509 -in "${CERT_PEM}" -noout -serial 2>/dev/null \
@@ -186,7 +186,7 @@ APP_PROFILE_UUID=""
 if [[ -n "${AC_API_KEY_ID:-}" && -n "${AC_API_KEY_P8_PATH:-}" ]]; then
     echo "==> Ensuring Mac App Store provisioning profile via ASC API"
     export PLATFORM=MAC_APP_STORE
-    export PROFILE_NAME="${MAC_APP_PROFILE_NAME:-Reolens Mac App Store}"
+    export PROFILE_NAME="${MAC_APP_PROFILE_NAME:-DomusCam Mac App Store}"
     HELPER_OUT="$(python3 "${REPO_ROOT}/Scripts/asc_ensure_profile.py")"
     APP_PROFILE_NAME="$(printf '%s\n' "${HELPER_OUT}" | sed -n '1p')"
     APP_PROFILE_UUID="$(printf '%s\n' "${HELPER_OUT}" | sed -n '3p')"
@@ -200,8 +200,8 @@ if [[ -n "${APP_PROFILE_NAME}" ]]; then
         "CODE_SIGN_STYLE=Manual"
         "CODE_SIGN_IDENTITY=Apple Distribution"
         "DEVELOPMENT_TEAM=${TEAM_ID}"
-        "REOLENS_MAC_APP_PROFILE_NAME=${APP_PROFILE_NAME}"
-        "REOLENS_MAC_APP_PROFILE_UUID=${APP_PROFILE_UUID}"
+        "DOMUSCAM_MAC_APP_PROFILE_NAME=${APP_PROFILE_NAME}"
+        "DOMUSCAM_MAC_APP_PROFILE_UUID=${APP_PROFILE_UUID}"
     )
 else
     SIGN_BUILD_SETTINGS=("CODE_SIGN_IDENTITY=Apple Distribution")
@@ -233,7 +233,7 @@ fi
 
 # ---------------------------------------------------------------------------
 echo "==> Writing ExportOptions.plist"
-EXPORT_APP_PROFILE="${APP_PROFILE_UUID:-${APP_PROFILE_NAME:-Reolens Mac App Store}}"
+EXPORT_APP_PROFILE="${APP_PROFILE_UUID:-${APP_PROFILE_NAME:-DomusCam Mac App Store}}"
 
 cat > "${EXPORT_OPTIONS}" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>

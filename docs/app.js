@@ -1,4 +1,4 @@
-// reolens.io — minimal client-side polish.
+// github.com/jslinowsky/DomusCam — minimal client-side polish.
 //
 // One tiny behavior: smooth-scroll for in-page nav anchors (skipped if
 // the user has requested reduced motion — respect their setting).

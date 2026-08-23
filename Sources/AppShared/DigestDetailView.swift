@@ -1,9 +1,9 @@
 import SwiftUI
 
 /// 0.5.0 Theme A5 — read-only sheet showing yesterday's overnight
-/// digest. Cross-platform: hosted from `ReolensApp` on macOS via the
+/// digest. Cross-platform: hosted from `DomusCamApp` on macOS via the
 /// `pendingIntentNavigation == .digest(day:)` path, from
-/// `ReolensiOSApp` via the same. Source data is the most-recent
+/// `DomusCamiOSApp` via the same. Source data is the most-recent
 /// `DailyDigestRecord` in `<AppGroup>/digests/` — written by
 /// `DigestScheduler.runDigest(...)`.
 public struct DigestDetailView: View {
@@ -55,7 +55,7 @@ public struct DigestDetailView: View {
                 .keyboardShortcut(.cancelAction)
         }
         .padding(16)
-        .reolensGlassPanel()
+        .domuscamGlassPanel()
     }
 
     @ViewBuilder
@@ -91,7 +91,7 @@ public struct DigestDetailView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .reolensGlassCard()
+        .domuscamGlassCard()
     }
 
     private func hourlyChart(buckets: [Int], peakHour: Int) -> some View {
@@ -121,7 +121,7 @@ public struct DigestDetailView: View {
             .frame(height: 80)
         }
         .padding(12)
-        .reolensGlassCard()
+        .domuscamGlassCard()
     }
 
     private func perCameraSection(counts: [SharedContainer.DailyDigestRecord.PerCameraCount]) -> some View {
@@ -144,7 +144,7 @@ public struct DigestDetailView: View {
             }
         }
         .padding(12)
-        .reolensGlassCard()
+        .domuscamGlassCard()
     }
 
     private func perTagSection(counts: [String: Int]) -> some View {
@@ -162,13 +162,13 @@ public struct DigestDetailView: View {
                             .font(.caption.weight(.semibold).monospacedDigit())
                             .foregroundStyle(.secondary)
                     }
-                    .reolensGlassChip()
+                    .domuscamGlassChip()
                 }
                 Spacer()
             }
         }
         .padding(12)
-        .reolensGlassCard()
+        .domuscamGlassCard()
     }
 
     private var emptyState: some View {

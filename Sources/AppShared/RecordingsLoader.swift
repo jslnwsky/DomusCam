@@ -3,7 +3,7 @@ import OSLog
 import ReolinkAPI
 import ReolinkBaichuan
 
-private let log = Logger(subsystem: "com.reolens.app", category: "recordings-loader")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "recordings-loader")
 
 /// 0.6.0 — `RecordingsLoader` owns the network orchestration + derived
 /// state that used to live as 12 `@State` variables on each of the two

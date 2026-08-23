@@ -8,7 +8,7 @@ import AppShared
 /// Keychain. AGENTS.md §16.
 public struct CameraSnapshotWidget: Widget {
 
-    public static let kind = "io.reolens.widget.cameraSnapshot"
+    public static let kind = "io.domuscam.widget.cameraSnapshot"
 
     public init() {}
 

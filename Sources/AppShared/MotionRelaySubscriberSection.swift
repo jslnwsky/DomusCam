@@ -26,7 +26,7 @@ public struct MotionRelaySubscriberSection: View {
     public var body: some View {
         Section("Receive motion events from other Apple devices") {
             Toggle("Receive on this iPhone / iPad", isOn: $subscriberEnabled)
-            Text("Apple's CloudKit silently delivers motion events from your Mac (or another Mac running Reolens with the relay publisher on) to this device. The setting takes effect on next app launch.")
+            Text("Apple's CloudKit silently delivers motion events from your Mac (or another Mac running DomusCam with the relay publisher on) to this device. The setting takes effect on next app launch.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
             if !subscriberEnabled {
@@ -75,17 +75,17 @@ public struct MotionRelaySubscriberSection: View {
         }
 
         let content = UNMutableNotificationContent()
-        content.title = "Reolens test notification"
+        content.title = "DomusCam test notification"
         content.body = "Tap this to confirm push delivery works on this device."
         content.sound = .default
         let request = UNNotificationRequest(
-            identifier: "reolens.diagnostics.test.\(UUID().uuidString)",
+            identifier: "domuscam.diagnostics.test.\(UUID().uuidString)",
             content: content,
             trigger: nil
         )
         do {
             try await center.add(request)
-            testFeedback = "Test notification posted. If it doesn't appear in Notification Center, check iOS Settings → Reolens → Notifications."
+            testFeedback = "Test notification posted. If it doesn't appear in Notification Center, check iOS Settings → DomusCam → Notifications."
         } catch {
             testFeedback = "Failed to post test notification: \(error.localizedDescription)"
         }

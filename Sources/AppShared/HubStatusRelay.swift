@@ -4,12 +4,12 @@ import OSLog
 
 /// 0.7.0 — the CloudKit "heartbeat" behind the **Hub-offline banner**.
 ///
-/// A Mac running as the always-on Reolens Hub periodically writes a
+/// A Mac running as the always-on DomusCam Hub periodically writes a
 /// single `HubStatus` record to the user's *private* CloudKit database;
 /// the user's other devices read it and, if the heartbeat has gone
 /// stale, show "Hub offline — notifications paused". This rides the same
 /// no-server pattern as `MotionEvent` — CloudKit-under-the-user's-own-
-/// iCloud is "the server" (AGENTS.md §5). There is still no Reolens
+/// iCloud is "the server" (AGENTS.md §5). There is still no DomusCam
 /// backend.
 ///
 /// One record per hub *device* (record name = a stable per-install
@@ -31,7 +31,7 @@ public struct HubStatus: Sendable, Equatable, Identifiable {
     /// Client-written timestamp of this heartbeat. Kept for display
     /// ("last seen 3m ago"); NOT used for the staleness decision.
     public let lastSeen: Date
-    /// Reolens version of the hub, for diagnostics. Optional.
+    /// DomusCam version of the hub, for diagnostics. Optional.
     public let appVersion: String?
     /// Whether the hub currently has the CloudKit publisher on. Lets a
     /// receiver distinguish a Hub that was turned off gracefully (neutral
@@ -111,7 +111,7 @@ public struct HubStatus: Sendable, Equatable, Identifiable {
 /// in `UserDefaults` so every heartbeat replaces the same CloudKit
 /// record rather than accumulating one per launch.
 public enum HubDeviceIdentity {
-    static let key = "com.reolens.hubDeviceID"
+    static let key = "com.75-c.DomusCam.hubDeviceID"
 
     public static func current(defaults: UserDefaults = .standard) -> String {
         if let existing = defaults.string(forKey: key) { return existing }
@@ -127,9 +127,9 @@ public enum HubDeviceIdentity {
 /// the prior heartbeat) instead of failing with `serverRecordChanged`.
 public actor CloudKitHubStatusPublisher {
     private let containerID: String
-    private let log = Logger(subsystem: "com.reolens.Reolens", category: "HubStatus")
+    private let log = Logger(subsystem: "com.75-c.DomusCam", category: "HubStatus")
 
-    public init(containerID: String = "iCloud.com.reolens.Reolens") {
+    public init(containerID: String = "iCloud.com.75-c.DomusCam") {
         self.containerID = containerID
     }
 
@@ -174,9 +174,9 @@ public actor CloudKitHubStatusPublisher {
 /// Runs on all platforms (any device may need to show the banner).
 public actor CloudKitHubStatusReader {
     private let containerID: String
-    private let log = Logger(subsystem: "com.reolens.Reolens", category: "HubStatus")
+    private let log = Logger(subsystem: "com.75-c.DomusCam", category: "HubStatus")
 
-    public init(containerID: String = "iCloud.com.reolens.Reolens") {
+    public init(containerID: String = "iCloud.com.75-c.DomusCam") {
         self.containerID = containerID
     }
 

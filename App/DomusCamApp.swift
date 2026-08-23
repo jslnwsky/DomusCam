@@ -1,0 +1,365 @@
+import SwiftUI
+import AppKit
+import AppShared
+
+/// 0.6.1 — Notification names for the macOS Camera menu's keyboard
+/// shortcuts. Decoupled from any one view's state — the active
+/// `ContentView` observes these and routes to the selected
+/// `CameraSession` / `CameraStore`.
+extension Notification.Name {
+    static let domuscamRefreshLiveTiles = Notification.Name("com.75-c.DomusCam.command.refreshLiveTiles")
+    /// `userInfo["index": Int]` — zero-based index into `CameraStore.cameras`.
+    static let domuscamSwitchToCamera = Notification.Name("com.75-c.DomusCam.command.switchToCamera")
+}
+
+@main
+struct DomusCamApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @State private var store = CameraStore()
+
+    var body: some Scene {
+        WindowGroup("DomusCam") {
+            ContentView()
+                .environment(store)
+                .frame(minWidth: 900, minHeight: 600)
+                .task {
+                    // Drain any pending intent the user fired before
+                    // the app was running (Shortcuts/Siri or a
+                    // notification tap on cold launch). The delegate
+                    // itself is installed in AppDelegate so it's in
+                    // place before iOS/macOS dispatches a launch-time
+                    // notification response.
+                    store.applyPendingIntentFocus()
+                    // Install the menu-bar status item lazily, based on
+                    // the user's persisted preference. AGENTS.md §10 —
+                    // we never add a menu-bar icon without the user
+                    // opting in.
+                    MenuBarController.shared.syncFromDefaults(store: store)
+                    // 0.7.0 — if this Mac is the designated DomusCam Hub,
+                    // bring up the listener now so it starts publishing
+                    // even when relaunched at login with no window yet
+                    // (this scene's `.task` is where the engine gets the
+                    // shared CameraStore). Idempotent — safe alongside the
+                    // toggle path.
+                    HubController.shared.syncFromDefaults(store: store)
+                    // 0.9.0 — if the Local HTTP API is enabled on this Mac,
+                    // bring up the LAN server now (mirrors the Hub start
+                    // above). Off by default; gated behind Developer Mode in
+                    // Settings. See LocalAPIController / docs/api/.
+                    LocalAPIController.shared.syncFromDefaults(store: store)
+                    // 0.7.0 — if Apple TV credential sync is on, re-publish
+                    // the encrypted credentials so the TV picks up any
+                    // password changes made on this Mac.
+                    TVCredentialSync.republishIfEnabled(store: store)
+                    // 0.5.0 Theme A5 — reconcile the daily overnight
+                    // digest with the user's current settings. Idle
+                    // until the user opts in; then a single
+                    // `UNCalendarNotificationTrigger` (repeats: true)
+                    // fires at the configured hour without needing
+                    // any background mode.
+                    Task { await DigestScheduler.shared.reconcileSchedule() }
+                    // 0.5.1 — proactively fetch a snapshot for every
+                    // non-battery camera in the background so first-
+                    // open tiles aren't stuck on "No preview yet".
+                    // Battery cameras stay opt-in (waking them
+                    // periodically just for a still would drain
+                    // battery for low value).
+                    CameraPreviewPrefetcher.shared.start(store: store)
+                    // 0.6.0 — reconcile bookmark downloads. Catches
+                    // bookmarks whose background download failed or
+                    // was never enqueued (legacy bookmarks created
+                    // pre-0.6.0 with a missing `sourceFileName` are
+                    // resolved lazily on next interaction).
+                    Task {
+                        let sessions = await MainActor.run {
+                            store.cameras.compactMap { store.session(for: $0.id) }
+                        }
+                        await BookmarkAutoDownloader.shared.reconcile(across: sessions)
+                    }
+                }
+                .onContinueUserActivity(CameraContinuity.cameraDetailActivityType) { activity in
+                    if CameraContinuity.handle(activity: activity) {
+                        store.applyPendingIntentFocus()
+                    }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                    store.applyPendingIntentFocus()
+                    // 0.6.0 TD-3b — re-start the periodic loop (it
+                    // was stopped on didResignActive) AND fire an
+                    // immediate sweep so a user returning to the app
+                    // after a while sees fresh tiles rather than
+                    // waiting for the next 15-min periodic cycle.
+                    CameraPreviewPrefetcher.shared.start(store: store)
+                    Task { await CameraPreviewPrefetcher.shared.sweepNow() }
+                    // 0.6.0 — restore foreground motion-poll cadence
+                    // (10 s). Mirrors the iOS scenePhase observer in
+                    // DomusCamiOSApp.swift. Single source of truth for
+                    // poll interval is AdaptivePollSchedule.shared.
+                    Task { @MainActor in AdaptivePollSchedule.shared.enteredForeground() }
+                    // 0.7.0 — if this Mac is the Hub, refresh its
+                    // CloudKit heartbeat promptly on wake so other
+                    // devices clear any stale "Hub offline" banner.
+                    if AppPreferences.runAsHubIsOn {
+                        HubHeartbeatWriter.shared.beatNow()
+                    }
+                    // 0.7.0 — refresh hub-health so a Mac that is not the
+                    // Hub clears or shows the offline banner on wake.
+                    Task { await HubHealth.shared.refresh() }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
+                    // 0.6.0 — relax motion polling to 60 s once the
+                    // Mac app is no longer the front-most. macOS apps
+                    // keep running when not active, but the user isn't
+                    // watching the grid — battery + thermal headroom
+                    // win.
+                    Task { @MainActor in AdaptivePollSchedule.shared.enteredBackground() }
+                    // 0.6.0 TD-3b — stop the snapshot prefetcher loop
+                    // when the Mac app loses front-most. The next
+                    // .didBecomeActive transition kicks an immediate
+                    // sweep, so first-render tiles stay fresh.
+                    // Mirrors the iOS scenePhase .background handler.
+                    CameraPreviewPrefetcher.shared.stop()
+                }
+                // Drain when a focus request is written AFTER the
+                // scene's launch `.task` ran — typically the
+                // cold-launch-via-notification-tap path, where
+                // `NotificationTapDelegate.didReceive` fires after
+                // `applicationDidFinishLaunching` and the scene is
+                // already `.active`, so `didBecomeActiveNotification`
+                // doesn't re-fire.
+                .onReceive(NotificationCenter.default.publisher(for: AppIntentFocus.didUpdate)) { _ in
+                    store.applyPendingIntentFocus()
+                }
+                // TLS pinning mismatches surface as a global sheet so
+                // they can't be missed in any specific view. The sheet
+                // either records the new cert (user "trusts new") or
+                // cancels (connection stays rejected). AGENTS.md §3.
+                .sheet(item: Binding(
+                    get: { store.pendingTrustChange },
+                    set: { store.pendingTrustChange = $0 }
+                )) { request in
+                    TrustChangedSheet(request: request)
+                        .environment(store)
+                }
+                // 0.5.0 Theme A5 — digest sheet, presented when a
+                // digest notification tap routes through
+                // `applyPendingIntentFocus()`.
+                .sheet(item: Binding<DigestDaySheet?>(
+                    get: { store.pendingDigestDay.map { DigestDaySheet(day: $0) } },
+                    set: { _ in store.pendingDigestDay = nil }
+                )) { sheet in
+                    DigestDetailView(requestedDay: sheet.day)
+                }
+                // Keychain write failures bubble up here as an alert
+                // so the user sees them instead of bouncing back to
+                // "No password on this Mac" silently after entering
+                // a password.
+                .alert(
+                    "Couldn't save password",
+                    isPresented: Binding(
+                        get: { store.passwordSaveError != nil },
+                        set: { isShown in if !isShown { store.passwordSaveError = nil } }
+                    ),
+                    presenting: store.passwordSaveError
+                ) { _ in
+                    Button("OK", role: .cancel) {
+                        store.passwordSaveError = nil
+                    }
+                } message: { err in
+                    Text(err.message)
+                }
+        }
+        .windowToolbarStyle(.unified(showsTitle: false))
+
+        // 0.5.0 — secondary scene for "Open in New Window" on a
+        // single camera. `WindowGroup(for: DomusCamScene.self)` opens a
+        // fresh window keyed by the scene value; SwiftUI handles
+        // multi-window state automatically. Used by the sidebar
+        // context-menu's "Open in New Window" item — see
+        // [CameraListView.swift].
+        WindowGroup(for: DomusCamScene.self) { $scene in
+            CameraSceneHost(scene: scene ?? .main)
+                .environment(store)
+                .frame(minWidth: 720, minHeight: 480)
+        }
+        .windowToolbarStyle(.unified(showsTitle: true))
+
+        .commands {
+            // Replace the default About item with our own custom panel.
+            // SwiftUI's `CommandGroup(replacing: .appInfo)` swaps out the
+            // first item in the application menu without touching the
+            // surrounding system items (Services, Hide, Quit, etc.).
+            CommandGroup(replacing: .appInfo) {
+                Button("About DomusCam") {
+                    showAboutPanel()
+                }
+            }
+            SidebarCommands()
+            ToolbarCommands()
+            // 0.6.1 — Camera menu with keyboard shortcuts. Each item
+            // posts a Notification the active view layer observes
+            // (ContentView / CameraDetailView / CameraListView). Keeps
+            // the menu wiring decoupled from any one view's state
+            // while still giving power users keyboard control.
+            CommandMenu("Camera") {
+                Button("Refresh Live Tiles") {
+                    NotificationCenter.default.post(name: .domuscamRefreshLiveTiles, object: nil)
+                }
+                .keyboardShortcut("r", modifiers: [.command])
+
+                Divider()
+
+                ForEach(1...9, id: \.self) { index in
+                    Button("Switch to Camera \(index)") {
+                        NotificationCenter.default.post(
+                            name: .domuscamSwitchToCamera,
+                            object: nil,
+                            userInfo: ["index": index - 1]
+                        )
+                    }
+                    .keyboardShortcut(KeyEquivalent(Character("\(index)")), modifiers: [.command])
+                }
+            }
+        }
+
+        Settings {
+            SettingsView()
+                .environment(store)
+                .frame(minWidth: 480, minHeight: 320)
+        }
+    }
+
+    /// Wraps our SwiftUI `AboutView` in a borderless `NSPanel`. We can't use
+    /// `orderFrontStandardAboutPanel(options:)` because we want full control
+    /// over the layout and links — the standard panel only takes a fixed
+    /// set of keys (credits, version, etc.).
+    @MainActor
+    private func showAboutPanel() {
+        AboutPanelController.shared.show()
+    }
+}
+
+/// 0.5.0 Theme A5 — `Identifiable` wrapper for `Date` so the digest
+/// sheet's `.sheet(item:)` binding has a stable identity that matches
+/// the requested-day epoch.
+private struct DigestDaySheet: Identifiable {
+    let day: Date
+    var id: TimeInterval { day.timeIntervalSince1970 }
+}
+
+/// Singleton owner of the About panel so its window stays alive across
+/// open/close cycles (the panel's `.releasedWhenClosed = false` means we
+/// just hide it on close and re-show it on the next invocation).
+@MainActor
+final class AboutPanelController {
+    static let shared = AboutPanelController()
+    private var window: NSWindow?
+
+    func show() {
+        if let window {
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+        let host = NSHostingController(rootView: AboutView())
+        let win = NSWindow(contentViewController: host)
+        win.styleMask = [.titled, .closable]
+        win.title = "About DomusCam"
+        win.isReleasedWhenClosed = false
+        win.center()
+        self.window = win
+        win.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+}
+
+/// SwiftPM executables don't get a `.app` bundle, so AppKit treats the process
+/// like a background tool by default — no Dock icon, no window focus. Force
+/// `.regular` activation here so `swift run DomusCam` actually shows a window.
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        // SwiftPM executables launch as a background tool by default (no
+        // Dock icon / window focus), so force `.regular` to make `swift
+        // run DomusCam` / a Finder double-click show a window.
+        NSApp.setActivationPolicy(.regular)
+        // Install the notification-tap delegate as early as possible
+        // so a cold-launch tap on an alarm notification is routed
+        // correctly. willFinishLaunching is the earliest hook NSApp
+        // offers; setting `UNUserNotificationCenter.delegate` here
+        // guarantees it's in place before iOS dispatches any
+        // pending response.
+        NotificationTapDelegate.install()
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // CI smoke-test hook. Started with `--smoke-test`, the app boots
+        // the SwiftUI scene normally (so the window + view tree
+        // construct), then exits cleanly after a short delay. The
+        // release workflow's smoke step launches the built `.app` with
+        // this flag and asserts the process exits 0 within the window —
+        // catching startup crashes that unit tests can't.
+        let isSmokeTest = CommandLine.arguments.contains("--smoke-test")
+
+        NSApp.activate(ignoringOtherApps: true)
+        // Auto-request notification permission once, on the very first
+        // launch where the OS hasn't yet recorded a decision. After the
+        // user picks (allow / don't allow), the status flips to
+        // `.authorized` or `.denied` and the `.notDetermined` guard
+        // makes every subsequent launch a no-op — Apple's notification
+        // center only ever prompts once anyway. Users who change their
+        // mind later go through Settings → Notifications, which uses
+        // the same `requestPermission` (when notDetermined) or deep-
+        // links to System Settings (when denied).
+        //
+        // Skipped in smoke-test mode — we don't want to leave a
+        // permission prompt hanging on a CI runner.
+        if !isSmokeTest {
+            Task { @MainActor in
+                await EventNotifier.shared.refreshPermissionStatus()
+                if EventNotifier.shared.permissionStatus == .notDetermined {
+                    await EventNotifier.shared.requestPermission()
+                }
+            }
+        }
+
+        if isSmokeTest {
+            // Give SwiftUI a runloop spin to construct the WindowGroup,
+            // then exit. We bypass `NSApp.terminate(_:)` and call
+            // `exit(0)` directly — terminate() can stall when the
+            // SwiftUI scene hasn't fully wired up its delegates (which
+            // is exactly the state a 2-second smoke launch is in), and
+            // for a smoke test we just need a clean process-exit signal,
+            // not graceful AppKit teardown.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                exit(0)
+            }
+        }
+    }
+
+    /// When the user has opted into menu-bar mode (Settings → General →
+    /// "Run in the menu bar when closed", 0.4.0) OR designated this Mac
+    /// as a DomusCam Hub (0.7.0), closing the last window leaves the app
+    /// running so the menu-bar item / Hub engine keep publishing motion
+    /// notifications. AGENTS.md §10 — only honors the flags the user
+    /// explicitly flipped on, so default behavior (terminate on last
+    /// window close) is unchanged.
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        let menuBar = UserDefaults.standard.bool(forKey: MenuBarController.menuBarModeKey)
+        return !(menuBar || AppPreferences.runAsHubIsOn)
+    }
+
+    /// When DomusCam is running with no visible window (menu-bar mode, or
+    /// Hub mode after the window was closed) and the user reopens it
+    /// (Finder, Spotlight, Dock), LaunchServices reactivates this same
+    /// process rather than spawning a second instance — preserving the
+    /// single-`CameraStore` / one-Baichuan-connection-per-camera
+    /// invariant. Make sure we're a regular, Dock-visible app and let
+    /// AppKit re-present the WindowGroup window.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if NSApp.activationPolicy() != .regular {
+            NSApp.setActivationPolicy(.regular)
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        return true
+    }
+}

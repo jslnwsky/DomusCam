@@ -69,8 +69,8 @@ public final class CameraNotificationPreferences {
 
     // `nonisolated` so the off-main-actor reader can use it without
     // hopping isolation. The keys are constants — no race.
-    nonisolated private static let storeKey = "com.reolens.mutedCameraNotifications"
-    nonisolated private static let channelStoreKey = "com.reolens.mutedChannelNotifications"
+    nonisolated private static let storeKey = "com.75-c.DomusCam.mutedCameraNotifications"
+    nonisolated private static let channelStoreKey = "com.75-c.DomusCam.mutedChannelNotifications"
     nonisolated private static let debounceNanos: UInt64 = 750_000_000
 
     private let kv = NSUbiquitousKeyValueStore.default

@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-/// Apple Handoff (Continuity) bridging for Reolens, added in 0.4.0.
+/// Apple Handoff (Continuity) bridging for DomusCam, added in 0.4.0.
 ///
 /// When the user opens a camera on iPhone/iPad, an `NSUserActivity` is
 /// published with that camera's UUID. macOS receives it through the
@@ -19,7 +19,7 @@ public enum CameraContinuity {
     /// `NSUserActivity.activityType` used in both apps' Info.plist
     /// `NSUserActivityTypes` arrays. Reverse-DNS form keyed off the
     /// website domain matches Apple's convention.
-    public static let cameraDetailActivityType = "io.reolens.camera-detail"
+    public static let cameraDetailActivityType = "io.domuscam.camera-detail"
 
     /// Keys inside `userInfo`. Kept small — no hostnames, no
     /// credentials, no display names (AGENTS.md §11).
@@ -31,7 +31,7 @@ public enum CameraContinuity {
     /// Build a fully populated `NSUserActivity` for advertising.
     public static func makeActivity(cameraID: UUID, channelID: Int? = nil, cameraName: String?) -> NSUserActivity {
         let activity = NSUserActivity(activityType: cameraDetailActivityType)
-        activity.title = cameraName ?? "Reolens Camera"
+        activity.title = cameraName ?? "DomusCam Camera"
         activity.isEligibleForHandoff = true
         // Public/local indexing lets the camera show up in system
         // Spotlight as a side benefit — search "[camera name]" and
@@ -72,16 +72,16 @@ public enum CameraContinuity {
 
 public extension View {
     /// Advertise a camera detail view for Continuity / Handoff.
-    /// Adds the right `userActivity` modifier with the Reolens activity
+    /// Adds the right `userActivity` modifier with the DomusCam activity
     /// type populated. Tied to the camera's UUID — switching cameras
     /// inside the same view updates the published activity, so picking
     /// up on the other device lands on the right camera.
-    func reolensCameraActivity(cameraID: UUID, cameraName: String?, channelID: Int? = nil) -> some View {
+    func domuscamCameraActivity(cameraID: UUID, cameraName: String?, channelID: Int? = nil) -> some View {
         userActivity(
             CameraContinuity.cameraDetailActivityType,
             isActive: true
         ) { activity in
-            activity.title = cameraName ?? "Reolens Camera"
+            activity.title = cameraName ?? "DomusCam Camera"
             activity.isEligibleForHandoff = true
             activity.isEligibleForSearch = true
             var info: [String: any Sendable & Hashable] = [

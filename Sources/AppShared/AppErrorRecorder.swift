@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.Reolens", category: "AppErrorRecorder")
+private let log = Logger(subsystem: "com.75-c.DomusCam", category: "AppErrorRecorder")
 
 /// A single record in the local error log. Mirrors `NotificationRecord`
 /// in shape and persistence posture — file-backed in the App Group

@@ -46,7 +46,7 @@ public struct TrustChangedSheet: View {
                 Text("Camera certificate changed")
                     .font(.title3.weight(.semibold))
             }
-            Text(deviceName.map { "\"\($0)\" presented a different TLS certificate than the one Reolens recorded on first use." } ?? "This camera presented a different TLS certificate than the one Reolens recorded on first use.")
+            Text(deviceName.map { "\"\($0)\" presented a different TLS certificate than the one DomusCam recorded on first use." } ?? "This camera presented a different TLS certificate than the one DomusCam recorded on first use.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
             Text("This usually means the camera was reset or its firmware was reflashed. If you didn't reset the camera, cancel and verify what's on your network before trusting the new certificate.")
@@ -67,7 +67,7 @@ public struct TrustChangedSheet: View {
             .padding(10)
             // 0.5.0 Liquid Glass — fingerprint comparison block reads
             // as a glass card inside the trust-changed dialog.
-            .reolensGlassCard()
+            .domuscamGlassCard()
             HStack {
                 Button("Cancel", role: .cancel) {
                     store.pendingTrustChange = nil

@@ -3,17 +3,17 @@ import AppShared
 import ReolinkAPI
 
 /// 0.5.0 — Host for a single-camera-in-its-own-window scene, used by
-/// the macOS secondary `WindowGroup(for: ReolensScene.self)` and (on
+/// the macOS secondary `WindowGroup(for: DomusCamScene.self)` and (on
 /// iPad) the future Stage Manager multi-scene layout.
 ///
-/// Resolves the `ReolensScene` enum to the corresponding live view —
+/// Resolves the `DomusCamScene` enum to the corresponding live view —
 /// `.camera(id:channel:)` shows the channel detail; `.main` reuses
 /// `ContentView`; `.digest(day:)` (Theme A5) is reserved for a future
 /// digest scene and currently bounces to `ContentView`. AGENTS.md §1
 /// (platform parity): the same enum drives both macOS and iPadOS
 /// scenes.
 struct CameraSceneHost: View {
-    let scene: ReolensScene
+    let scene: DomusCamScene
     @Environment(CameraStore.self) private var store
 
     var body: some View {
@@ -31,7 +31,7 @@ struct CameraSceneHost: View {
                 ContentUnavailableView(
                     "Camera not available",
                     systemImage: "video.slash",
-                    description: Text("Reolens lost the session for this camera. Reopen it from the sidebar.")
+                    description: Text("DomusCam lost the session for this camera. Reopen it from the sidebar.")
                 )
             }
         case .digest:
@@ -53,7 +53,7 @@ struct CameraSceneHost: View {
 /// here next to the host so the value type and the opener move
 /// together.
 struct OpenInNewWindowButton: View {
-    let scene: ReolensScene
+    let scene: DomusCamScene
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {

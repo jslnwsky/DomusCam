@@ -18,7 +18,7 @@ Usage:
     AC_API_KEY_P8_PATH=~/Downloads/AuthKey_XXXXXXXXXX.p8         \\
     ./Scripts/asc_list_profiles.py                               # all profiles
 
-    ./Scripts/asc_list_profiles.py "Reolens iOS App Store"       # filter by name
+    ./Scripts/asc_list_profiles.py "DomusCam iOS App Store"       # filter by name
 
     ./Scripts/asc_list_profiles.py --delete <profile-id>         # destructive
     ./Scripts/asc_list_profiles.py --delete-by-name "Foo" --state INVALID

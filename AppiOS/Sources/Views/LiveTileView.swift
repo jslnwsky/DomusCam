@@ -412,7 +412,7 @@ struct LiveTileView: View {
         // 0.5.0 Liquid Glass — name + motion/AI indicator pill on the
         // live tile. AGENTS.md §1 (platform parity): same modifier as
         // the macOS twin.
-        .reolensGlassBadge()
+        .domuscamGlassBadge()
         .padding(8)
     }
 

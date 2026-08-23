@@ -9,7 +9,7 @@ import AppShared
 /// `WidgetCenter.shared.reloadTimelines(ofKind:)`). AGENTS.md §16.
 public struct MotionDigestWidget: Widget {
 
-    public static let kind = "io.reolens.widget.motionDigest"
+    public static let kind = "io.domuscam.widget.motionDigest"
 
     public init() {}
 

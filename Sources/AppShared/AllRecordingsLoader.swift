@@ -2,7 +2,7 @@ import Foundation
 import OSLog
 import ReolinkAPI
 
-private let log = Logger(subsystem: "com.reolens.app", category: "all-recordings")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "all-recordings")
 
 /// 0.5.1 — A `SearchFile` decorated with its source camera so the All
 /// Recordings view can display the camera name alongside each row.

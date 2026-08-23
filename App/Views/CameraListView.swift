@@ -69,7 +69,7 @@ struct CameraListView: View {
                 }
             }
         }
-        .navigationTitle("Reolens")
+        .navigationTitle("DomusCam")
         .searchable(text: $searchText, placement: .sidebar, prompt: "Search cameras")
         .sheet(item: $passwordEntryEntry) { entry in
             EnterPasswordSheet(entry: entry)
@@ -176,7 +176,7 @@ struct DeviceSidebarRow: View {
             // 0.5.0 — multi-window: open this camera in its own
             // window. SwiftUI's `openWindow(value:)` matches the
             // value type against the secondary `WindowGroup(for:
-            // ReolensScene.self)` declared in ReolensApp. Pinned to
+            // DomusCamScene.self)` declared in DomusCamApp. Pinned to
             // channel 0 because the device-row context-menu doesn't
             // know which specific channel the user wanted — the
             // per-channel row's own menu (added below) handles

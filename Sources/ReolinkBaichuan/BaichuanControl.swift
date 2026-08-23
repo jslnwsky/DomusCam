@@ -2,7 +2,7 @@ import Foundation
 import OSLog
 import ReolinkAPI
 
-private let log = Logger(subsystem: "com.reolens.baichuan", category: "control")
+private let log = Logger(subsystem: "com.75-c.DomusCam.baichuan", category: "control")
 
 /// Control-plane commands carried over the Baichuan port-9000 protocol, for
 /// cameras that ship the HTTP/HTTPS CGI API off (newer Reolink firmware, e.g.

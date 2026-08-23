@@ -14,7 +14,7 @@ import AppKit
 import UIKit
 #endif
 
-private let log = Logger(subsystem: "com.reolens.app", category: "notifier")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "notifier")
 
 /// 0.5.0 — protocol-typed bridge from `EventNotifier` (AppShared) to
 /// the iOS-only `MotionEventActivityController` (AppiOS). Keeps the
@@ -24,7 +24,7 @@ private let log = Logger(subsystem: "com.reolens.app", category: "notifier")
 /// The iOS app registers a concrete implementation at launch:
 ///
 /// ```swift
-/// // ReolensiOSApp.init():
+/// // DomusCamiOSApp.init():
 /// EventNotifier.liveActivityBridge = MotionEventActivityBridge()
 /// ```
 public protocol MotionEventLiveActivityBridge: Sendable {
@@ -107,14 +107,14 @@ public final class EventNotifier {
     /// every `requestPermission(...)` call.
     public private(set) var permissionStatus: UNAuthorizationStatus = .notDetermined
 
-    private static let enabledKey = "com.reolens.notifications.enabled"
+    private static let enabledKey = "com.75-c.DomusCam.notifications.enabled"
     // 0.8.2 migration sources: read once to seed the unified per-category
     // map (incl. Motion), then superseded by the perTagKey entries.
-    private static let aiKey = "com.reolens.notifications.ai"
-    private static let motionKey = "com.reolens.notifications.motion"
-    private static let categoryMigrationKey = "com.reolens.notifications.categoryMigration.v2"
+    private static let aiKey = "com.75-c.DomusCam.notifications.ai"
+    private static let motionKey = "com.75-c.DomusCam.notifications.motion"
+    private static let categoryMigrationKey = "com.75-c.DomusCam.notifications.categoryMigration.v2"
     private static func perTagKey(_ tag: DetectionType) -> String {
-        "com.reolens.notifications.tag.\(tag.rawValue)"
+        "com.75-c.DomusCam.notifications.tag.\(tag.rawValue)"
     }
     private static let cooldown: TimeInterval = 30
 
@@ -513,7 +513,7 @@ public final class EventNotifier {
         content.body = body
         content.sound = .default
         content.threadIdentifier = "ch-\(event.channelID)"
-        content.categoryIdentifier = "reolens.alarm"
+        content.categoryIdentifier = "domuscam.alarm"
         // userInfo lets the tap handler route to live view (when fresh)
         // or the recording browser (when older). Stored as primitives —
         // UNUserNotificationCenter requires the dictionary to be plist-
@@ -712,7 +712,7 @@ public final class EventNotifier {
         )
     }
 
-    /// Set by the iOS app at launch (see `ReolensiOSApp.swift`'s
+    /// Set by the iOS app at launch (see `DomusCamiOSApp.swift`'s
     /// init) to a real `MotionEventActivityController` adapter. Stays
     /// nil on macOS and in SPM unit tests — `startOrUpdateLiveActivity`
     /// is then a no-op.
@@ -984,7 +984,7 @@ public final class EventNotifier {
             // referenced URL with a recognized extension. Save the JPEG to
             // a uniquely-named file under the temp directory.
             let dest = FileManager.default.temporaryDirectory
-                .appendingPathComponent("reolens-snap-\(UUID().uuidString).jpg")
+                .appendingPathComponent("domuscam-snap-\(UUID().uuidString).jpg")
             try data.write(to: dest)
             return try UNNotificationAttachment(
                 identifier: dest.lastPathComponent,

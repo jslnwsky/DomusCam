@@ -1,8 +1,8 @@
 # Release runbook
 
-How to ship a new version of Reolens. As of 0.8.0 Reolens ships **only
+How to ship a new version of DomusCam. As of 0.8.0 DomusCam ships **only
 through the App Store / TestFlight**, for iPhone, iPad, and Mac, under one
-multiplatform App Store Connect record (bundle id `com.reolens.Reolens`). The
+multiplatform App Store Connect record (bundle id `com.75-c.DomusCam`). The
 old macOS Developer-ID DMG + Sparkle + Homebrew path is retired — see git
 history before 0.8.0 if you need it.
 
@@ -25,11 +25,11 @@ GitHub secrets the release workflow needs (all already configured):
 | `IOS_DIST_CERT_P12_BASE64`, `IOS_DIST_CERT_PASSWORD` | Apple Distribution cert — signs the iOS `.ipa` **and** the macOS `.app` |
 | `MAC_INSTALLER_CERT_P12_BASE64`, `MAC_INSTALLER_CERT_PASSWORD` | 3rd Party Mac Developer Installer cert — signs the macOS `.pkg` |
 | `KEYCHAIN_PASSWORD` | temporary CI keychain |
-| `vars.TEAM_ID` | Apple Developer team id (`5M9UT7VQ8Q`) |
+| `vars.TEAM_ID` | Apple Developer team id (`NXVC3868F7`) |
 
-The landing page at `reolens.io` is GitHub Pages from `/docs` (DNS: apex `A`
+The landing page at `github.com/jslinowsky/DomusCam` is GitHub Pages from `/docs` (DNS: apex `A`
 records to GitHub's `185.199.108–111.153`, `CNAME www → erichare.github.io`;
-repo Settings → Pages → `main` `/docs`, custom domain `reolens.io`).
+repo Settings → Pages → `main` `/docs`, custom domain `github.com/jslinowsky/DomusCam`).
 
 ## Per-release checklist
 
@@ -43,7 +43,7 @@ repo Settings → Pages → `main` `/docs`, custom domain `reolens.io`).
   ```
 - [ ] **Smoke-launch the local Mac build** (ad-hoc, no signing):
   ```sh
-  ./Scripts/build-app.sh && ./Reolens.app/Contents/MacOS/Reolens --smoke-test
+  ./Scripts/build-app.sh && ./DomusCam.app/Contents/MacOS/DomusCam --smoke-test
   ```
 
 ### 2. Bump the version
@@ -54,7 +54,7 @@ the release if they diverge (AGENTS.md §13). Edit, regenerate, verify:
 - [ ] `App/Info.plist` → `CFBundleShortVersionString` (the reference) and
   `App/Widgets/Info.plist`.
 - [ ] `AppiOS/project.yml` → every `MARKETING_VERSION` (iOS, Widgets,
-  Notification Service, tvOS, `ReolensMac`) **and** the iOS targets'
+  Notification Service, tvOS, `DomusCamMac`) **and** the iOS targets'
   `info.properties.CFBundleShortVersionString`.
 - [ ] `AppiOS/ci_scripts/add_watch_target.rb` → `MARKETING_VERSION`; and
   `AppiOS/Watch/Info.plist` → `CFBundleShortVersionString`.
@@ -78,9 +78,9 @@ git tag vX.Y.Z && git push origin vX.Y.Z
 The tag fires [`.github/workflows/release.yml`](../.github/workflows/release.yml),
 three jobs:
 
-1. **`mac-testflight`** — archives `ReolensMac`, exports a signed `.pkg`,
+1. **`mac-testflight`** — archives `DomusCamMac`, exports a signed `.pkg`,
    uploads via `xcrun altool --type macos`.
-2. **`ios-testflight`** — archives `ReolensiOS`, exports a signed `.ipa`,
+2. **`ios-testflight`** — archives `DomusCamiOS`, exports a signed `.ipa`,
    uploads to TestFlight.
 3. **`github-release`** — after both succeed, publishes the GitHub Release for
    the tag (notes only; no binaries — the apps live on the App Store).

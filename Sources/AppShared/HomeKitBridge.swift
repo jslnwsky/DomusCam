@@ -7,7 +7,7 @@ import Security
 @preconcurrency import HomeKit
 #endif
 
-private let log = Logger(subsystem: "com.reolens.app", category: "homekit-bridge")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "homekit-bridge")
 
 /// 0.6.0 Slice B2 — HomeKit bridge scaffolding.
 ///
@@ -91,7 +91,7 @@ public final class HomeKitBridge {
 
     /// Re-run the entitlement + permission probe. Called from the
     /// settings section when the user enables HomeKit in System
-    /// Settings and returns to Reolens.
+    /// Settings and returns to DomusCam.
     public func refreshAvailability() {
         #if canImport(HomeKit)
         guard Self.hasHomeKitEntitlement else {

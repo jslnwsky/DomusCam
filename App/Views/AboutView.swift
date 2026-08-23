@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 /// Custom About panel content. macOS shows this in a sheet-like floating
-/// window when the user picks **Reolens → About Reolens**.
+/// window when the user picks **DomusCam → About DomusCam**.
 ///
 /// Reads version + build from the running bundle so we never duplicate the
 /// version string in Swift — `Info.plist` is the single source of truth.
@@ -16,10 +16,10 @@ struct AboutView: View {
         let info = Bundle.main.infoDictionary ?? [:]
         self.appName = (info["CFBundleDisplayName"] as? String)
             ?? (info["CFBundleName"] as? String)
-            ?? "Reolens"
+            ?? "DomusCam"
         self.version = (info["CFBundleShortVersionString"] as? String) ?? "0.0.0"
         self.build = (info["CFBundleVersion"] as? String) ?? "0"
-        self.copyright = "© 2026 J&E Stats. MIT licensed."
+        self.copyright = "© 2026. Derived from Reolens by J&E Stats. MIT licensed."
     }
 
     var body: some View {
@@ -53,9 +53,9 @@ struct AboutView: View {
                 .frame(maxWidth: 320)
 
             HStack(spacing: 12) {
-                Link("Website", destination: URL(string: "https://reolens.io")!)
-                Link("GitHub",  destination: URL(string: "https://github.com/jestatsio/reolens")!)
-                Link("Issues",  destination: URL(string: "https://github.com/jestatsio/reolens/issues")!)
+                Link("Website", destination: URL(string: "https://github.com/jslinowsky/DomusCam")!)
+                Link("GitHub",  destination: URL(string: "https://github.com/jslinowsky/DomusCam")!)
+                Link("Issues",  destination: URL(string: "https://github.com/jslinowsky/DomusCam/issues")!)
                 Link("J&E Stats", destination: URL(string: "https://jestats.io")!)
             }
             .font(.system(size: 11))

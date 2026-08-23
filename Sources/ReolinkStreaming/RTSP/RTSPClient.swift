@@ -2,7 +2,7 @@ import Foundation
 import Network
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.streaming", category: "rtsp")
+private let log = Logger(subsystem: "com.75-c.DomusCam.streaming", category: "rtsp")
 
 public enum RTSPError: Error, CustomStringConvertible {
     case connectionFailed(any Error)
@@ -51,7 +51,7 @@ public actor RTSPClient {
         public let userAgent: String
         public let connectTimeout: TimeInterval
 
-        public init(url: URL, username: String, password: String, userAgent: String = "Reolens/0.1", connectTimeout: TimeInterval = 5) {
+        public init(url: URL, username: String, password: String, userAgent: String = "DomusCam/0.1", connectTimeout: TimeInterval = 5) {
             self.url = url
             self.username = username
             self.password = password

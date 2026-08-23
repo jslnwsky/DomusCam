@@ -13,7 +13,7 @@ import AppShared
 /// vs. `UIImage` for the underlying snapshot bytes.
 public struct CameraSnapshotWidget: Widget {
 
-    public static let kind = "io.reolens.widget.cameraSnapshot"
+    public static let kind = "io.domuscam.widget.cameraSnapshot"
 
     public init() {}
 

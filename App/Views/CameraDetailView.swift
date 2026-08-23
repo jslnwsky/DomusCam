@@ -79,7 +79,7 @@ struct CameraDetailView: View {
         if case .error(let message) = session.status {
             return message
         }
-        return "Reolens couldn't reach this camera."
+        return "DomusCam couldn't reach this camera."
     }
 
     private var titleLine: String {

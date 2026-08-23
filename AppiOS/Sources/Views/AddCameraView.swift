@@ -45,7 +45,7 @@ struct AddCameraView: View {
                         Label("Scan local network for cameras", systemImage: "antenna.radiowaves.left.and.right")
                     }
                 } footer: {
-                    Text("Reolens looks for cameras on your Wi-Fi network using Bonjour and a one-time HTTP scan. iOS will ask for Local Network permission the first time.")
+                    Text("DomusCam looks for cameras on your Wi-Fi network using Bonjour and a one-time HTTP scan. iOS will ask for Local Network permission the first time.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -165,7 +165,7 @@ private struct DiscoveryPickerSheet: View {
                     ContentUnavailableView {
                         Label("Local Network access denied", systemImage: "lock.shield")
                     } description: {
-                        Text("Reolens needs Local Network permission to discover cameras. Open Settings → Privacy & Security → Local Network → Reolens to allow it.")
+                        Text("DomusCam needs Local Network permission to discover cameras. Open Settings → Privacy & Security → Local Network → DomusCam to allow it.")
                     } actions: {
                         Button("Scan again") {
                             Task { await runScan() }
@@ -187,7 +187,7 @@ private struct DiscoveryPickerSheet: View {
                     ContentUnavailableView {
                         Label("No cameras found", systemImage: "antenna.radiowaves.left.and.right.slash")
                     } description: {
-                        Text("Reolens couldn't find any Reolink devices on this Wi-Fi network. Add by IP address using the form instead.")
+                        Text("DomusCam couldn't find any Reolink devices on this Wi-Fi network. Add by IP address using the form instead.")
                     } actions: {
                         Button("Scan again") {
                             Task { await runScan() }

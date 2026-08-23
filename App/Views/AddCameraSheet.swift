@@ -26,7 +26,7 @@ struct AddCameraSheet: View {
             .padding(.bottom, 12)
             // 0.5.0 Liquid Glass — segmented switcher sits atop a
             // glass toolbar that pairs with the rest of the chrome.
-            .reolensGlassToolbar()
+            .domuscamGlassToolbar()
 
             Divider()
 

@@ -1,6 +1,6 @@
 import Foundation
 
-/// How Reolens reaches a camera's *control plane* — the channel it uses for
+/// How DomusCam reaches a camera's *control plane* — the channel it uses for
 /// device info, PTZ, snapshots, and recording search (live video always rides
 /// RTSP:554 regardless).
 ///

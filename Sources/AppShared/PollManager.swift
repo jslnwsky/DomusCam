@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "poll-manager")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "poll-manager")
 
 /// 0.6.0 Slice 14 — generic, testable polling lifecycle.
 ///

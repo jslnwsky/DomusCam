@@ -81,35 +81,35 @@ struct SharedContainerCodableTests {
     }
 }
 
-/// `ReolensScene` is the WindowGroup scene-identifier for 0.5.0's
-/// multi-window layout. `WindowGroup(for: ReolensScene.self)` requires
+/// `DomusCamScene` is the WindowGroup scene-identifier for 0.5.0's
+/// multi-window layout. `WindowGroup(for: DomusCamScene.self)` requires
 /// `Hashable + Codable` — round-trips matter for state restoration.
-@Suite("ReolensScene Codable")
-struct ReolensSceneCodableTests {
+@Suite("DomusCamScene Codable")
+struct DomusCamSceneCodableTests {
 
     @Test("main case round-trips through JSON")
     func mainRoundTrips() throws {
-        let scene = ReolensScene.main
+        let scene = DomusCamScene.main
         let data = try JSONEncoder().encode(scene)
-        let decoded = try JSONDecoder().decode(ReolensScene.self, from: data)
+        let decoded = try JSONDecoder().decode(DomusCamScene.self, from: data)
         #expect(decoded == scene)
     }
 
     @Test("camera case preserves id + channel")
     func cameraRoundTrips() throws {
         let id = UUID()
-        let scene = ReolensScene.camera(id: id, channel: 3)
+        let scene = DomusCamScene.camera(id: id, channel: 3)
         let data = try JSONEncoder().encode(scene)
-        let decoded = try JSONDecoder().decode(ReolensScene.self, from: data)
+        let decoded = try JSONDecoder().decode(DomusCamScene.self, from: data)
         #expect(decoded == scene)
     }
 
     @Test("digest case preserves day")
     func digestRoundTrips() throws {
         let day = Date(timeIntervalSince1970: 1_700_000_000)
-        let scene = ReolensScene.digest(day: day)
+        let scene = DomusCamScene.digest(day: day)
         let data = try JSONEncoder().encode(scene)
-        let decoded = try JSONDecoder().decode(ReolensScene.self, from: data)
+        let decoded = try JSONDecoder().decode(DomusCamScene.self, from: data)
         #expect(decoded == scene)
     }
 }

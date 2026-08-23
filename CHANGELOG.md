@@ -1,9 +1,24 @@
 # Changelog
 
-All notable changes to Reolens are documented in this file.
+All notable changes to DomusCam are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
+
+Entries through 0.9.0 are the [Reolens](https://github.com/jestatsio/reolens)
+lineage this project was forked from.
+
+## [Unreleased]
+
+### Changed
+
+- **Forked as DomusCam.** New bundle id `com.75-c.DomusCam`, iCloud container
+  `iCloud.com.75-c.DomusCam`, App Group `group.com.75-c.DomusCam`, and Apple
+  team `NXVC3868F7`. Display name, modules, loggers, and docs use DomusCam.
+- **LAN-per-home only.** Removed the Reolink P2P / BcUdp stack and the
+  `RemoteSmoke` CLI. Camera UIDs are no longer harvested into `cameras.json`.
+  Away-from-home access remains Tailscale (or another overlay), not Reolink
+  cloud.
 
 ## [0.9.0] — 2026-06-29
 
@@ -16,19 +31,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   auto-detect probes HTTPS:443 and Baichuan:9000 alongside HTTP:80; a connect
   that's refused on every web port transparently falls back to Baichuan, so the
   camera comes online with live video (RTSP), motion/AI events, and PTZ — with
-  no setting to change. Reolens remembers the transport so the next connect goes
+  no setting to change. DomusCam remembers the transport so the next connect goes
   straight to the right port. If you'd rather use the web API, the error tells
   you exactly how to re-enable it (Reolink app → Network → Advanced → Port
   Settings, turn off Privacy Mode). No credentials or hostnames appear in any
   message (AGENTS.md §3). GitHub #76.
-- **A clean, local REST API for your cameras (macOS, opt-in).** Reolens now
+- **A clean, local REST API for your cameras (macOS, opt-in).** DomusCam now
   has a stable, versioned `/v1` HTTP API — list cameras, pull snapshots, move
   PTZ, search recordings, watch a live MJPEG video stream, and follow a live
   motion/AI event stream (SSE) — that the app itself is built around. Turn it on for a Mac under Settings →
   Advanced → Developer Mode → "Local API". It binds to your LAN only (never the
   public internet), is secured with a bearer token, and is off by default.
   Built for Home Assistant, Shortcuts, scripts, and other local integrations.
-  Hand-rolled on Network.framework — no new dependencies, and no Reolens server
+  Hand-rolled on Network.framework — no new dependencies, and no DomusCam server
   (it runs on your own Mac). macOS-only for now (iPhone/iPad can't hold a
   background listener), mirroring the Hub. Full contract in `docs/api/`.
 - **New REST API endpoints: per-camera diagnostics and reboot.** `GET
@@ -109,21 +124,21 @@ The 0.8.0 line — "Mac App Store".
 
 ### Added
 
-- **Reolens for Mac ships on the Mac App Store / TestFlight**, under the
+- **DomusCam for Mac ships on the Mac App Store / TestFlight**, under the
   same App Store Connect record as the iPhone/iPad app — one app, both
-  platforms (shared bundle id `com.reolens.Reolens`). macOS updates now
+  platforms (shared bundle id `com.75-c.DomusCam`). macOS updates now
   arrive through the App Store.
 
 ### Changed
 
 - **Unified bundle identifier.** The iPhone/iPad app moved from
-  `com.reolens.Reolens.iOS` to `com.reolens.Reolens` so iOS and macOS
+  `com.75-c.DomusCam.iOS` to `com.75-c.DomusCam` so iOS and macOS
   share one multiplatform App Store record. Your camera list (iCloud
   Drive) and motion-event history (CloudKit) are keyed to the iCloud
   container, not the bundle id, so they carry over unchanged; device-local
   Keychain passwords are re-entered on first launch (they never synced by
   default — AGENTS.md §4).
-- **Reolens Hub** keeps publishing motion events while the app is running,
+- **DomusCam Hub** keeps publishing motion events while the app is running,
   but the always-on headless `SMAppService.agent` LaunchAgent was removed
   for App Store compatibility. Pair "Run as Hub" with "Launch at login" to
   keep it running across reboots.
@@ -140,13 +155,13 @@ The 0.7.0 line — "Always-on + Big Screen".
 
 ### Added
 
-- **Reolens Hub (macOS).** Designate one always-on Mac as the Hub and it
+- **DomusCam Hub (macOS).** Designate one always-on Mac as the Hub and it
   runs the camera listener headless: auto-launches at login via a
   `SMAppService.agent` LaunchAgent that relaunches the same signed binary
   with `--hub` (accessory mode, no Dock icon, `KeepAlive`), so
   notifications, Live Activities, and the hub heartbeat keep flowing with
   no window open. Explicit per-Mac opt-in in Settings → Background. Still
-  no Reolens server — CloudKit-under-your-own-iCloud (AGENTS.md §5).
+  no DomusCam server — CloudKit-under-your-own-iCloud (AGENTS.md §5).
   `HubEngine` connects every camera and reconnects dropped sessions;
   cameras with no password on this Mac are surfaced, never silently
   skipped.
@@ -222,15 +237,15 @@ process queries, while the host app's fetch lands a few seconds
 later after replication has completed. 0.6.11 ships a four-layer
 fix:
 
-- A **sentinel title** ("Reolens") set at the top of `didReceive(...)`
+- A **sentinel title** ("DomusCam") set at the top of `didReceive(...)`
   so the user can see at-a-glance whether the extension is even being
-  invoked. If the banner title isn't "Reolens" or richer, the NSE
+  invoked. If the banner title isn't "DomusCam" or richer, the NSE
   itself isn't running.
 - **Exponential backoff retries** on `.unknownItem`: 1 s, 2.5 s, 5 s
   (total ~16 s including RTT), well inside the 30 s NSE budget,
   enough to ride out most replication lag.
 - A **friendlier fallback body** when the fetch still fails: "Camera
-  event — open Reolens for details" rather than the bare subscription
+  event — open DomusCam for details" rather than the bare subscription
   default "Motion detected", which mislabeled the event class.
 - A **host-app local-notification fallback** in
   `AppDelegate.didReceiveRemoteNotification`: waits ~17 s for the
@@ -272,7 +287,7 @@ AVPlayer surface was offset off-screen. The frame is now gated
 
 ### Changed
 
-- NSE sets `bestAttempt.title = "Reolens"` immediately on entry as a
+- NSE sets `bestAttempt.title = "DomusCam"` immediately on entry as a
   visible sentinel and writes invocation telemetry to the App Group
   on every push
   ([AppiOS/NotificationService/NotificationService.swift](AppiOS/NotificationService/NotificationService.swift)).
@@ -288,7 +303,7 @@ AVPlayer surface was offset off-screen. The frame is now gated
   `removeDeliveredNotifications` for matching threadIdentifier
   before the local post so the user sees one enriched banner instead
   of two stacked
-  ([AppiOS/Sources/ReolensiOSApp.swift](AppiOS/Sources/ReolensiOSApp.swift)).
+  ([AppiOS/Sources/DomusCamiOSApp.swift](AppiOS/Sources/DomusCamiOSApp.swift)).
 
 ### Fixed
 
@@ -318,7 +333,7 @@ emits a 64-char SHA-256 hex string. Every deduped relay event has
 silently failed the host-app decoder since the dedup path landed —
 the NSE still produced banners because it reads CKRecord fields
 directly, but the host-app `NotificationHistory` fan-out at
-[AppiOS/Sources/ReolensiOSApp.swift](AppiOS/Sources/ReolensiOSApp.swift)
+[AppiOS/Sources/DomusCamiOSApp.swift](AppiOS/Sources/DomusCamiOSApp.swift)
 got nothing. New `MotionEventRecordID.stableUUID(fromRecordName:)`
 parses legacy UUID names directly and deterministically derives a
 v5-shaped UUID from any other input — same recordName always yields
@@ -363,7 +378,7 @@ fired, even before they name the channels.
   `NotificationHistory` row
   ([`Sources/AppShared/MotionEventRelay.swift`](Sources/AppShared/MotionEventRelay.swift),
   [`AppiOS/NotificationService/NotificationService.swift`](AppiOS/NotificationService/NotificationService.swift),
-  [`AppiOS/Sources/ReolensiOSApp.swift`](AppiOS/Sources/ReolensiOSApp.swift)).
+  [`AppiOS/Sources/DomusCamiOSApp.swift`](AppiOS/Sources/DomusCamiOSApp.swift)).
   The field is optional so legacy records written before the
   Production schema deploy still decode and render with the
   pre-0.6.9 channel-number fallback.
@@ -435,7 +450,7 @@ Fixes the *third* layer of the silently-broken iOS push notification
 saga. 0.6.4 fixed the macOS CloudKit-entitlement probe and 0.6.5
 fixed the missing `com.apple.application-identifier` entitlement —
 both real bugs, both shipping fixes. But TestFlight iPhone users
-were still reporting "push notifications work when Reolens is open
+were still reporting "push notifications work when DomusCam is open
 on iPhone, but never when the app is minimized." The synthetic
 "Send test event via CloudKit" button on macOS produced a perfect
 end-to-end test (record published, iPhone silent push received,
@@ -503,7 +518,7 @@ shipped.
 ### Fixed
 
 - **`com.apple.application-identifier` entitlement on macOS** — add
-  `5M9UT7VQ8Q.com.reolens.Reolens` to `App/Reolens.entitlements` so
+  `NXVC3868F7.com.75-c.DomusCam` to `App/DomusCam.entitlements` so
   the codesign'd DMG carries the entitlement cloudd requires. After
   installing this build, the **CloudKit publish** diagnostic row
   flips green on the next test event and the TestFlight iPhone
@@ -751,7 +766,7 @@ handful of small features.
   Live Tiles" and ⌘1–⌘9 to jump to the first nine cameras. Wiring
   rides Notification.Name so the menu stays decoupled from view state.
 - **TTFF signposter** — `LiveVideoPlayer` emits an `OSSignposter`
-  interval on `com.reolens.streaming` / category `TTFF`. Open
+  interval on `com.75-c.DomusCam.streaming` / category `TTFF`. Open
   Instruments with the os_signpost instrument and the cold/warm time-
   to-first-frame is directly measurable. See
   [docs/perf-baselines/README.md](docs/perf-baselines/README.md).
@@ -999,7 +1014,7 @@ anyway), and lazy bookmark enumeration off the main thread.
   ViewedCameraID` round-trips through UserDefaults; the platform
   shell restores the previous camera on cold launch (skipped when
   an App Intent has a more-specific destination).
-- **XCUITest harness** — new `ReolensiOSUITests` target with 3
+- **XCUITest harness** — new `DomusCamiOSUITests` target with 3
   baseline journeys (cold-launch reaches primary navigation,
   Settings → Notifications header renders, Notification log row
   scrolls into view + pushes a navigation destination). Wired into
@@ -1115,7 +1130,7 @@ anyway), and lazy bookmark enumeration off the main thread.
   `VersionedCodable.swift`
 - `Sources/ReolinkAPI/Models/RecordingSchedule.swift` +
   `MotionSchedule.swift`
-- `AppiOS/UITests/ReolensiOSUITests.swift` (new XCUITest target)
+- `AppiOS/UITests/DomusCamiOSUITests.swift` (new XCUITest target)
 - `Scripts/coverage-baselines.txt`
 
 ### Tests
@@ -1263,7 +1278,7 @@ A "big minor" on top of 0.5.0. Five storylines:
   session. Bookmark creation enqueues the clip; iOS keeps the
   download going across app suspensions, force-quits, and relaunches.
   Final files land in
-  `~/Library/Application Support/Reolens/bookmarks/<bookmarkID>.mp4`
+  `~/Library/Application Support/DomusCam/bookmarks/<bookmarkID>.mp4`
   so they survive cache eviction. New
   [`BookmarkAutoDownloadDelegate`](Sources/AppShared/BookmarkAutoDownloader.swift)
   handles `didFinishDownloadingTo` by synchronously moving the file
@@ -1305,7 +1320,7 @@ A "big minor" on top of 0.5.0. Five storylines:
   jumps to today's events (optionally filtered to a specific camera)
   and [`MuteCameraNotificationsIntent`](Sources/AppShared/AppIntents/CameraIntents.swift)
   flips the per-camera notification preference. Both join the
-  existing `OpenCameraIntent` in `ReolensShortcuts` so "Hey Siri,
+  existing `OpenCameraIntent` in `DomusCamShortcuts` so "Hey Siri,
   show today's events" and "Hey Siri, mute the Driveway camera"
   work from any Apple platform.
 - **Hub-grouped Live Activities.**
@@ -1355,7 +1370,7 @@ A "big minor" on top of 0.5.0. Five storylines:
   active LAs, the most-recently-active one scores higher (linear
   decay over the 8 h stale window) so Dynamic Island prefers it.
 - **Filter pills are now interactive Liquid Glass.** The
-  [`reolensGlassChip`](Sources/AppShared/ReolensGlass.swift)
+  [`domuscamGlassChip`](Sources/AppShared/DomusCamGlass.swift)
   modifier adopts `.glassEffect(.regular.interactive())` on iOS 26
   / macOS 26 so chips morph subtly on press — matches the system
   pill behavior elsewhere in the OS. Material fallback on lower OSes
@@ -1413,7 +1428,7 @@ A "big minor" on top of 0.5.0. Five storylines:
 
 ## [0.5.0] — 2026-05-12
 
-The biggest release Reolens has shipped. Three storylines:
+The biggest release DomusCam has shipped. Three storylines:
 
 1. **Widgets and Live Activities.** Home Screen, Lock Screen, and Control Center widgets land on iOS / iPadOS, alongside in-flight motion-event Live Activities with full Dynamic Island support. macOS gets desktop widgets so platform parity holds.
 2. **Hardening pass.** Two real force-unwrap crash paths (Baichuan talkback audio format, VideoToolbox decoder buffer pointers) replaced with typed guards. CloudKit motion-event relay grew deduplication, per-camera rate-limiting with burst summaries, and a multi-account guard. A handful of `try?` swallows in long-running protocol paths now log failures explicitly. CI gained two new gates: an 80%-coverage floor on `AppShared` + `Reolink*` libraries (was aspirational), and a version-alignment check between macOS and iOS marketing versions.
@@ -1424,7 +1439,7 @@ Deployment floor moves to **iOS 26 / macOS 26** to adopt Liquid Glass and the Ac
 
 ### Added
 
-- **Widgets + Live Activities (iOS / iPadOS + macOS desktop).** New `ReolensiOSWidgets` extension target ([AppiOS/Widgets/](AppiOS/Widgets/)) ships five widget surfaces:
+- **Widgets + Live Activities (iOS / iPadOS + macOS desktop).** New `DomusCamiOSWidgets` extension target ([AppiOS/Widgets/](AppiOS/Widgets/)) ships five widget surfaces:
   - `CameraSnapshotWidget` — Home Screen widget (small / medium / large) showing the latest cached snapshot for a configurable camera plus the last-motion timestamp. Configurable via a new `SelectCameraIntent` App Intent.
   - `LastMotionWidget` — Lock Screen widget (inline / circular / rectangular) showing which camera most recently fired and how long ago.
   - `MotionDigestWidget` — Home Screen widget (medium / large) rendering the overnight digest count, top cameras, and an hourly sparkline.
@@ -1432,7 +1447,7 @@ Deployment floor moves to **iOS 26 / macOS 26** to adopt Liquid Glass and the Ac
   - `MotionEventActivityWidget` — in-flight motion-event Live Activity for Lock Screen + Dynamic Island, with compact, expanded, and minimal presentations. Auto-dismisses at the 4-hour cap; a fresh fire on the same camera replaces the prior activity (no stacking).
 - **Shared App-Group container.** New [`Sources/AppShared/SharedContainer.swift`](Sources/AppShared/SharedContainer.swift) is the only path widget / activity extensions use to read snapshots, recent events, and daily digests. Device-local, never CloudKit-synced. Codified in AGENTS.md §16.
 - **Live Activity controller.** [`AppiOS/Sources/LiveActivities/MotionEventActivityController.swift`](AppiOS/Sources/LiveActivities/MotionEventActivityController.swift) holds the start / update / end lifecycle. Replace-on-new-event semantics keep Dynamic Island readable during busy scenes; trigger frames live in the App-Group `activity-assets/` directory and are purged at 4 h.
-- **Multi-window scenes (iPad Stage Manager).** New `ReolensScene` enum in [`Sources/AppShared/ReolensScene.swift`](Sources/AppShared/ReolensScene.swift) feeds a `WindowGroup(for:)` setup so each camera can open in its own scene under Stage Manager. macOS gains "Open in New Window" on every camera row.
+- **Multi-window scenes (iPad Stage Manager).** New `DomusCamScene` enum in [`Sources/AppShared/DomusCamScene.swift`](Sources/AppShared/DomusCamScene.swift) feeds a `WindowGroup(for:)` setup so each camera can open in its own scene under Stage Manager. macOS gains "Open in New Window" on every camera row.
 - **Recording scrubber phase 2 (domain layer).** New [`ThumbnailCache`](Sources/AppShared/ThumbnailCache.swift) (content-addressed JPEG cache with 500 MB LRU eviction) and `SegmentScrubModel` (cross-segment seek + snap-to-nearest within 90 s) ship the data layer for the custom scrubber UI.
 - **Overnight digest.** Deterministic [`DigestBuilder`](Sources/AppShared/DigestBuilder.swift) summarizes a day's motion events by camera, AI tag, hourly histogram, and peak hour. Settings expose a per-user time picker (default 07:00 local); the daily-digest task drops a `DailyDigestRecord` into the shared container for the `MotionDigestWidget` to pick up.
 - **Clip bookmarks + MP4 export.** [`RecordingBookmark`](Sources/AppShared/RecordingBookmark.swift) is a forward-compatible per-camera bookmark model (`bookmarks_v1.json` per AGENTS.md §7) synced via iCloud Drive — references only, no media uploaded. [`ClipExporter`](Sources/AppShared/ClipExporter.swift) composes one or more underlying MP4 segments via `AVMutableComposition` and exports to MP4 via `AVAssetExportSession`.
@@ -1440,8 +1455,8 @@ Deployment floor moves to **iOS 26 / macOS 26** to adopt Liquid Glass and the Ac
 - **Overnight digest scheduler + UI.** [`DigestScheduler`](Sources/AppShared/DigestScheduler.swift) actor registers a daily `UNCalendarNotificationTrigger(repeats: true)` at the user-configured hour (default 07:00), builds the `DailyDigestRecord` from yesterday's events in the App-Group container, writes it to `<AppGroup>/digests/<yyyy-MM-dd>.json`, and posts a tap-handling local notification. [`DigestDetailView`](Sources/AppShared/DigestDetailView.swift) renders the headline number, 24-hour bar chart, per-camera + per-tag breakdowns in Liquid Glass cards. Settings expose an `OvernightDigestSection` on both macOS and iOS with enable / hour-picker / preview / build-now controls.
 - **MP4 clip export from bookmarks.** [`BookmarksSheet`](App/Views/BookmarksSheet.swift) gets an "Export…" button per row that routes through `RecordingsView.exportBookmark(_:)` → `NSSavePanel` → high-quality download → [`ClipExporter.export(sources:to:)`](Sources/AppShared/ClipExporter.swift) trim to the bookmark's range → final MP4 at the chosen destination. `PlayableRecording.bookmarkTrim` carries the per-source-relative range through the download/save pipeline.
 - **Custom recording scrubber (phase 2).** New [`ScrubberView`](Sources/AppShared/ScrubberView.swift) sits underneath the existing `AVPlayerView` with a thumbnail rail (one keyframe per 5 s default), draggable position cursor with time-preview bubble, and time row. Background thumbnail extraction via `AVAssetImageGenerator` against the local downloaded MP4, cached through `ThumbnailCache.shared`. Cross-platform `PlatformImage` typealias bridge (NSImage on macOS, UIImage on iOS) with `jpegData(quality:)` extensions. `AVPlayerHostView` extended with optional `playerSink` callback so the surrounding sheet can drive the scrubber against the same player instance. Native AVPlayerView controls stay for accessibility fallback.
-- **iPadOS multi-window.** Long-press context menu on iPadOS sidebar device + per-channel rows surfaces "Open in New Window", routing through `@Environment(\.openWindow)` against the new secondary `WindowGroup(for: ReolensScene.self)` declared on `ReolensiOSApp`. Stage Manager picks up the new scenes automatically.
-- **macOS desktop widgets twin.** `App/Widgets/` mirrors `AppiOS/Widgets/` minus the iOS-only Live Activity + Control Center widgets. `CameraSnapshotWidget` switches to `NSImage(data:)`; `LastMotionWidget` drops the iOS-only accessory families and ships with `systemSmall`/`systemMedium`. `Package.swift` excludes `App/Widgets` from the main `Reolens` SPM target so `@main` doesn't collide; the directory is wired to an Xcode app-extension target (see `App/Widgets/README.md`).
+- **iPadOS multi-window.** Long-press context menu on iPadOS sidebar device + per-channel rows surfaces "Open in New Window", routing through `@Environment(\.openWindow)` against the new secondary `WindowGroup(for: DomusCamScene.self)` declared on `DomusCamiOSApp`. Stage Manager picks up the new scenes automatically.
+- **macOS desktop widgets twin.** `App/Widgets/` mirrors `AppiOS/Widgets/` minus the iOS-only Live Activity + Control Center widgets. `CameraSnapshotWidget` switches to `NSImage(data:)`; `LastMotionWidget` drops the iOS-only accessory families and ships with `systemSmall`/`systemMedium`. `Package.swift` excludes `App/Widgets` from the main `DomusCam` SPM target so `@main` doesn't collide; the directory is wired to an Xcode app-extension target (see `App/Widgets/README.md`).
 
 ### Changed
 
@@ -1456,7 +1471,7 @@ Deployment floor moves to **iOS 26 / macOS 26** to adopt Liquid Glass and the Ac
 - **B1: Force-unwrap removal.** `AVAudioFormat(...)!` in [`BaichuanTalkback.swift`](Sources/ReolinkBaichuan/BaichuanTalkback.swift) is now a guarded init with a typed failure. The `baseAddress!.assumingMemoryBound(...)` patterns in [`H264Decoder.swift`](Sources/ReolinkStreaming/Player/H264Decoder.swift) and [`H265Decoder.swift`](Sources/ReolinkStreaming/Player/H265Decoder.swift) check for nil + empty inputs and throw a format-description error instead of trapping. Eliminates two known crash paths under malformed streams.
 - **B4: `try?` swallows replaced with explicit logged catches** in [`CGIClient.swift` (`logout`)](Sources/ReolinkAPI/CGIClient.swift), [`RTSPClient.swift` (`teardown`)](Sources/ReolinkStreaming/RTSP/RTSPClient.swift), [`BaichuanTalkback.swift` (`TalkReset` during `stop`)](Sources/ReolinkBaichuan/BaichuanTalkback.swift), and [`BaichuanAlarmVideo.swift` (`findAlarmVideo close`)](Sources/ReolinkBaichuan/BaichuanAlarmVideo.swift). Failures now log at the appropriate level so regressions become observable.
 - **AGENTS.md amendments** (§1 carve-outs list updated, §5 documents the App-Group shared container, §7 lists `_v1` introductions, §12 promotes coverage to CI-enforced, §13 promotes version alignment to CI-enforced, new §16 codifies Widgets / Live Activities rules).
-- **Liquid Glass adoption across the app.** New [`Sources/AppShared/ReolensGlass.swift`](Sources/AppShared/ReolensGlass.swift) centralizes design tokens (`reolensGlassBadge`, `reolensGlassCard`, `reolensGlassToolbar`, `reolensGlassToast`, `reolensGlassChip`, `reolensGlassPanel`, `reolensGlassContainer`) with iOS 26 / macOS 26 `glassEffect(...)` modifiers and `.ultraThinMaterial` / `.regularMaterial` fallbacks. Applied broadly: live-tile name + motion/AI indicator pills (macOS + iOS), failure-overlay retry buttons, snapshot HUD toast, iOS PTZ control card, fullscreen overlay name pill + Done button, AI event filter chips (with `GlassEffectContainer` morph), AI capability chips in Channel Settings, recordings header toolbar (controls + calendar + day timeline + filter bar all use one glass-toolbar surface), recordings footer notices, recordings player Raw-JSON card, trust-changed sheet fingerprint comparison block, privacy zone editor canvas, channel-detail tab picker, AddCameraSheet segmented mode picker, scrub-position bubble on the day timeline, menu-bar popover background, Bookmarks sheet header, macOS detail-view channel-name pill, digest detail sheet cards.
+- **Liquid Glass adoption across the app.** New [`Sources/AppShared/DomusCamGlass.swift`](Sources/AppShared/DomusCamGlass.swift) centralizes design tokens (`domuscamGlassBadge`, `domuscamGlassCard`, `domuscamGlassToolbar`, `domuscamGlassToast`, `domuscamGlassChip`, `domuscamGlassPanel`, `domuscamGlassContainer`) with iOS 26 / macOS 26 `glassEffect(...)` modifiers and `.ultraThinMaterial` / `.regularMaterial` fallbacks. Applied broadly: live-tile name + motion/AI indicator pills (macOS + iOS), failure-overlay retry buttons, snapshot HUD toast, iOS PTZ control card, fullscreen overlay name pill + Done button, AI event filter chips (with `GlassEffectContainer` morph), AI capability chips in Channel Settings, recordings header toolbar (controls + calendar + day timeline + filter bar all use one glass-toolbar surface), recordings footer notices, recordings player Raw-JSON card, trust-changed sheet fingerprint comparison block, privacy zone editor canvas, channel-detail tab picker, AddCameraSheet segmented mode picker, scrub-position bubble on the day timeline, menu-bar popover background, Bookmarks sheet header, macOS detail-view channel-name pill, digest detail sheet cards.
 - **Theme E — connection-robustness overhaul.** New `ConnectionStage` enum + `ConnectRetryPolicy` in [Sources/AppShared/ConnectionProgress.swift](Sources/AppShared/ConnectionProgress.swift). `CameraSession.connect()` now exposes `connectionStage` + `connectionAttempt` to the UI, parallelizes `GetDevInfo` and `GetChannelstatus` after login, applies jittered exponential backoff (±20%) with a 30 s overall deadline, and surfaces auth failures immediately. The sidebar's `DeviceRowLabel` shows the stage label in place of the host string while a session is mid-connect. Discovery (`CameraDiscovery`) throttles the /24 sweep to 32 concurrent probes, drops the per-probe timeout from 1.5 s → 1 s, and runs a Local Network permission check up front via the new `LocalNetworkPermission` helper. iOS `AddCameraView` shows a dedicated "Local Network access denied" state with a Settings → Privacy hint when the user has explicitly denied.
 
 ### Fixed
@@ -1473,7 +1488,7 @@ Deployment floor moves to **iOS 26 / macOS 26** to adopt Liquid Glass and the Ac
 
 ### Tests
 
-- New `Tests/AppSharedTests/SharedContainerTests.swift` — Codable round-trips for `LatestSnapshot`, `RecentMotionEvent`, `DailyDigestRecord`, plus `ReolensScene` enum.
+- New `Tests/AppSharedTests/SharedContainerTests.swift` — Codable round-trips for `LatestSnapshot`, `RecentMotionEvent`, `DailyDigestRecord`, plus `DomusCamScene` enum.
 - New `Tests/AppSharedTests/MotionEventRelayHardeningTests.swift` — `MotionEventRecordID` determinism + bucket boundaries, `MotionEventRateLimiter` allow / suppress / burst summary transitions, `CloudKitAccountIdentityGuard` enroll / allow / account-changed / reset flow.
 - New `Tests/AppSharedTests/DigestBuilderTests.swift` — `DigestBuilder.build(...)` total-in-window, per-camera sorting, peak hour, empty-input edge cases.
 - New `Tests/ReolinkStreamingTests/DecoderHardeningTests.swift` — empty SPS / PPS / VPS no-crash regression coverage.
@@ -1523,16 +1538,16 @@ Single-fix patch on top of 0.4.1.
 ### Fixed
 
 - **macOS Settings → Privacy → "Push notifications to iPhone / iPad"
-  was incorrectly showing "iCloud isn't available on this Reolens
+  was incorrectly showing "iCloud isn't available on this DomusCam
   build"** on properly-signed release DMGs. Root cause: 0.4.1's
   `CloudKitAvailability.canUseCloudKit(containerID:)` probe used
   `FileManager.url(forUbiquityContainerIdentifier:)` as a proxy for
   "does this binary carry the iCloud entitlement." That URL is nil
   not only when the entitlement is missing — also when the user
   hasn't signed into iCloud, hasn't enabled iCloud Drive, hasn't
-  enabled Reolens for iCloud Drive in System Settings, or simply
+  enabled DomusCam for iCloud Drive in System Settings, or simply
   hasn't triggered lazy container materialization yet on this
-  install. A correctly-signed Reolens with the full iCloud
+  install. A correctly-signed DomusCam with the full iCloud
   entitlement chain therefore read as "unavailable" on first
   launches and the relay toggle stayed disabled.
 
@@ -1546,7 +1561,7 @@ Single-fix patch on top of 0.4.1.
 ## [0.4.1] — 2026-05-12
 
 A trust-and-polish release on top of 0.4.0. Headlines: **CloudKit
-motion-event relay** for iOS background notifications (no Reolens
+motion-event relay** for iOS background notifications (no DomusCam
 server — events ride through the user's own iCloud account),
 **trust-on-first-use TLS pinning** for HTTPS cameras, a **logging
 redaction sweep** to close gaps between AGENTS.md §11's promise
@@ -1564,7 +1579,7 @@ release notes acknowledged was still landing broadly.
   menu-bar mode shipped in 0.4.0) writes motion / AI events to the
   user's *private* CloudKit database; iOS subscribes via
   `CKQuerySubscription` and posts a local notification when CloudKit
-  delivers a silent push. **No Reolens server — events ride
+  delivers a silent push. **No DomusCam server — events ride
   through Apple's CloudKit under the user's own iCloud account**
   (AGENTS.md §5). Opt-in via Settings → Privacy → "Relay motion
   events to my other Apple devices" on the macOS app. iOS app
@@ -1643,7 +1658,7 @@ release notes acknowledged was still landing broadly.
   `CKContainer.init(identifier:)` calls Apple's
   `EXC_BREAKPOINT` trap when the running binary lacks the iCloud-
   container entitlement — observed on ad-hoc-signed
-  `./Scripts/build-app.sh` outputs whose `Reolens.dev.entitlements`
+  `./Scripts/build-app.sh` outputs whose `DomusCam.dev.entitlements`
   deliberately drop iCloud to keep AMFI happy. Wrapped both the
   publisher and subscriber paths in a `CloudKitAvailability` probe
   (`FileManager.default.url(forUbiquityContainerIdentifier:)` —
@@ -1717,8 +1732,8 @@ release notes acknowledged was still landing broadly.
   verification before the user accepts the new cert.
 - Logging redaction sweep eliminated five enumerated leak sites
   from the 0.4.0 audit plus several others spotted while sweeping.
-  Run `os_log show --predicate 'subsystem == "com.reolens.app" or
-  subsystem == "com.reolens.Reolens"'` on a session that includes
+  Run `os_log show --predicate 'subsystem == "com.75-c.DomusCam.app" or
+  subsystem == "com.75-c.DomusCam"'` on a session that includes
   a download failure to verify no `user:` / `password=` / `token=`
   values appear.
 
@@ -1783,7 +1798,7 @@ that refresh on demand. The old behavior is one toggle away (Settings
   document the opt-in path.
 - **Static previews in the camera grid (default behavior change).**
   New `CameraPreviewService` actor in `AppShared` owns a per-(camera,
-  channel) JPEG cache under `~/Library/Caches/Reolens/previews/`. The
+  channel) JPEG cache under `~/Library/Caches/DomusCam/previews/`. The
   grid tile renders the cached image; the live RTSP stream only starts
   when the user opens a single-channel detail view. The first decoded
   keyframe of every live view silently updates the cache via the new
@@ -1801,25 +1816,25 @@ that refresh on demand. The old behavior is one toggle away (Settings
   action is one keystroke away).
 - **Continuity / Handoff between iPhone, iPad, and Mac.** Each camera
   detail view publishes an `NSUserActivity` with type
-  `io.reolens.camera-detail`; the receiving device routes it through
+  `io.domuscam.camera-detail`; the receiving device routes it through
   the existing `OpenCameraIntent` execution path so handoff reuses
   the same code Shortcuts and Siri already do. AGENTS.md §11 — the
   payload carries only the camera UUID + channel index, no hostnames
   or credentials. Spotlight indexing falls out for free because
   `isEligibleForSearch` is on by default. New shared
-  `CameraContinuity` helper + `.reolensCameraActivity(...)` view
+  `CameraContinuity` helper + `.domuscamCameraActivity(...)` view
   modifier in `AppShared`. `NSUserActivityTypes` declared in both
   Info.plists.
 - **macOS: "Run in the menu bar when closed" mode (Settings → General).**
-  Off by default. When enabled, closing the main window leaves Reolens
+  Off by default. When enabled, closing the main window leaves DomusCam
   running with a small camera icon in the menu bar; clicking the icon
   shows a popover with the latest motion / AI events across every
-  active camera session plus "Open Reolens" and "Quit" actions.
+  active camera session plus "Open DomusCam" and "Quit" actions.
   Closes the long-standing gap where macOS notifications stopped firing
   the moment the user closed the window. New
   `App/MenuBar/MenuBarController.swift` singleton owns the
   `NSStatusItem`, the popover, and (macOS 13+) the
-  `SMAppService.mainApp` login-item registration so Reolens can start
+  `SMAppService.mainApp` login-item registration so DomusCam can start
   in the menu bar at login.
 - **iOS Settings tab → per-channel settings (parity with macOS).**
   iOS / iPadOS `SingleChannelView` gains a third tab next to Live and
@@ -1836,7 +1851,7 @@ that refresh on demand. The old behavior is one toggle away (Settings
   permission unless they manually visited Settings → Notifications
   → "Request permission". `EventNotifier.notify` gates delivery on
   `permissionStatus == .authorized`, which never reached
-  `.authorized` until that prompt fired. `ReolensiOSApp` now
+  `.authorized` until that prompt fired. `DomusCamiOSApp` now
   auto-requests permission on first launch (with a `.notDetermined`
   idempotence guard), mirroring the macOS app's behavior. Rich
   alarm notifications with the trigger-frame attachment described in
@@ -1936,7 +1951,7 @@ that refresh on demand. The old behavior is one toggle away (Settings
   fired. Rows now lead with the channel's name ("Back Yard",
   "Front Door") and only show the device name on the secondary
   line when it differs from the channel name.
-- **Menu bar icon is now a Reolens-logo template image** drawn at
+- **Menu bar icon is now a DomusCam-logo template image** drawn at
   runtime as a lens-ring + iris + pupil silhouette and marked
   `isTemplate = true`, so macOS auto-tints it to match the menu
   bar's appearance (light, dark, graphite, accent) regardless of
@@ -1958,7 +1973,7 @@ that refresh on demand. The old behavior is one toggle away (Settings
 
 - `Sources/AppShared/Keychain.swift` no longer hard-codes
   `kSecAttrSynchronizable: false`. Writes read the user's opt-in flag
-  (`com.reolens.iCloudKeychainSync` UserDefaults key); reads use
+  (`com.75-c.DomusCam.iCloudKeychainSync` UserDefaults key); reads use
   `kSecAttrSynchronizableAny` so a device that previously synced and
   later opted out still sees its passwords.
 - `EventNotifier.notifyAI` is now the master switch for AI
@@ -2011,9 +2026,9 @@ credentials in logs, backward-compatible sync schema.
   is a smooth handoff with no extra decode. Audio session is set up
   defensively so an active Talkback session isn't clobbered.
 - **Save Snapshot** on every camera tile. Captures the latest decoded
-  frame and saves it as a PNG. macOS writes to `~/Pictures/Reolens/`
+  frame and saves it as a PNG. macOS writes to `~/Pictures/DomusCam/`
   (the new file is revealed in Finder). iOS writes to Photos via the
-  minimum `.addOnly` PhotoKit permission — Reolens never reads your
+  minimum `.addOnly` PhotoKit permission — DomusCam never reads your
   library. Available from the tile's context menu / long-press menu;
   a brief HUD confirms the save on iOS.
 - **Pinch-to-zoom + drag-to-pan** in the iOS single-channel view.
@@ -2032,8 +2047,8 @@ credentials in logs, backward-compatible sync schema.
   name or host, case- and diacritic-insensitive. Useful when an NVR
   has 16+ channels or you've added several hubs.
 - **Shortcuts & Siri integration.** Defines an `OpenCameraIntent` and
-  `ReolensShortcuts` provider so users can say "Hey Siri, open the
-  Front Door camera in Reolens" or chain a camera open into a
+  `DomusCamShortcuts` provider so users can say "Hey Siri, open the
+  Front Door camera in DomusCam" or chain a camera open into a
   Shortcuts automation. The intent only stores the camera's UUID — no
   credentials cross the intent boundary. macOS opens the camera in the
   detail pane; iPad routes through the sidebar's content/detail
@@ -2071,10 +2086,10 @@ credentials in logs, backward-compatible sync schema.
   - New shared `JiggleModifier` in `AppShared`.
   - New `Reorderable.swift` (`ReorderList.move` / `.reconciled`)
     primitives for the device-list reorder.
-  - New `DeviceDragPayload` (UTI `com.reolens.deviceDrag`, exported).
+  - New `DeviceDragPayload` (UTI `com.75-c.DomusCam.deviceDrag`, exported).
   - Device-list order is **device-local** (UserDefaults) — different
     platforms have different layouts, and avoiding a `cameras.json`
-    schema bump keeps older Reolens versions on the user's other
+    schema bump keeps older DomusCam versions on the user's other
     Apple devices fully compatible.
 
 ### Fixed
@@ -2105,7 +2120,7 @@ credentials in logs, backward-compatible sync schema.
 - `ChannelDragPayload` is now `public` (was `package`) so the iOS app
   target (a separate Xcode project consuming `AppShared` as an SPM
   library product) can also wire `.draggable`/`.dropDestination` for
-  channel reorder. Same UTI (`com.reolens.channelDrag`, exported).
+  channel reorder. Same UTI (`com.75-c.DomusCam.channelDrag`, exported).
 - macOS sidebar's "+" toolbar item is now a `ToolbarItemGroup` with a
   "More" menu containing "Rearrange Devices" so reorder mode has a
   non-gesture entry point (AGENTS.md accessibility rule).
@@ -2174,13 +2189,13 @@ Hotfix release.
   Fix: extended `Scripts/asc_ensure_profile.py` (originally for the iOS
   App Store profile) to also create a `MAC_APP_DIRECT` profile via the
   App Store Connect REST API; `Scripts/build-app.sh` now downloads it
-  and copies it into `Reolens.app/Contents/embedded.provisionprofile`
+  and copies it into `DomusCam.app/Contents/embedded.provisionprofile`
   before code-signing. Idempotent — repeated builds reuse the same
   profile.
 
 ## [0.2.0] — 2026-05-12
 
-First multi-platform release. Reolens now ships natively for macOS,
+First multi-platform release. DomusCam now ships natively for macOS,
 iPad, and iPhone from a single repository, with shared protocol and
 domain code.
 
@@ -2192,7 +2207,7 @@ domain code.
   hold-to-talk talkback. iOS 18 minimum.
 - **iCloud Drive sync** — camera list, grid layout, channel order,
   rotation, dual-lens overrides, and codec preferences sync across
-  all your devices via the `iCloud.com.reolens.Reolens` ubiquity
+  all your devices via the `iCloud.com.75-c.DomusCam` ubiquity
   container. Passwords stay per-device in Keychain (never leave the
   device they were entered on). Falls back to local-only storage
   when iCloud is unavailable.
@@ -2236,7 +2251,7 @@ First public release.
 - JPEG-snapshot live preview with hardware-decoded streaming fallback
 - Rich macOS push notifications for motion / AI alarm events with trigger
   frame inline
-- Auto-update infrastructure via Sparkle (signed appcast on reolens.io)
+- Auto-update infrastructure via Sparkle (signed appcast on github.com/jslinowsky/DomusCam)
 - About panel with version + Check-for-Updates menu item
 - Homebrew cask available via the `jestatsio/reolens` tap
 - Direct download as a signed, notarized DMG

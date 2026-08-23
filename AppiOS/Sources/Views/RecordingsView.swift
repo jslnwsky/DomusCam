@@ -6,7 +6,7 @@ import ReolinkBaichuan
 import ReolinkStreaming
 import AppShared
 
-private let log = Logger(subsystem: "com.reolens.app", category: "ios-recordings")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "ios-recordings")
 
 /// iOS recordings browser. Mirrors the macOS app's approach:
 ///
@@ -83,7 +83,7 @@ struct RecordingsView: View {
             .datePickerStyle(.compact)
             .padding(.horizontal)
             .padding(.vertical, 8)
-            .reolensGlassToolbar()
+            .domuscamGlassToolbar()
             // 0.6.2 a11y — explicit label so VoiceOver announces the
             // picker's role rather than the bare "Day" string. Matches
             // the day picker → filter chips → list focus order the

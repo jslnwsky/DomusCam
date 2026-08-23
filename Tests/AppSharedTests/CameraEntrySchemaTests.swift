@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import AppShared
 
-/// AGENTS.md §7 — `cameras.json` is read by every Reolens install on
+/// AGENTS.md §7 — `cameras.json` is read by every DomusCam install on
 /// the user's iCloud account, including older versions. New fields
 /// must decode-and-ignore on old apps; absent fields must be
 /// tolerated by new apps. These tests pin both directions.
@@ -70,47 +70,8 @@ struct CameraEntrySchemaTests {
         #expect(decoded == entry)
     }
 
-    // MARK: - 0.7.0 Phase 4b — UID field
-
-    @Test("UID round-trips through JSON when present")
-    func uidRoundTrips() throws {
-        let entry = CameraEntry(
-            displayName: "Driveway",
-            host: "10.0.0.5",
-            username: "admin",
-            uid: "9876543210ABCDEF"
-        )
-        let data = try JSONEncoder().encode(entry)
-        let json = try #require(String(data: data, encoding: .utf8))
-        #expect(json.contains("uid"))
-        #expect(json.contains("9876543210ABCDEF"))
-        let decoded = try JSONDecoder().decode(CameraEntry.self, from: data)
-        #expect(decoded.uid == "9876543210ABCDEF")
-    }
-
-    @Test("Absent UID stays nil and is not emitted to JSON")
-    func uidAbsent() throws {
-        // A camera that hasn't yet completed a Baichuan login has
-        // no UID. We must not emit a noisy `uid: null` for the
-        // common case — iCloud-sync diffs stay clean and older
-        // Reolens builds (which decode-and-ignore the field) see
-        // no change vs. a pre-Phase-4b cameras.json.
-        let entry = CameraEntry(
-            displayName: "Front Door",
-            host: "10.0.0.5",
-            username: "admin"
-        )
-        let data = try JSONEncoder().encode(entry)
-        let json = try #require(String(data: data, encoding: .utf8))
-        #expect(!json.contains("uid"))
-        let decoded = try JSONDecoder().decode(CameraEntry.self, from: data)
-        #expect(decoded.uid == nil)
-    }
-
-    @Test("Decoding an older cameras.json without uid tolerates the absent field")
-    func uidDecodesOldSchema() throws {
-        // Same shape as the 0.3.0 fixture in `decodesOldSchema`
-        // above, just exercising the new `uid` field path.
+    @Test("Legacy uid in cameras.json is ignored and never re-emitted")
+    func uidFromOldSchemaIsIgnored() throws {
         let json = """
         {
             "id": "22222222-2222-2222-2222-222222222222",
@@ -123,11 +84,14 @@ struct CameraEntrySchemaTests {
             "channelStreamRotations": {},
             "dualLensOverrides": [],
             "gridPreset": "adaptive",
-            "channelOrder": []
+            "channelOrder": [],
+            "uid": "9876543210ABCDEF"
         }
         """.data(using: .utf8)!
         let entry = try JSONDecoder().decode(CameraEntry.self, from: json)
-        #expect(entry.uid == nil)
+        let encoded = try JSONEncoder().encode(entry)
+        let out = try #require(String(data: encoded, encoding: .utf8))
+        #expect(!out.contains("uid"))
     }
 
     @Test("Decoding a 0.7.0 cameras.json with a remoteHost field is tolerated")
@@ -209,7 +173,7 @@ struct CameraEntrySchemaTests {
 
     @Test("An unrecognized future controlTransport value decodes to nil rather than throwing")
     func controlTransportUnknownStringTolerated() throws {
-        // A newer Reolens build might persist a transport this build doesn't
+        // A newer DomusCam build might persist a transport this build doesn't
         // know (e.g. "webrtc"). Older apps must decode-and-ignore it, not
         // throw — AGENTS.md §7 forward compatibility.
         let json = """

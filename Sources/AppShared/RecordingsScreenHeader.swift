@@ -13,7 +13,7 @@ import ReolinkAPI
 /// Refresh button) that's all rendered at the same level as the
 /// picker, and iOS uses the system navigation-bar drawer.
 ///
-/// Each row is wrapped in `.reolensGlassToolbar()` to give the unified
+/// Each row is wrapped in `.domuscamGlassToolbar()` to give the unified
 /// "hovering chrome stripe" look.
 public struct RecordingsScreenHeader: View {
     @Bindable public var loader: RecordingsLoader
@@ -39,7 +39,7 @@ public struct RecordingsScreenHeader: View {
                 selectedDate: $loader.selectedDate,
                 monthStatuses: loader.monthStatuses
             )
-            .reolensGlassToolbar()
+            .domuscamGlassToolbar()
             if !filteredFiles.isEmpty {
                 DayTimelineStrip(
                     day: loader.selectedDate,
@@ -47,7 +47,7 @@ public struct RecordingsScreenHeader: View {
                     events: loader.dayEvents(),
                     onTapSegment: onTapTimelineSegment
                 )
-                .reolensGlassToolbar()
+                .domuscamGlassToolbar()
             }
             // 0.6.0 — hide the AI filter when there are no files at
             // all. The chip row is useless when there's nothing to
@@ -57,7 +57,7 @@ public struct RecordingsScreenHeader: View {
             // so the user can clear the active filter back down.
             if !loader.files.isEmpty {
                 AIEventFilterBar(selected: $aiFilter)
-                    .reolensGlassToolbar()
+                    .domuscamGlassToolbar()
             }
         }
     }

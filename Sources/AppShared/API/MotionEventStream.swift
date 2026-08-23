@@ -1,11 +1,11 @@
 import Foundation
 
 /// Process-wide fan-out of live motion / AI events to API subscribers — the
-/// source behind the Reolens API's `/v1/events` SSE stream.
+/// source behind the DomusCam API's `/v1/events` SSE stream.
 ///
 /// Every `CameraSession` publishes each Baichuan event here in addition to its
 /// existing notification fan-out (`EventNotifier`). Subscribers receive a
-/// neutral ``Event`` (no `ReolensCore` types) so this stays decoupled from the
+/// neutral ``Event`` (no `DomusCamCore` types) so this stays decoupled from the
 /// public API surface; `LiveCameraAPI` maps these to `EventResource`.
 ///
 /// An actor so the continuation registry is race-free. Multiple independent

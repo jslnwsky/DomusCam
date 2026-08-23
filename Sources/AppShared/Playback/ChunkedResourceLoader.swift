@@ -2,7 +2,7 @@ import Foundation
 import AVFoundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "playback.loader")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "playback.loader")
 
 /// Custom URL scheme that AVPlayer treats as "unknown — call your
 /// delegate." We register this on the `AVURLAsset` so every loading
@@ -12,7 +12,7 @@ private let log = Logger(subsystem: "com.reolens.app", category: "playback.loade
 /// `Content-Length`), which is why the original implementation had
 /// to fully download before playing.
 public enum PlaybackScheme {
-    public static let value = "reolens-stream"
+    public static let value = "domuscam-stream"
 }
 
 /// AVAssetResourceLoaderDelegate that streams a Reolink CGI download
@@ -32,7 +32,7 @@ public final class ChunkedResourceLoader: NSObject, @unchecked Sendable {
 
     /// The pre-signed Reolink CGI download URL (`https://.../cgi-bin/api.cgi?
     /// cmd=Download&source=...&token=...`). The loader never exposes
-    /// this to AVPlayer; AVPlayer only ever sees the `reolens-stream://`
+    /// this to AVPlayer; AVPlayer only ever sees the `domuscam-stream://`
     /// placeholder.
     public let upstreamURL: URL
 
@@ -381,7 +381,7 @@ public actor StreamingEngine {
             return
         }
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("reolens-stream-\(UUID().uuidString).mp4")
+            .appendingPathComponent("domuscam-stream-\(UUID().uuidString).mp4")
         guard FileManager.default.createFile(atPath: url.path, contents: nil) else {
             throw URLError(.cannotCreateFile)
         }

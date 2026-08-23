@@ -2,7 +2,7 @@ import Foundation
 import Network
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "lan-permission")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "lan-permission")
 
 /// 0.5.0 Theme E — iOS Local Network permission detection.
 ///

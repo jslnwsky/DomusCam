@@ -4,7 +4,7 @@ import ReolinkAPI
 import ReolinkBaichuan
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "session")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "session")
 
 public enum ConnectionStatus: Equatable, Sendable {
     case disconnected
@@ -91,14 +91,6 @@ public final class CameraSession {
     private var baichuanTask: Task<Void, Never>?
     private var batteryTask: Task<Void, Never>?
     private var connectTask: Task<Void, Never>?
-    /// 0.7.0 Phase 4b — set after the first successful UID
-    /// fetch within this session's lifetime, so the per-
-    /// reconnect Baichuan loop doesn't re-issue `msg_id=114`
-    /// every time the TCP connection blips. The persisted UID
-    /// on `CameraEntry` is the cross-session source of truth;
-    /// this flag just avoids redundant fetches inside a single
-    /// app run.
-    private var uidCapturedThisSession: Bool = false
     private var connectGeneration: Int = 0
     /// One-shot guard so a single `connect()` only ever tries the
     /// HTTP→HTTPS transport upgrade once. Newer Reolink firmware (3.1.0.x)
@@ -244,7 +236,7 @@ public final class CameraSession {
             log.notice("persisted Baichuan transport failed; falling back to full CGI probe")
         }
 
-        // Reolens is LAN-only: it reaches the camera on the user's home
+        // DomusCam is LAN-only: it reaches the camera on the user's home
         // network (or via an overlay like Tailscale that exposes the LAN
         // from anywhere). There's no public-internet fallback path.
         let outcome = await attemptHostUntilDeadline(
@@ -591,22 +583,6 @@ public final class CameraSession {
                     let deviceName = try await client.login()
                     log.info("Baichuan login OK device=\(deviceName, privacy: .public)")
                     backoffSeconds = 2
-                    // 0.7.0 Phase 4b — opportunistically capture
-                    // the camera UID for the future P2P remote-
-                    // access path. Only fetched when we don't
-                    // already have one stored AND haven't already
-                    // captured it this session; `fetchUID` returns
-                    // "" on failure, which we treat as "try again
-                    // next login" rather than persisting an empty
-                    // string. Never blocks the event stream
-                    // below.
-                    if !self.uidCapturedThisSession, self.entry.uid == nil {
-                        let uid = await client.fetchUID()
-                        if !uid.isEmpty {
-                            self.onUIDObserved?(uid)
-                            self.uidCapturedThisSession = true
-                        }
-                    }
                     // Spin up the battery-info reader alongside alarm
                     // events. Both consume the same unsolicited push
                     // stream — the hub multiplexes msgID=33 (motion)
@@ -805,20 +781,10 @@ public final class CameraSession {
     /// up from `ContentView` at session-binding time.
     public var dualLensOverride: (@MainActor (Int) -> Bool)?
 
-    /// 0.7.0 Phase 4b — back-channel from the session to the
-    /// store so a freshly-fetched Reolink P2P UID can be
-    /// persisted to `cameras.json` without the session itself
-    /// taking a hard reference to `CameraStore`. Wired in
-    /// `CameraStore.session(for:)`, mirrored on the same pattern
-    /// as `dualLensOverride`. Idempotent on the store side, so
-    /// invoking it on every successful login (rather than only
-    /// the first one) doesn't thrash iCloud sync.
-    public var onUIDObserved: (@MainActor (String) -> Void)?
-
     /// 0.9.0 A4 — back-channel from the session to the store so the control
     /// plane that actually connected (notably `.baichuan` after a web-API-off
-    /// fallback) is persisted to `cameras.json`. Mirrors `onUIDObserved`; wired
-    /// in `CameraStore.session(for:)`; idempotent on the store side. GitHub #76.
+    /// fallback) is persisted to `cameras.json`. Wired in
+    /// `CameraStore.session(for:)`; idempotent on the store side. GitHub #76.
     public var onControlTransportObserved: (@MainActor (ControlTransport) -> Void)?
 
     /// Authoritative "does this camera have two physical lenses on one

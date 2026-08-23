@@ -21,7 +21,7 @@ import os
 ///      notification.
 ///
 /// Privacy: lives entirely inside the user's iCloud account
-/// (private DB, never shared). Reolens has no server in the loop —
+/// (private DB, never shared). DomusCam has no server in the loop —
 /// CloudKit's "our server" is Apple, under the user's own iCloud
 /// credentials. AGENTS.md §5 is satisfied. The data we write is the
 /// minimum needed to compose a useful notification on the receiving
@@ -234,10 +234,10 @@ public struct NoOpMotionEventPublisher: MotionEventPublisher {
 public actor CloudKitMotionEventPublisher: MotionEventPublisher {
     private let containerID: String
     private let rateLimiter: MotionEventRateLimiter
-    private let log = Logger(subsystem: "com.reolens.Reolens", category: "MotionRelay")
+    private let log = Logger(subsystem: "com.75-c.DomusCam", category: "MotionRelay")
 
     public init(
-        containerID: String = "iCloud.com.reolens.Reolens",
+        containerID: String = "iCloud.com.75-c.DomusCam",
         rateLimiter: MotionEventRateLimiter = MotionEventRateLimiter()
     ) {
         self.containerID = containerID
@@ -249,7 +249,7 @@ public actor CloudKitMotionEventPublisher: MotionEventPublisher {
         // iCloud-container entitlement. `CKContainer(identifier:)`
         // calls `__cxa_throw_bad_array_new_length`-style EXC_BREAKPOINT
         // on entitlement-less binaries (observed on ad-hoc-signed
-        // dev builds whose `Reolens.dev.entitlements` deliberately
+        // dev builds whose `DomusCam.dev.entitlements` deliberately
         // drops the iCloud container to dodge AMFI launch failures).
         // The ubiquity-container probe is the cheapest reliable
         // proxy for "this binary has iCloud entitlements at all" —
@@ -492,15 +492,15 @@ public actor CloudKitMotionEventSubscriber {
     ///
     /// Legacy IDs are deleted on install — see
     /// `installSubscriptionIfNeeded()`.
-    private let subscriptionID = "com.reolens.motionEvent.v4"
+    private let subscriptionID = "com.75-c.DomusCam.motionEvent.v4"
     private let legacySubscriptionIDs = [
-        "com.reolens.motionEvent.v1",
-        "com.reolens.motionEvent.v2",
-        "com.reolens.motionEvent.v3",
+        "com.75-c.DomusCam.motionEvent.v1",
+        "com.75-c.DomusCam.motionEvent.v2",
+        "com.75-c.DomusCam.motionEvent.v3",
     ]
-    private let log = Logger(subsystem: "com.reolens.Reolens", category: "MotionRelay")
+    private let log = Logger(subsystem: "com.75-c.DomusCam", category: "MotionRelay")
 
-    public init(containerID: String = "iCloud.com.reolens.Reolens") {
+    public init(containerID: String = "iCloud.com.75-c.DomusCam") {
         self.containerID = containerID
     }
 
@@ -632,7 +632,7 @@ public actor CloudKitMotionEventSubscriber {
 /// without needing to plumb the value through.
 public enum MotionEventRelaySettings {
     /// Master toggle for the macOS publisher. Off by default.
-    public static let publisherEnabledKey = "com.reolens.cloudKitRelay.publisherEnabled"
+    public static let publisherEnabledKey = "com.75-c.DomusCam.cloudKitRelay.publisherEnabled"
     public static var publisherEnabled: Bool {
         UserDefaults.standard.bool(forKey: publisherEnabledKey)
     }
@@ -641,7 +641,7 @@ public enum MotionEventRelaySettings {
     /// (e.g. on cellular data with strict iCloud sync limits) can
     /// opt out. Default ON because the subscription is essentially
     /// free and harmless when no events arrive.
-    public static let subscriberEnabledKey = "com.reolens.cloudKitRelay.subscriberEnabled"
+    public static let subscriberEnabledKey = "com.75-c.DomusCam.cloudKitRelay.subscriberEnabled"
     public static var subscriberEnabled: Bool {
         if UserDefaults.standard.object(forKey: subscriberEnabledKey) == nil {
             return true

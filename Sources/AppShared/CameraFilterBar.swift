@@ -77,7 +77,7 @@ public struct CameraFilterBar: View {
                 .labelStyle(.titleAndIcon)
                 .font(.caption.weight(isOn ? .semibold : .regular))
                 .foregroundStyle(isOn ? .white : .primary)
-                .reolensGlassChip(selected: isOn)
+                .domuscamGlassChip(selected: isOn)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("All cameras")
@@ -93,7 +93,7 @@ public struct CameraFilterBar: View {
                 .labelStyle(.titleAndIcon)
                 .font(.caption.weight(isOn ? .semibold : .regular))
                 .foregroundStyle(isOn ? .white : .primary)
-                .reolensGlassChip(selected: isOn)
+                .domuscamGlassChip(selected: isOn)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(camera.label) filter")

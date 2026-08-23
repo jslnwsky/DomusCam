@@ -14,13 +14,13 @@ public struct DeviceDragPayload: Codable, Transferable, Sendable {
     }
 
     public static var transferRepresentation: some TransferRepresentation {
-        CodableRepresentation(contentType: .reolensDeviceDrag)
+        CodableRepresentation(contentType: .domuscamDeviceDrag)
     }
 }
 
 public extension UTType {
     /// Custom UTI registered just for our device drag payloads. Declared
     /// as an exported type in each app's `Info.plist`. Namespaced under
-    /// `com.reolens.*` so it can't be accidentally consumed by other apps.
-    static let reolensDeviceDrag = UTType(exportedAs: "com.reolens.deviceDrag")
+    /// `com.75-c.DomusCam.*` so it can't be accidentally consumed by other apps.
+    static let domuscamDeviceDrag = UTType(exportedAs: "com.75-c.DomusCam.deviceDrag")
 }

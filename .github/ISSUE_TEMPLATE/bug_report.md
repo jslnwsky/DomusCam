@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Something Reolens is doing wrong
+about: Something DomusCam is doing wrong
 title: ''
 labels: bug
 assignees: ''
@@ -27,7 +27,7 @@ Minimum steps to trigger the issue:
 
 ## Environment
 
-- **Reolens version:** (check About → Version, or the iOS app's Settings tab)
+- **DomusCam version:** (check About → Version, or the iOS app's Settings tab)
 - **Platform:** macOS / iPad / iPhone
 - **OS version:** macOS 14.x / iPadOS 18.x / iOS 18.x
 - **Apple Silicon or Intel:** (macOS only)
@@ -36,10 +36,10 @@ Minimum steps to trigger the issue:
 
 ## Logs (optional but very helpful)
 
-For macOS, open Console.app, filter by subsystem `com.reolens.app` (or
-`com.reolens.streaming` for RTSP issues), reproduce, and paste the
+For macOS, open Console.app, filter by subsystem `com.75-c.DomusCam.app` (or
+`com.75-c.DomusCam.streaming` for RTSP issues), reproduce, and paste the
 relevant lines below. **Don't include any line containing credentials,
-hostnames, or URLs with auth tokens** — Reolens shouldn't ever log
+hostnames, or URLs with auth tokens** — DomusCam shouldn't ever log
 those, but if you spot one, that's a security report (see SECURITY.md).
 
 ```

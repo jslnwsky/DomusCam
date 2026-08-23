@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "Reolens",
+    name: "DomusCam",
     platforms: [
         // 0.5.0 raises the floor to macOS 26 / iOS 26 to adopt Liquid Glass
         // and the ActivityKit + ControlWidget APIs that ship in those
@@ -24,43 +24,28 @@ let package = Package(
         .library(name: "ReolinkAPI", targets: ["ReolinkAPI"]),
         .library(name: "ReolinkStreaming", targets: ["ReolinkStreaming"]),
         .library(name: "ReolinkBaichuan", targets: ["ReolinkBaichuan"]),
-        // 0.7.0 — Reolink UDP P2P wire format. Pure value-type
-        // codec; transport / discovery / NAT-traversal layers
-        // sit on top in later phases. See
-        // `docs/remote-connectivity.md`.
-        .library(name: "ReolinkBcUdp", targets: ["ReolinkBcUdp"]),
-        // 0.7.0 Phase 2 — discovery client + transport surface
-        // for the Reolink P2P service. Depends on ReolinkBcUdp
-        // for the wire codec.
-        .library(name: "ReolinkP2P", targets: ["ReolinkP2P"]),
-        // 0.8.x — ReolensCore: the clean, Reolink-agnostic public API
+        // 0.8.x — DomusCamCore: the clean, Reolink-agnostic public API
         // contract (resource DTOs + the `CameraAPI` protocol). Zero deps;
         // the in-process implementation lives in AppShared and the HTTP
-        // facade in ReolensServer. See docs/api/.
-        .library(name: "ReolensCore", targets: ["ReolensCore"]),
-        // 0.8.x — ReolensServer: hand-rolled NWListener HTTP/1.1 + SSE
+        // facade in DomusCamServer. See docs/api/.
+        .library(name: "DomusCamCore", targets: ["DomusCamCore"]),
+        // 0.8.x — DomusCamServer: hand-rolled NWListener HTTP/1.1 + SSE
         // facade over the `CameraAPI` contract. Depends only on
-        // ReolensCore; the app injects the live implementation. See
+        // DomusCamCore; the app injects the live implementation. See
         // docs/api/.
-        .library(name: "ReolensServer", targets: ["ReolensServer"]),
+        .library(name: "DomusCamServer", targets: ["DomusCamServer"]),
         .library(name: "AppShared", targets: ["AppShared"]),
         // 0.6.4 — Minimal watchOS-facing surface used by the
-        // companion Watch App target in `ReolensiOS.xcodeproj`.
+        // companion Watch App target in `DomusCamiOS.xcodeproj`.
         // Depends only on `ReolinkAPI` (pure HTTP+JSON) to avoid
         // dragging UIKit/AppKit-leaning code into the watch build.
         .library(name: "AppWatch", targets: ["AppWatch"]),
-        // 0.7.0 — Apple TV viewer surface used by the ReolensTVOS app
-        // target in `ReolensiOS.xcodeproj`. Depends only on ReolinkAPI +
+        // 0.7.0 — Apple TV viewer surface used by the DomusCamTVOS app
+        // target in `DomusCamiOS.xcodeproj`. Depends only on ReolinkAPI +
         // ReolinkStreaming (live RTSP) — never AppShared — to stay thin,
         // mirroring the AppWatch precedent. See Sources/AppTVOS/README.md.
         .library(name: "AppTVOS", targets: ["AppTVOS"]),
-        .executable(name: "Reolens", targets: ["Reolens"]),
-        // 0.7.0 — small diagnostic CLI for end-to-end smoke
-        // tests of the remote-connectivity stack against a real
-        // Reolink camera. Not shipped to users; lives in the
-        // package so `swift run RemoteSmoke <uid> <user> <pass>`
-        // works from a checkout.
-        .executable(name: "RemoteSmoke", targets: ["RemoteSmoke"])
+        .executable(name: "DomusCam", targets: ["DomusCam"]),
     ],
     dependencies: [],
     targets: [
@@ -100,51 +85,14 @@ let package = Package(
             ]
         ),
         .target(
-            // 0.7.0 Phase 1 (remote connectivity) — BcUdp wire
-            // codec. Pure value-type encode/decode of the three
-            // packet kinds (Disc / Data / Ack) Reolink uses when
-            // the camera is reached over UDP via their P2P
-            // service. No networking, no actors, no transport.
-            // See `docs/remote-connectivity.md`.
-            name: "ReolinkBcUdp",
-            path: "Sources/ReolinkBcUdp",
-            swiftSettings: [
-                .enableUpcomingFeature("ExistentialAny")
-            ]
-        ),
-        .target(
-            // 0.7.0 Phase 2 (remote connectivity) — discovery
-            // client + BcUdp transport protocol. Depends on the
-            // pure-codec ReolinkBcUdp module for the wire shapes;
-            // adds the actor + state machine that looks a camera
-            // up by UID via the `p2p*.reolink.com` cluster.
-            // Concrete NWConnection-backed transport lands in a
-            // follow-up; this phase ships the actor with a stub-
-            // able transport surface so the fallback / retry
-            // logic is fully testable today.
-            name: "ReolinkP2P",
-            // 0.7.0 Phase 3d — `RemoteTransport` conforms to
-            // `BcMessageTransport` from ReolinkBaichuan, so the
-            // P2P module gains a Baichuan dependency. The
-            // direction is "Baichuan defines the control-plane
-            // protocol; P2P provides a transport that satisfies
-            // it" — kept acyclic by leaving Baichuan unaware of
-            // the concrete remote-transport type.
-            dependencies: ["ReolinkBcUdp", "ReolinkBaichuan"],
-            path: "Sources/ReolinkP2P",
-            swiftSettings: [
-                .enableUpcomingFeature("ExistentialAny")
-            ]
-        ),
-        .target(
             // 0.8.x — public API contract. Pure value types (resource
             // DTOs) + the `CameraAPI` protocol. Foundation-only, zero
             // dependencies, so it is the stable surface the app and
             // external consumers are both built on. The in-process
             // implementation (`LiveCameraAPI`) lives in AppShared; the
-            // HTTP facade in ReolensServer. See docs/api/.
-            name: "ReolensCore",
-            path: "Sources/ReolensCore",
+            // HTTP facade in DomusCamServer. See docs/api/.
+            name: "DomusCamCore",
+            path: "Sources/DomusCamCore",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny")
             ]
@@ -160,7 +108,7 @@ let package = Package(
             // Declared explicitly here so a clean build resolves
             // cleanly and the iOS Xcode build's dependency-scan
             // warning stops firing.
-            dependencies: ["ReolinkAPI", "ReolinkStreaming", "ReolinkBaichuan", "ReolensCore"],
+            dependencies: ["ReolinkAPI", "ReolinkStreaming", "ReolinkBaichuan", "DomusCamCore"],
             path: "Sources/AppShared",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny")
@@ -172,9 +120,9 @@ let package = Package(
             // zero-dependency posture. Generic over `any CameraAPI`, so
             // it's exercised in tests against an in-memory fake with no
             // sockets and no cameras. See docs/api/.
-            name: "ReolensServer",
-            dependencies: ["ReolensCore"],
-            path: "Sources/ReolensServer",
+            name: "DomusCamServer",
+            dependencies: ["DomusCamCore"],
+            path: "Sources/DomusCamServer",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny")
             ]
@@ -200,7 +148,7 @@ let package = Package(
             // 0.7.0 — Apple TV viewer library. Thin like AppWatch, but
             // adds ReolinkStreaming because the TV does real RTSP live
             // view (the watch only shows snapshots). Never depends on
-            // AppShared. The tvOS app target in ReolensiOS.xcodeproj
+            // AppShared. The tvOS app target in DomusCamiOS.xcodeproj
             // consumes this product. See `Sources/AppTVOS/README.md`.
             name: "AppTVOS",
             dependencies: ["ReolinkAPI", "ReolinkStreaming"],
@@ -211,42 +159,30 @@ let package = Package(
             ]
         ),
         .executableTarget(
-            name: "Reolens",
+            name: "DomusCam",
             dependencies: [
                 "ReolinkAPI",
                 "ReolinkStreaming",
                 "ReolinkBaichuan",
                 "AppShared",
                 // 0.9.0 — macOS hosts the opt-in Local HTTP API (LocalAPIController).
-                "ReolensServer"
+                "DomusCamServer"
             ],
             path: "App",
             // 0.5.0 — Widgets/ is a separate WidgetKit app-extension
             // target built by Xcode, not by SPM. Excluding it from
-            // the main Reolens target keeps `swift build` clean and
+            // the main DomusCam target keeps `swift build` clean and
             // prevents the @main collision between
-            // `ReolensApp` and `ReolensWidgetsBundle`.
+            // `DomusCamApp` and `DomusCamWidgetsBundle`.
             // 0.7.0 — the Hub LaunchAgent plist is a build-time artifact
             // embedded into Contents/Library/LaunchAgents/ by
             // Scripts/build-app.sh, not an SPM source or resource.
-            exclude: ["Info.plist", "Reolens.entitlements", "Reolens.dev.entitlements", "Reolens.appstore.entitlements", "Widgets"],
+            exclude: ["Info.plist", "DomusCam.entitlements", "DomusCam.dev.entitlements", "DomusCam.appstore.entitlements", "Widgets"],
             swiftSettings: [
                 // StrictConcurrency is implicit at swift-tools-version 6.0;
                 // enabling it explicitly is rejected by the toolchain.
                 // Keep ExistentialAny as an opt-in until the codebase is
                 // fully migrated.
-                .enableUpcomingFeature("ExistentialAny")
-            ]
-        ),
-        .executableTarget(
-            // 0.7.0 — diagnostic CLI for end-to-end smoke
-            // tests of `RemoteTransport` against a real
-            // Reolink camera. Run as:
-            //   swift run RemoteSmoke <uid> <username> <password>
-            name: "RemoteSmoke",
-            dependencies: ["ReolinkP2P", "ReolinkBaichuan", "ReolinkBcUdp"],
-            path: "Sources/RemoteSmoke",
-            swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny")
             ]
         ),
@@ -266,47 +202,30 @@ let package = Package(
             path: "Tests/ReolinkBaichuanTests"
         ),
         .testTarget(
-            // 0.7.0 Phase 1 — BcUdp codec round-trips. Pinned
-            // by structural property tests (encode → decode is
-            // identity) plus byte-layout tests that assert each
-            // field lives at the documented offset.
-            name: "ReolinkBcUdpTests",
-            dependencies: ["ReolinkBcUdp"],
-            path: "Tests/ReolinkBcUdpTests"
-        ),
-        .testTarget(
-            // 0.7.0 Phase 2 — discovery client fallback /
-            // redirect / timeout behavior, driven by a stub
-            // transport so the suite runs offline.
-            name: "ReolinkP2PTests",
-            dependencies: ["ReolinkP2P", "ReolinkBcUdp"],
-            path: "Tests/ReolinkP2PTests"
-        ),
-        .testTarget(
-            // 0.8.x — ReolensCore contract round-trips. The DTOs are a
+            // 0.8.x — DomusCamCore contract round-trips. The DTOs are a
             // public wire format, so Codable encode→decode identity plus
             // stable JSON-key assertions pin the shape against
             // docs/api/openapi.yaml.
-            name: "ReolensCoreTests",
-            dependencies: ["ReolensCore"],
-            path: "Tests/ReolensCoreTests"
+            name: "DomusCamCoreTests",
+            dependencies: ["DomusCamCore"],
+            path: "Tests/DomusCamCoreTests"
         ),
         .testTarget(
             // 0.8.x — HTTP facade routing/auth/SSE, exercised against an
             // in-memory fake `CameraAPI` plus a loopback end-to-end smoke
             // test on an ephemeral port.
-            name: "ReolensServerTests",
-            dependencies: ["ReolensServer", "ReolensCore"],
-            path: "Tests/ReolensServerTests"
+            name: "DomusCamServerTests",
+            dependencies: ["DomusCamServer", "DomusCamCore"],
+            path: "Tests/DomusCamServerTests"
         ),
         // End-to-end integration test target. Drives the full
         // ReolinkAPI client through a mocked Reolink device using
         // URLProtocol — covers the path no unit test can: login →
         // token cache → batched commands → retry-on-loginRequired.
         .testTarget(
-            name: "ReolensE2ETests",
+            name: "DomusCamE2ETests",
             dependencies: ["ReolinkAPI"],
-            path: "Tests/ReolensE2ETests"
+            path: "Tests/DomusCamE2ETests"
         ),
         // AppShared privacy / sync semantics tests. The protocol
         // tests cover Reolink wire format; this target covers the

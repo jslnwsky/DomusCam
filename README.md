@@ -1,37 +1,33 @@
 <h1 align="center">
-  <img src="docs/assets/icon-256.png" alt="Reolens" width="120" height="120"><br>
-  Reolens
+  <img src="docs/assets/icon-256.png" alt="DomusCam" width="120" height="120"><br>
+  DomusCam
 </h1>
 
 <p align="center">
-  A native client for Reolink cameras, NVRs, and Home Hubs — on Mac, iPad, and iPhone.
+  A native client for Reolink cameras, NVRs, doorbells, and Home Hubs — on Mac, iPad, and iPhone.
 </p>
 
 <p align="center">
-  <a href="https://github.com/jestatsio/reolens/actions/workflows/ci.yml"><img src="https://github.com/jestatsio/reolens/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/jestatsio/reolens/releases/latest"><img src="https://img.shields.io/github/v/release/jestatsio/reolens?label=release&color=4cd2ff" alt="Latest release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT"></a>
   <img src="https://img.shields.io/badge/macOS-26%2B-1ba6d8" alt="macOS 26+">
   <img src="https://img.shields.io/badge/iOS-26%2B-1ba6d8" alt="iOS 26+">
 </p>
 
 <p align="center">
-  <a href="https://reolens.io">Website</a> ·
-  <a href="https://testflight.apple.com/join/c815tbVE">TestFlight</a> ·
+  <a href="https://github.com/jslinowsky/DomusCam">GitHub</a> ·
   <a href="#install">Install</a> ·
   <a href="docs/FEATURES.md">Features</a> ·
-  <a href="CHANGELOG.md">What's new</a> ·
-  <a href="https://github.com/jestatsio/reolens/issues">Issues</a>
+  <a href="CHANGELOG.md">What's new</a>
 </p>
 
 ---
 
-Reolens watches your Reolink cameras with a real native app — SwiftUI,
-Swift 6, AVFoundation / VideoToolbox. No Electron, no Java, no QtWebEngine.
-Cold-launches in under a second and feels at home on every Apple platform.
+DomusCam watches Reolink cameras on **your house Wi-Fi** — live view, recordings,
+doorbell talkback, motion alerts — in a native Swift 6 app. Each household
+runs its own copy. There is no DomusCam cloud and no Reolink cloud.
 
-It runs **entirely on your devices**: no Reolens server, no third-party
-analytics, no telemetry, no accounts.
+It is a fork of [Reolens](https://github.com/jestatsio/reolens) (MIT, J&E Stats),
+rebranded and scoped to LAN-per-home: Reolink P2P discovery is not included.
 
 ![Adaptive multi-camera grid](docs/screenshots/grid-adaptive.png)
 
@@ -47,29 +43,23 @@ analytics, no telemetry, no accounts.
 - 🔌 **Local REST API** — opt-in, LAN-only `/v1` HTTP API on macOS for Home Assistant, Shortcuts, and scripts.
 - 🔒 **Private by design** — no server, no accounts, no telemetry; camera passwords stay in the Keychain.
 
-→ The full surface lives in **[docs/FEATURES.md](docs/FEATURES.md)**.
+The full surface lives in **[docs/FEATURES.md](docs/FEATURES.md)**.
 
 ## Install
 
-**Mac · iPad · iPhone — [TestFlight](https://testflight.apple.com/join/c815tbVE).**
-One multiplatform app: Mac, iPad, and iPhone share a single App Store record,
-and TestFlight installs the right build on each device. Requires macOS 26+ /
-iPadOS 26+ / iOS 26+.
-
-**Build from source:**
+Build from source (Xcode 26 + Swift 6.2). App Store / TestFlight shipping uses
+bundle id `com.75-c.DomusCam` on team `NXVC3868F7`.
 
 ```sh
-git clone https://github.com/jestatsio/reolens.git
-cd reolens
+git clone https://github.com/jslinowsky/DomusCam.git
+cd DomusCam
 ./Scripts/build-app.sh run      # macOS — builds + signs + launches
 cd AppiOS && xcodegen generate  # iOS — then open in Xcode 26
 ```
 
-Requires Xcode 26 + Swift 6.2.
-
 ## Quick start
 
-1. **Launch Reolens.** It asks for Local Network permission (to reach your
+1. **Launch DomusCam.** It asks for Local Network permission (to reach your
    cameras) and Notification permission (for motion alerts).
 2. **Click + in the sidebar** to add a camera. Enter its IP (or hostname),
    username, and password — the rest is auto-detected.
@@ -81,43 +71,35 @@ per-channel settings.
 
 ## Remote access
 
-Reolens is **LAN-only by design** — it talks only to your camera's local IP,
-never to Reolink's cloud, a DDNS provider, or any relay. To reach it from
-away, put your phone *on* the LAN with an overlay network instead of forwarding
-ports. **[Tailscale](https://tailscale.com)** is the recommended path: free for
-personal use, ~10 minutes to set up, and no open ports or WAN-IP exposure.
+DomusCam is **LAN-only** — it talks to the camera's local IP, never to
+Reolink's cloud or a DDNS relay. To use it away from home, put the phone
+*on* the LAN with an overlay network instead of forwarding ports.
+**[Tailscale](https://tailscale.com)** is the recommended path.
 
-→ Full step-by-step in **[docs/remote-connectivity.md](docs/remote-connectivity.md)**.
+Full step-by-step in **[docs/remote-connectivity.md](docs/remote-connectivity.md)**.
 
 ## Requirements
 
 - **macOS 26 Tahoe+** (Apple Silicon or Intel), or **iPadOS / iOS 26+**
-- **A Reolink camera, NVR, or Home Hub** on the local network
+- **A Reolink camera, NVR, doorbell, or Home Hub** on the local network
 - HTTP / HTTPS access to the device's CGI port (default 80 / 443)
-
-On macOS 14 / iOS 18? Stay on the 0.4.x security-backport track — see
-[SECURITY.md](SECURITY.md). FoundationModels features (Today digest, NL search)
-fall back to deterministic implementations without Apple Intelligence.
-
-## Screenshots
-
-| | |
-|---|---|
-| ![Adaptive grid](docs/screenshots/grid-adaptive.png) | ![Spotlight layout](docs/screenshots/spotlight.png) |
-| Adaptive multi-camera grid | Spotlight layout |
-| ![Detail + PTZ](docs/screenshots/detail-ptz.png) | ![About panel](docs/screenshots/about.png) |
-| Detail view with full PTZ controls | About panel |
 
 ## Privacy
 
-Reolens runs entirely on your devices. The only network surface is your
-Reolink devices (LAN), your own iCloud (camera-list sync + motion-event push
-relay, private database), and Apple's App Store / TestFlight for updates.
-No third-party analytics, crash reporting, telemetry, or accounts.
+DomusCam runs on your devices. The only network surface is your Reolink
+devices (LAN), your own iCloud (camera-list sync + optional Hub motion-event
+relay), and Apple's App Store / TestFlight for updates. No third-party
+analytics, crash reporting, telemetry, or accounts.
 
 **Credentials are device-local** — camera passwords live in each device's
-Keychain (`kSecAttrSynchronizable: false`), and iCloud sync carries only
-metadata. The full model is in [AGENTS.md](AGENTS.md) §3, §4.
+Keychain (`kSecAttrSynchronizable: false` by default). iCloud sync carries
+metadata only. The full model is in [AGENTS.md](AGENTS.md) §3, §4.
+
+## Attribution
+
+DomusCam is derived from **Reolens** by [J&E Stats](https://jestats.io),
+MIT-licensed at [github.com/jestatsio/reolens](https://github.com/jestatsio/reolens).
+The original copyright notice is preserved in [LICENSE](LICENSE).
 
 ## Documentation
 
@@ -126,38 +108,21 @@ metadata. The full model is in [AGENTS.md](AGENTS.md) §3, §4.
 | [Features](docs/FEATURES.md) | The full feature surface |
 | [Architecture](docs/ARCHITECTURE.md) | Layers, concurrency model, repo layout |
 | [Local REST API](docs/api/README.md) | The `/v1` HTTP API contract |
-| [Roadmap](docs/ROADMAP.md) | What's planned next |
-| [Changelog](CHANGELOG.md) | Per-release history |
+| [Changelog](CHANGELOG.md) | Per-release history (includes Reolens lineage) |
 | [Contributing](CONTRIBUTING.md) · [AGENTS.md](AGENTS.md) | Dev setup + engineering principles |
 
 ## Development
 
 ```sh
 swift build                 # libs + macOS app
-swift test                  # ~675 tests across 117 suites
+swift test                  # unit + integration tests
 ./Scripts/build-app.sh run  # bundled .app (needed for Local Network access)
 
 bash Scripts/check-versions.sh  # macOS + iOS marketing versions must match
 bash Scripts/coverage-gate.sh   # per-target coverage regression gate
 ```
 
-Cutting a release is tag-driven — see [docs/RELEASE.md](docs/RELEASE.md).
-
 ## Contributing
 
-PRs welcome. Read [AGENTS.md](AGENTS.md) (engineering principles) and
-[CONTRIBUTING.md](CONTRIBUTING.md) (dev setup, tests, commit conventions)
-first. For security issues, use the private flow in [SECURITY.md](SECURITY.md)
-rather than a public issue.
-
-## License
-
-MIT — see [LICENSE](LICENSE).
-
-Reolink is a trademark of Reolink Innovation Inc. Reolens is an unaffiliated
-third-party client; the protocol is reverse-engineered from public CGI
-documentation and community projects — the
-[Reolink CGI reference](https://support.reolink.com/), 
-[reolink_aio](https://github.com/starkillerOG/reolink_aio) (Home Assistant's
-Python client), and [neolink](https://github.com/thirtythreeforty/neolink)
-(Rust, for Baichuan).
+PRs welcome. Read [AGENTS.md](AGENTS.md) and [CONTRIBUTING.md](CONTRIBUTING.md)
+first. For security issues, use the private flow in [SECURITY.md](SECURITY.md).

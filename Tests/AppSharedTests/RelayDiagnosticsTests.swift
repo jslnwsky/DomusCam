@@ -13,7 +13,7 @@ struct RelayDiagnosticsTests {
     /// own UUID-suffixed storage key so there's no shared mutable
     /// state between cases.
     private static func makeFresh() async -> RelayDiagnostics {
-        let key = "com.reolens.relayDiagnostics.test.\(UUID().uuidString)"
+        let key = "com.75-c.DomusCam.relayDiagnostics.test.\(UUID().uuidString)"
         let diag = RelayDiagnostics(suiteName: nil, storageKey: key)
         // Defensive: a brand-new actor with a unique key has no prior
         // state, but reset() also clears any leftover UserDefaults
@@ -165,7 +165,7 @@ struct RelayDiagnosticsTests {
 
     @Test("State persists across actor instances with the same storage key")
     func statePersistsAcrossInstances() async {
-        let key = "com.reolens.relayDiagnostics.test.persist.\(UUID().uuidString)"
+        let key = "com.75-c.DomusCam.relayDiagnostics.test.persist.\(UUID().uuidString)"
         // Defensive: make sure no leftover state from a prior run.
         UserDefaults.standard.removeObject(forKey: key)
         defer { UserDefaults.standard.removeObject(forKey: key) }

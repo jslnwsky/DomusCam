@@ -3,7 +3,7 @@ import CloudKit
 import Observation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.tvOS", category: "credentials")
+private let log = Logger(subsystem: "com.75-c.DomusCam.tvOS", category: "credentials")
 
 /// 0.7.0 — fetches encrypted camera passwords from the user's private
 /// CloudKit database (published by iOS/macOS when the user enables
@@ -24,7 +24,7 @@ public final class TVCredentialReader {
     /// In-memory only. cameraID → password.
     @ObservationIgnored private var passwords: [UUID: String] = [:]
 
-    private static let containerID = "iCloud.com.reolens.Reolens"
+    private static let containerID = "iCloud.com.75-c.DomusCam"
     private static let recordType = "CameraCredential"
     private static let cameraIDKey = "cameraID"
     private static let passwordKey = "password" // encryptedValues

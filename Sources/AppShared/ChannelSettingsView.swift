@@ -68,7 +68,7 @@ public struct ChannelSettingsView: View {
                                 // 0.5.0 Liquid Glass — AI capability
                                 // badges read as glass chips matching
                                 // the AI-event filter row.
-                                .reolensGlassChip()
+                                .domuscamGlassChip()
                         }
                     }
                 }
@@ -187,7 +187,7 @@ public struct ChannelSettingsView: View {
                 ))
                 .disabled(!store.showCameraNameOnFeed)
                 if store.showCameraNameOnFeed {
-                    Text("Reolens can show the camera name and a motion / AI indicator over this tile. Turn off for the cleanest possible image, or if the camera's own date / time / name overlay (configured in the OSD section above) is fighting for the same corner.")
+                    Text("DomusCam can show the camera name and a motion / AI indicator over this tile. Turn off for the cleanest possible image, or if the camera's own date / time / name overlay (configured in the OSD section above) is fighting for the same corner.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 } else {
@@ -450,7 +450,7 @@ public struct ChannelSettingsView: View {
     fileprivate func persistPrivacyZones() async {
         isSaving = true
         defer { isSaving = false }
-        let key = "com.reolens.privacyZones.\(session.entry.id.uuidString).\(channel.channel)"
+        let key = "com.75-c.DomusCam.privacyZones.\(session.entry.id.uuidString).\(channel.channel)"
 
         // Local copy first — never silently lose work.
         do {
@@ -486,7 +486,7 @@ public struct ChannelSettingsView: View {
     }
 
     fileprivate func loadPrivacyZones() {
-        let key = "com.reolens.privacyZones.\(session.entry.id.uuidString).\(channel.channel)"
+        let key = "com.75-c.DomusCam.privacyZones.\(session.entry.id.uuidString).\(channel.channel)"
         guard let data = UserDefaults.standard.data(forKey: key),
               let zones = try? JSONDecoder().decode([PrivacyZone].self, from: data) else { return }
         privacyZones = PrivacyZoneEditorModel(zones: zones)

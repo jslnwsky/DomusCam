@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "clip-export-coordinator")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "clip-export-coordinator")
 
 /// 0.6.2 — unified export-destination surface for `ClipExporter`.
 ///
@@ -155,7 +155,7 @@ public enum ClipExportCoordinator {
         let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
         return base
-            .appendingPathComponent("Reolens", isDirectory: true)
+            .appendingPathComponent("DomusCam", isDirectory: true)
             .appendingPathComponent("exports", isDirectory: true)
     }
 

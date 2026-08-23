@@ -50,7 +50,7 @@ public struct ICloudKeychainSyncSection: View {
 
     private var rationaleCopy: String {
         store.iCloudKeychainSyncEnabled
-            ? "Your camera passwords sync to your other Apple devices through iCloud Keychain. Reolens never sees your passwords — Apple encrypts them end-to-end."
+            ? "Your camera passwords sync to your other Apple devices through iCloud Keychain. DomusCam never sees your passwords — Apple encrypts them end-to-end."
             : "Off by default. Camera passwords stay on this device. Other Apple devices signed in to the same iCloud account see the camera list and have to re-enter the password locally."
     }
 

@@ -3,7 +3,7 @@ import Observation
 import OSLog
 import ReolinkAPI
 
-private let log = Logger(subsystem: "com.reolens.app", category: "recordings")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "recordings")
 
 /// Downloads a Reolink recording to a local `.mp4`. Uses **parallel HTTP
 /// Range requests** to multiply throughput on hubs that rate-limit each TCP
@@ -84,7 +84,7 @@ public final class RecordingDownloader {
 
     // MARK: - Cache
 
-    /// Cache directory under `~/Library/Caches/Reolens/recordings/`.
+    /// Cache directory under `~/Library/Caches/DomusCam/recordings/`.
     /// iOS may purge it under disk pressure; macOS persists it until
     /// the user clears system caches. The downloader writes every
     /// completed recording here so re-tapping a clip the user has
@@ -94,7 +94,7 @@ public final class RecordingDownloader {
     nonisolated static func cacheDirectory() -> URL? {
         let fm = FileManager.default
         guard let caches = fm.urls(for: .cachesDirectory, in: .userDomainMask).first else { return nil }
-        let dir = caches.appendingPathComponent("Reolens", isDirectory: true)
+        let dir = caches.appendingPathComponent("DomusCam", isDirectory: true)
             .appendingPathComponent("recordings", isDirectory: true)
         try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
@@ -326,7 +326,7 @@ public final class RecordingDownloader {
     /// zero-byte hit.
     private func finishWithSingleData(_ data: Data, downloadURL: URL) async {
         let dest = FileManager.default.temporaryDirectory
-            .appendingPathComponent("reolens-\(UUID().uuidString).mp4")
+            .appendingPathComponent("domuscam-\(UUID().uuidString).mp4")
         do {
             try data.write(to: dest, options: .atomic)
         } catch {
@@ -352,7 +352,7 @@ public final class RecordingDownloader {
         //    can open its own writable FileHandle, seek to the chunk's
         //    offset, and write without contending with sibling chunks.
         let dest = FileManager.default.temporaryDirectory
-            .appendingPathComponent("reolens-\(UUID().uuidString).mp4")
+            .appendingPathComponent("domuscam-\(UUID().uuidString).mp4")
         guard FileManager.default.createFile(atPath: dest.path, contents: nil) else {
             await finishWithFailure("Cannot create output file")
             return
@@ -600,7 +600,7 @@ public final class RecordingDownloader {
             return .failure("Download produced no file.")
         }
         let dest = FileManager.default.temporaryDirectory
-            .appendingPathComponent("reolens-\(UUID().uuidString).mp4")
+            .appendingPathComponent("domuscam-\(UUID().uuidString).mp4")
         do {
             try FileManager.default.moveItem(at: tmpURL, to: dest)
             let size = (try? FileManager.default.attributesOfItem(atPath: dest.path)[.size] as? Int64) ?? 0

@@ -11,7 +11,7 @@ import WidgetKit
 /// pair. Added in 0.4.0 alongside the static-preview-by-default grid
 /// mode (Settings → General → "Live previews in grid").
 ///
-/// Cache layout (under `~/Library/Caches/Reolens/previews/`):
+/// Cache layout (under `~/Library/Caches/DomusCam/previews/`):
 ///
 ///     {cameraId-uuid}-ch{n}.jpg
 ///
@@ -28,7 +28,7 @@ import WidgetKit
 public actor CameraPreviewService {
     public static let shared = CameraPreviewService()
 
-    private let log = Logger(subsystem: "com.reolens.Reolens", category: "PreviewCache")
+    private let log = Logger(subsystem: "com.75-c.DomusCam", category: "PreviewCache")
     private let session: URLSession
     private let directory: URL
 
@@ -44,7 +44,7 @@ public actor CameraPreviewService {
         let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
         self.directory = caches
-            .appendingPathComponent("Reolens", isDirectory: true)
+            .appendingPathComponent("DomusCam", isDirectory: true)
             .appendingPathComponent("previews", isDirectory: true)
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     }
@@ -185,7 +185,7 @@ public actor CameraPreviewService {
     /// Static logger so the `nonisolated public static func
     /// publishToSharedContainer` doesn't reach for the actor's
     /// instance logger.
-    private static let publishLogger = Logger(subsystem: "com.reolens.Reolens", category: "PreviewWidgetPublish")
+    private static let publishLogger = Logger(subsystem: "com.75-c.DomusCam", category: "PreviewWidgetPublish")
 
     /// Reload widget timelines after a fresh write. WidgetKit lives in
     /// the iOS / macOS frameworks (not SPM-buildable on Linux), but we
@@ -259,7 +259,7 @@ public actor CameraPreviewService {
         let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
         let dir = caches
-            .appendingPathComponent("Reolens", isDirectory: true)
+            .appendingPathComponent("DomusCam", isDirectory: true)
             .appendingPathComponent("previews", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
@@ -272,7 +272,7 @@ public actor CameraPreviewService {
 /// `LiveTileView` at render time so flipping the Settings toggle takes
 /// effect on the next layout pass.
 public enum GridPreviewSetting {
-    public static let liveGridDefaultsKey = "com.reolens.liveGridPreviews"
+    public static let liveGridDefaultsKey = "com.75-c.DomusCam.liveGridPreviews"
 
     public static var liveGridEnabled: Bool {
         UserDefaults.standard.bool(forKey: liveGridDefaultsKey)

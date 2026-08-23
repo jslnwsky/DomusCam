@@ -18,7 +18,7 @@ Thanks for sending a PR! Before opening, please confirm:
 verified on. -->
 
 - [ ] `swift build` — macOS clean
-- [ ] `xcodebuild -scheme ReolensiOS` — iOS clean
+- [ ] `xcodebuild -scheme DomusCamiOS` — iOS clean
 - [ ] `swift test` — passing
 - [ ] Manually tested on (macOS / iPad / iPhone): ...
 

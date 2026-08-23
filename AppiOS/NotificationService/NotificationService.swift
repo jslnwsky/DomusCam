@@ -50,7 +50,7 @@ final class NotificationService: UNNotificationServiceExtension, @unchecked Send
 
     /// Source of truth: `CloudKitMotionEventPublisher.containerID`.
     /// Hardcoded here to avoid an AppShared import in the NSE binary.
-    private static let containerID = "iCloud.com.reolens.Reolens"
+    private static let containerID = "iCloud.com.75-c.DomusCam"
 
     /// Mirrors of `MotionEvent.RecordKey.*` in AppShared. Pinned to
     /// strings so the NSE doesn't pull the AppShared module just for
@@ -64,7 +64,7 @@ final class NotificationService: UNNotificationServiceExtension, @unchecked Send
     /// App Group used for cross-process telemetry. Must match the
     /// `application-groups` entitlement on both the host iOS app and
     /// the NSE bundle. Mirror of `SharedContainer.appGroupID`.
-    private static let appGroupID = "group.com.reolens.Reolens"
+    private static let appGroupID = "group.com.75-c.DomusCam"
 
     /// UserDefaults keys for NSE telemetry. Read by `RelayDiagnostics`
     /// in the host app so the user can see whether the extension is
@@ -75,7 +75,7 @@ final class NotificationService: UNNotificationServiceExtension, @unchecked Send
     private static let telemetryKeyLastDate = "nse.lastInvocationDate"
 
     private let log = Logger(
-        subsystem: "com.reolens.Reolens",
+        subsystem: "com.75-c.DomusCam",
         category: "NotificationService"
     )
 
@@ -97,11 +97,11 @@ final class NotificationService: UNNotificationServiceExtension, @unchecked Send
         }
 
         // Sentinel: even if the CloudKit fetch below fails or times
-        // out, "Reolens" as the title proves the NSE ran. If the user
-        // ever sees a "Motion detected" banner with no Reolens title,
+        // out, "DomusCam" as the title proves the NSE ran. If the user
+        // ever sees a "Motion detected" banner with no DomusCam title,
         // the NSE itself isn't being invoked (extension wiring problem,
         // not a fetch problem).
-        bestAttempt.title = "Reolens"
+        bestAttempt.title = "DomusCam"
 
         // CloudKit subscription pushes arrive as plist-encoded
         // dictionaries in `UNNotificationContent.userInfo`. Anything
@@ -164,7 +164,7 @@ final class NotificationService: UNNotificationServiceExtension, @unchecked Send
     /// internal replication, so an immediate fetch returns CKError 11
     /// (`.unknownItem`). We retry with exponential backoff
     /// (`unknownItemRetryDelays`) before giving up. After the last
-    /// attempt fails we fall through to the "Reolens" sentinel title
+    /// attempt fails we fall through to the "DomusCam" sentinel title
     /// + a generic "Camera event" body so the user still gets a
     /// banner that signals the relay is alive.
     private func fetchWithRetry(
@@ -212,13 +212,13 @@ final class NotificationService: UNNotificationServiceExtension, @unchecked Send
     /// "Camera event" beats the bare subscription default ("Motion
     /// detected") because it doesn't mislead the user into thinking
     /// the camera saw plain motion when in fact we couldn't tell.
-    /// Title remains the "Reolens" sentinel set at the top of
+    /// Title remains the "DomusCam" sentinel set at the top of
     /// `didReceive(...)`.
     private func applyFallbackBody(
         to content: UNMutableNotificationContent,
         reason: (any Error)?
     ) {
-        content.body = "Camera event — open Reolens for details"
+        content.body = "Camera event — open DomusCam for details"
     }
 
     override func serviceExtensionTimeWillExpire() {
@@ -336,7 +336,7 @@ final class NotificationService: UNNotificationServiceExtension, @unchecked Send
         // Group with locally-posted alarm notifications so the
         // category identifier matches and any future custom actions
         // (e.g. "View live" / "Snooze") apply to relayed events too.
-        content.categoryIdentifier = "reolens.alarm"
+        content.categoryIdentifier = "domuscam.alarm"
     }
 
     private static func attach(
@@ -350,7 +350,7 @@ final class NotificationService: UNNotificationServiceExtension, @unchecked Send
         // with a recognized extension also lets the OS detect the
         // type without relying on the CKAsset's opaque temp path.
         let dest = FileManager.default.temporaryDirectory
-            .appendingPathComponent("reolens-nse-\(UUID().uuidString).jpg")
+            .appendingPathComponent("domuscam-nse-\(UUID().uuidString).jpg")
         do {
             try FileManager.default.copyItem(at: snapshotURL, to: dest)
             let attachment = try UNNotificationAttachment(
@@ -365,7 +365,7 @@ final class NotificationService: UNNotificationServiceExtension, @unchecked Send
     }
 
     /// Title strings parallel `AppDelegate.postLocalNotification(for:)`
-    /// in `AppiOS/Sources/ReolensiOSApp.swift` so locally-posted and
+    /// in `AppiOS/Sources/DomusCamiOSApp.swift` so locally-posted and
     /// relay-enriched banners read the same. Burst summaries collapse
     /// to a generic "Activity burst detected" so a sustained scene
     /// (rain, foot traffic) is recognizable in Notification Center.
@@ -375,7 +375,7 @@ final class NotificationService: UNNotificationServiceExtension, @unchecked Send
         }
         switch detection {
         case "test":
-            return "Reolens test event received"
+            return "DomusCam test event received"
         case "motion":
             return "Motion detected"
         case "people", "person":

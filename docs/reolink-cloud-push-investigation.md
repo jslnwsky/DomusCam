@@ -4,14 +4,14 @@
 
 ## Question
 
-The 0.7.0 "Reolens Hub" makes one always-on Mac the listener that turns
+The 0.7.0 "DomusCam Hub" makes one always-on Mac the listener that turns
 Reolink camera events into notifications (camera → Baichuan → Mac →
-CloudKit → APNs). That works without any Reolens server and without
+CloudKit → APNs). That works without any DomusCam server and without
 Reolink's cloud, but it requires a Mac that's always on.
 
 Could we offer an **opt-in fallback** for users who have *no* always-on
 Mac — ideally one that still honors the two hard constraints in
-`AGENTS.md` §5: **no Reolens server**, and **no dependence on Reolink's
+`AGENTS.md` §5: **no DomusCam server**, and **no dependence on Reolink's
 cloud**?
 
 ## What Reolink cameras can emit natively
@@ -24,7 +24,7 @@ third-party push API.
 | Mechanism | What it is | Reaches an iPhone how | Avoids a server? | Avoids Reolink cloud? |
 |---|---|---|---|---|
 | **Reolink push** | Camera → Reolink's cloud → the **Reolink app** | Only the Reolink app | n/a (it *is* their cloud) | ❌ no |
-| **Email (SMTP) on event** | Camera emails a snapshot/clip | Mail app push, not Reolens | needs an SMTP inbox + a poller to bridge into Reolens | ✅ |
+| **Email (SMTP) on event** | Camera emails a snapshot/clip | Mail app push, not DomusCam | needs an SMTP inbox + a poller to bridge into DomusCam | ✅ |
 | **FTP/SFTP upload on event** | Camera uploads media to a server | nothing, until something watches the FTP dir | ❌ needs an FTP server + watcher | ✅ |
 | **ONVIF event subscription** | Pull-point / base notification over ONVIF | nothing, until a subscriber listens | ❌ needs an always-on subscriber (same shape as the Hub) | ✅ |
 | **Webhook / HTTP push** | Camera POSTs to a URL on event (model-dependent, often absent) | nothing, until an endpoint receives it | ❌ needs an HTTP endpoint | ✅ |
@@ -34,14 +34,14 @@ third-party push API.
 1. **There is no public Reolink push API for third-party apps.** Reolink
    push is bound to the Reolink app via Reolink's own cloud. Using it
    would mean depending on Reolink's cloud (rejected) and, realistically,
-   asking users to run the Reolink app alongside Reolens — which defeats
+   asking users to run the Reolink app alongside DomusCam — which defeats
    the point.
 
 2. **Every camera-native path that avoids Reolink's cloud (email, FTP,
    ONVIF, webhook) still needs an always-on *receiver*** to turn the
    camera's emission into an APNs push. That receiver is exactly the role
    the Hub Mac plays today. Moving it off the Mac means either:
-   - a **Reolens-operated server** (violates §5), or
+   - a **DomusCam-operated server** (violates §5), or
    - a **user-operated box** (NAS / Raspberry Pi / router add-on) running
      a small bridge — which is just "the Hub, on non-Apple hardware," and
      can't reach CloudKit without server-to-server keys (another server).
@@ -57,12 +57,12 @@ third-party push API.
 - **Do not integrate Reolink's cloud push.** It breaks the independence
   principle and the UX (two apps).
 - **If a no-Mac fallback is ever demanded**, the least-bad option that
-  preserves "no Reolens server" is a **documented, user-operated bridge**
+  preserves "no DomusCam server" is a **documented, user-operated bridge**
   (e.g. a tiny container on a NAS the user already runs) that subscribes
   to the camera's ONVIF events and posts to the user's own CloudKit via
   CloudKit Web Services. This is a *power-user, bring-your-own-box*
   story, not a default — and it still requires the user to operate
-  always-on hardware, so it offers little over running Reolens on a Mac
+  always-on hardware, so it offers little over running DomusCam on a Mac
   mini. **Recommend deferring** unless real user demand appears.
 
 ## Verification still needed

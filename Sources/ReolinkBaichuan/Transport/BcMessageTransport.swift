@@ -7,7 +7,7 @@ import Foundation
 ///
 /// ## Why this exists
 ///
-/// Reolens started life as a strict LAN client: a single
+/// DomusCam started life as a strict LAN client: a single
 /// `NWConnection` over TCP/9000, owned by `BaichuanClient`,
 /// carrying Baichuan messages directly. Remote connectivity
 /// (0.7.0) introduces a second pipe — BcUdp Data packets over a

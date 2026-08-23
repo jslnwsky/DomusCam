@@ -2,7 +2,7 @@ import Foundation
 import Observation
 import OSLog
 
-/// 0.7.0 — the always-on listener that powers "Reolens Hub" mode.
+/// 0.7.0 — the always-on listener that powers "DomusCam Hub" mode.
 ///
 /// Today the macOS app only connects a camera (and thus opens its
 /// Baichuan alarm-event listener) when a view drives
@@ -47,7 +47,7 @@ public final class HubEngine {
     @ObservationIgnored private let host: any HubCameraHosting
     @ObservationIgnored private let sweepInterval: Duration
     @ObservationIgnored private var sweepTask: Task<Void, Never>?
-    @ObservationIgnored private let log = Logger(subsystem: "com.reolens.Reolens", category: "Hub")
+    @ObservationIgnored private let log = Logger(subsystem: "com.75-c.DomusCam", category: "Hub")
 
     /// - Parameters:
     ///   - host: the camera-hosting backend (production: `CameraStore`).

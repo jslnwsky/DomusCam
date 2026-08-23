@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "shared-container")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "shared-container")
 
 /// Device-local shared App-Group container, used by the main app to publish
 /// the snapshot + recent-event metadata that the WidgetKit extension and the
@@ -13,13 +13,13 @@ private let log = Logger(subsystem: "com.reolens.app", category: "shared-contain
 /// (widgets + Live Activities) state the invariants this type enforces.
 public enum SharedContainer {
 
-    public static let groupIdentifier = "group.com.reolens.Reolens"
+    public static let groupIdentifier = "group.com.75-c.DomusCam"
 
     // MARK: - Locations
 
     /// Root of the App-Group container, or `nil` if entitlements are missing
     /// (which happens on ad-hoc / dev builds without the App-Group entry —
-    /// see [App/Reolens.dev.entitlements] for the carve-out).
+    /// see [App/DomusCam.dev.entitlements] for the carve-out).
     public static var containerURL: URL? {
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupIdentifier)
     }

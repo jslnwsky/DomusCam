@@ -2,7 +2,7 @@ import SwiftUI
 
 /// 0.7.0 — the cross-platform "Hub offline — notifications paused"
 /// banner. Shown on iPhone, iPad, macOS, and Apple TV when the always-on
-/// Reolens Hub's CloudKit heartbeat has gone stale, so a user whose
+/// DomusCam Hub's CloudKit heartbeat has gone stale, so a user whose
 /// alerts went quiet immediately understands why (rather than assuming
 /// nothing happened).
 ///
@@ -32,7 +32,7 @@ public struct HubOfflineBanner: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .reolensGlassToast()
+            .domuscamGlassToast()
             .padding(.horizontal)
             .padding(.top, 6)
             .frame(maxWidth: .infinity)

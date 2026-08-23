@@ -1,6 +1,6 @@
-# AppWatch — Reolens companion watchOS library
+# AppWatch — DomusCam companion watchOS library
 
-Minimal source-of-truth for the Reolens watchOS app. The watch app is
+Minimal source-of-truth for the DomusCam watchOS app. The watch app is
 intentionally thin: it consumes the App Group container that the iOS
 app's widget pipeline already publishes (`LatestSnapshots.plist`,
 snapshot JPEGs, `RecentMotionEvents.plist`) and renders a flat camera
@@ -14,7 +14,7 @@ the snapshot attachment.
 
 ```
                                                        paired Watch
-iPhone (Reolens app)                                      ┌───────────────┐
+iPhone (DomusCam app)                                      ┌───────────────┐
   EventNotifier ──► UNNotificationCenter ──[auto]────────►│ system banner │
                                                           └───────────────┘
   Widget pipeline ──► SharedContainer ──► App Group       ┌───────────────┐
@@ -33,13 +33,13 @@ that's out of scope for the initial cut.
 
 The SPM library is wired in [Package.swift](../../Package.swift) under the
 `AppWatch` product. The companion Xcode target needs to be created in
-[ReolensiOS.xcodeproj](../../AppiOS/ReolensiOS.xcodeproj) — Xcode's
+[DomusCamiOS.xcodeproj](../../AppiOS/DomusCamiOS.xcodeproj) — Xcode's
 `File > New > Target > watchOS > Watch App` wizard is the right path.
 
-1. **Bundle Identifier:** `com.reolens.Reolens.watchkitapp`
+1. **Bundle Identifier:** `com.75-c.DomusCam.watchkitapp`
 2. **Minimum Deployment:** watchOS 11.0
-3. **Embed in:** ReolensiOS (paired companion).
-4. **App Group entitlement:** `group.com.reolens.Reolens` — same
+3. **Embed in:** DomusCamiOS (paired companion).
+4. **App Group entitlement:** `group.com.75-c.DomusCam` — same
    group ID the iOS target already declares. Without this entitlement
    `WatchSharedContainer.containerURL` returns `nil` and the watch
    shows "No cameras yet" forever.
@@ -52,7 +52,7 @@ The SPM library is wired in [Package.swift](../../Package.swift) under the
    import AppWatch
 
    @main
-   struct ReolensWatchApp: App {
+   struct DomusCamWatchApp: App {
        var body: some Scene {
            WindowGroup {
                WatchRootView()
@@ -71,7 +71,7 @@ Documenting these so the path back to them is clear:
   snapshot independent of the iPhone. Needs Keychain Sharing (a
   shared access group on the iOS Keychain entries) so the watch can
   read passwords. The right plumbing is a Keychain access group on
-  `com.reolens.cameraPassword` + matching `keychain-access-groups`
+  `com.75-c.DomusCam.cameraPassword` + matching `keychain-access-groups`
   entitlement on both targets. Migration: rewrite existing items into
   the new access group on first launch.
 - **Cross-camera recordings list via `cmd=Search`.** Same credential
@@ -109,7 +109,7 @@ Documenting these so the path back to them is clear:
   shape, mirror the change in `WatchSharedContainer.swift` and bump
   the encoder/decoder version comment. The decode path treats
   failures as empty data — symptom of drift is "the watch never shows
-  any cameras even after opening Reolens on iPhone".
+  any cameras even after opening DomusCam on iPhone".
 - `groupIdentifier` is hard-coded to match the iOS app's entitlement.
   If the App Group ID ever changes, both this file AND the iOS
   entitlements need to be updated together.

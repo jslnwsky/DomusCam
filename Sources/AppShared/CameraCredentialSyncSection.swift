@@ -8,7 +8,7 @@ import OSLog
 /// — can stream. Off by default; explicit; revocable.
 @MainActor
 public enum TVCredentialSync {
-    public static let enabledKey = "com.reolens.tvOSCredentialSync"
+    public static let enabledKey = "com.75-c.DomusCam.tvOSCredentialSync"
 
     public static var isEnabled: Bool {
         UserDefaults.standard.bool(forKey: enabledKey)
@@ -57,7 +57,7 @@ public struct CameraCredentialSyncSection: View {
 
     public var body: some View {
         let cloudKitAvailable = CloudKitAvailability.canUseCloudKit(
-            containerID: "iCloud.com.reolens.Reolens"
+            containerID: "iCloud.com.75-c.DomusCam"
         )
         Section("Apple TV") {
             Toggle("Stream on Apple TV", isOn: $enabled)
@@ -66,14 +66,14 @@ public struct CameraCredentialSyncSection: View {
                     TVCredentialSync.setEnabled(newValue, store: store)
                 }
             if cloudKitAvailable {
-                Text("New in 0.7.0. The Apple TV app can show your camera list from iCloud, but Apple doesn't sync camera passwords to tvOS. Turn this on to sync your camera passwords — encrypted, through your own iCloud account, with no Reolens server — so the Apple TV can stream live video.")
+                Text("New in 0.7.0. The Apple TV app can show your camera list from iCloud, but Apple doesn't sync camera passwords to tvOS. Turn this on to sync your camera passwords — encrypted, through your own iCloud account, with no DomusCam server — so the Apple TV can stream live video.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Text("Passwords are stored encrypted in your private iCloud (CloudKit) and held only in memory on the Apple TV. Turning this off removes them from iCloud.")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             } else {
-                Label("iCloud isn't available on this Reolens build.", systemImage: "icloud.slash")
+                Label("iCloud isn't available on this DomusCam build.", systemImage: "icloud.slash")
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.orange)
             }

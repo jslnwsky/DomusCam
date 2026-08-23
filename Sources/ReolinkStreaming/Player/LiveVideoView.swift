@@ -8,7 +8,7 @@ import AppKit
 import UIKit
 #endif
 
-private let log = Logger(subsystem: "com.reolens.streaming", category: "view")
+private let log = Logger(subsystem: "com.75-c.DomusCam.streaming", category: "view")
 
 /// SwiftUI wrapper that hosts an `AVSampleBufferDisplayLayer` for a `LiveVideoPlayer`.
 ///

@@ -18,7 +18,7 @@ public enum WatchSharedContainer {
     /// Hard-coded rather than read from Info.plist because this is
     /// part of the shared contract with the iOS app, not a watch-
     /// specific configuration.
-    public static let groupIdentifier = "group.com.reolens.Reolens"
+    public static let groupIdentifier = "group.com.75-c.DomusCam"
 
     public static var containerURL: URL? {
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupIdentifier)
@@ -63,7 +63,7 @@ public enum WatchSharedContainer {
 
     /// Read-side facade. All reads are best-effort: a missing file or
     /// a decode failure surfaces as an empty array so the UI degrades
-    /// gracefully ("No cameras yet — open Reolens on your iPhone").
+    /// gracefully ("No cameras yet — open DomusCam on your iPhone").
     public enum Reader {
         public static func readLatestSnapshots() -> [LatestSnapshot] {
             guard let url = snapshotsURL, let data = try? Data(contentsOf: url) else { return [] }

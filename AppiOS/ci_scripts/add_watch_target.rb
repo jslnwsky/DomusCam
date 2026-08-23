@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Adds the ReolensWatch (watchOS 11) companion target to ReolensiOS.xcodeproj.
+# Adds the DomusCamWatch (watchOS 11) companion target to DomusCamiOS.xcodeproj.
 #
-# Idempotent: re-running detects an existing `ReolensWatch` target and
+# Idempotent: re-running detects an existing `DomusCamWatch` target and
 # bails with a non-zero exit code rather than duplicating entries. Use
-# `xcodebuild -project ReolensiOS.xcodeproj -list` to verify.
+# `xcodebuild -project DomusCamiOS.xcodeproj -list` to verify.
 #
 # Pre-reqs:
 #   gem install --user-install xcodeproj
@@ -17,10 +17,10 @@ gem_paths.each { |p| $LOAD_PATH.unshift(File.join(p, 'gems', 'xcodeproj-1.27.0',
 gem_paths.each { |p| ENV['GEM_PATH'] = [p, ENV['GEM_PATH']].compact.join(':') }
 require 'xcodeproj'
 
-PROJECT_PATH = File.expand_path(File.join(__dir__, '..', 'ReolensiOS.xcodeproj'))
-TARGET_NAME  = 'ReolensWatch'
-BUNDLE_ID    = 'com.reolens.Reolens.watchkitapp'
-TEAM_ID      = '5M9UT7VQ8Q'
+PROJECT_PATH = File.expand_path(File.join(__dir__, '..', 'DomusCamiOS.xcodeproj'))
+TARGET_NAME  = 'DomusCamWatch'
+BUNDLE_ID    = 'com.75-c.DomusCam.watchkitapp'
+TEAM_ID      = 'NXVC3868F7'
 SOURCE_DIR   = 'Watch'  # relative to AppiOS/
 WATCH_SDK    = 'watchos'
 WATCH_DEPLOYMENT = '11.0'
@@ -49,10 +49,10 @@ watch_target = project.new_target(
 watch_target.build_configurations.each do |config|
   bs = config.build_settings
   bs['PRODUCT_BUNDLE_IDENTIFIER']            = BUNDLE_ID
-  bs['PRODUCT_NAME']                          = 'Reolens'
+  bs['PRODUCT_NAME']                          = 'DomusCam'
   bs['DEVELOPMENT_TEAM']                      = TEAM_ID
   bs['CODE_SIGN_STYLE']                       = 'Automatic'
-  bs['CODE_SIGN_ENTITLEMENTS']                = "#{SOURCE_DIR}/ReolensWatch.entitlements"
+  bs['CODE_SIGN_ENTITLEMENTS']                = "#{SOURCE_DIR}/DomusCamWatch.entitlements"
   bs['INFOPLIST_FILE']                        = "#{SOURCE_DIR}/Info.plist"
   bs['SDKROOT']                               = WATCH_SDK
   bs['SUPPORTED_PLATFORMS']                   = 'watchos watchsimulator'
@@ -89,13 +89,13 @@ info_ref.last_known_file_type = 'text.plist.xml'
 info_ref.set_source_tree('SOURCE_ROOT')
 info_ref.set_path('Watch/Info.plist')
 
-ent_ref = watch_group.new_reference("#{SOURCE_DIR}/ReolensWatch.entitlements")
+ent_ref = watch_group.new_reference("#{SOURCE_DIR}/DomusCamWatch.entitlements")
 ent_ref.last_known_file_type = 'text.plist.entitlements'
 ent_ref.set_source_tree('SOURCE_ROOT')
-ent_ref.set_path('Watch/ReolensWatch.entitlements')
+ent_ref.set_path('Watch/DomusCamWatch.entitlements')
 
 # --- 4. Link AppWatch SPM product ----------------------------------------
-# Find the existing Swift package reference for the Reolens local package
+# Find the existing Swift package reference for the DomusCam local package
 # (added by the iOS target).
 pkg_ref = project.root_object.package_references.find do |ref|
   rel = ref.respond_to?(:relative_path) ? ref.relative_path : nil
@@ -121,9 +121,9 @@ build_file.product_ref = pkg_product_dep
 frameworks_phase.files << build_file
 
 # --- 5. Embed the watch app inside the iOS app ---------------------------
-ios_target = project.targets.find { |t| t.name == 'ReolensiOS' }
+ios_target = project.targets.find { |t| t.name == 'DomusCamiOS' }
 unless ios_target
-  warn 'Could not find ReolensiOS target. Aborting.'
+  warn 'Could not find DomusCamiOS target. Aborting.'
   exit 3
 end
 
@@ -162,4 +162,4 @@ puts "Bundle ID: #{BUNDLE_ID}"
 puts "Embedded inside: #{ios_target.name}"
 puts "SPM product: AppWatch"
 puts
-puts 'Next: xcodebuild -project ReolensiOS.xcodeproj -list'
+puts 'Next: xcodebuild -project DomusCamiOS.xcodeproj -list'

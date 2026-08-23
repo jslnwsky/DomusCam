@@ -7,7 +7,7 @@ import AppKit
 import UIKit
 #endif
 
-private let log = Logger(subsystem: "com.reolens.app", category: "scrubber")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "scrubber")
 
 /// 0.5.0 Theme A3 — custom scrubber with a thumbnail rail for the
 /// recordings player. Sits underneath the `AVPlayerView` / `AVPlayer`
@@ -66,7 +66,7 @@ public struct ScrubberView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .reolensGlassToolbar()
+        .domuscamGlassToolbar()
         .task(id: segmentID) {
             await prepare()
         }
@@ -333,7 +333,7 @@ private struct PreviewBubble: View {
     var body: some View {
         Text(format(seconds))
             .font(.caption2.weight(.medium).monospacedDigit())
-            .reolensGlassToast()
+            .domuscamGlassToast()
     }
     private func format(_ s: TimeInterval) -> String {
         let total = Int(s.rounded())

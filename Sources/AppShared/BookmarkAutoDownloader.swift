@@ -3,7 +3,7 @@ import OSLog
 import ReolinkAPI
 import ReolinkStreaming
 
-private let log = Logger(subsystem: "com.reolens.app", category: "bookmark-autodownload")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "bookmark-autodownload")
 
 /// 0.5.1 — Schedules background downloads of bookmarked recordings so
 /// the clip is available offline when the user wants to revisit it.
@@ -20,7 +20,7 @@ private let log = Logger(subsystem: "com.reolens.app", category: "bookmark-autod
 /// - Persists `taskDescription = bookmark.id.uuidString` so a relaunch
 ///   re-binds in-flight tasks to their bookmark records.
 /// - Completed files land in
-///   `~/Library/Application Support/Reolens/bookmarks/<bookmarkID>.mp4`
+///   `~/Library/Application Support/DomusCam/bookmarks/<bookmarkID>.mp4`
 ///   so they survive cache eviction.
 ///
 /// The URLSession's delegate is a separate non-actor class so it can
@@ -31,15 +31,15 @@ public final class BookmarkAutoDownloader: NSObject, @unchecked Sendable {
     /// 0.5.1 — Post this when the cellular preference flips so the
     /// downloader can invalidate its session and pick up the new
     /// config. Posted by `BackgroundDownloadsSection`.
-    public static let preferencesDidChange = Notification.Name("com.reolens.bookmarkDL.preferencesDidChange")
+    public static let preferencesDidChange = Notification.Name("com.75-c.DomusCam.bookmarkDL.preferencesDidChange")
 
-    private static let backgroundIdentifier = "com.reolens.bookmarkDL"
+    private static let backgroundIdentifier = "com.75-c.DomusCam.bookmarkDL"
     /// Guarded by `queue`. The session pointer itself is also guarded
     /// because `applyPreferenceChange()` swaps it under the delegate's
     /// feet — without the guard, an in-flight `enqueue` could grab
     /// the old session reference and resume on it.
     private var session: URLSession
-    private let queue = DispatchQueue(label: "com.reolens.bookmark-dl.state")
+    private let queue = DispatchQueue(label: "com.75-c.DomusCam.bookmark-dl.state")
     private var tasksInFlight: Set<String> = []
 
     public override init() {
@@ -100,7 +100,7 @@ public final class BookmarkAutoDownloader: NSObject, @unchecked Sendable {
     nonisolated public static var storageRoot: URL {
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
-        let dir = support.appending(path: "Reolens/bookmarks")
+        let dir = support.appending(path: "DomusCam/bookmarks")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
     }

@@ -2,7 +2,7 @@ import Foundation
 import Network
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.baichuan", category: "lan-transport")
+private let log = Logger(subsystem: "com.75-c.DomusCam.baichuan", category: "lan-transport")
 
 /// `BcMessageTransport` conformance for the LAN path: a single
 /// `NWConnection` over TCP/9000 carrying length-prefixed Baichuan

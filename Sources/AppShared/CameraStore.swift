@@ -71,7 +71,7 @@ public struct CameraEntry: Identifiable, Hashable, Sendable, Codable {
     /// per AGENTS.md §7 — older apps decode-and-ignore this field;
     /// newer apps tolerate it being absent.
     public var tlsFingerprint: String? = nil
-    /// Channels where the user has hidden Reolens' in-tile app badges
+    /// Channels where the user has hidden DomusCam' in-tile app badges
     /// (camera name, motion / AI icons) so the camera's own OSD
     /// overlay isn't fought over. Per-channel because some channels
     /// on a Hub may have OSD off (top-left clear) while others have
@@ -83,25 +83,8 @@ public struct CameraEntry: Identifiable, Hashable, Sendable, Codable {
     /// `cameras.json` to other Apple devices. Default OFF so the
     /// `HomeKitBridge` only attempts to register accessories the
     /// user explicitly chose. Forward-compatible decode-and-ignore
-    /// when older Reolens builds read a newer cameras.json.
+    /// when older DomusCam builds read a newer cameras.json.
     public var homeKitEnabled: Bool = false
-
-    /// 0.7.0 Phase 4b (remote connectivity) — Reolink camera UID,
-    /// fetched on first successful LAN login via the Baichuan
-    /// `msg_id=114` exchange (see
-    /// `Sources/ReolinkBaichuan/BaichuanUID.swift`). The UID is
-    /// the only key needed to look the camera up through Reolink's
-    /// P2P discovery cluster when the LAN endpoint is unreachable
-    /// (user is away from home, on cellular, etc.). nil means
-    /// "not yet captured" — the next successful LAN session will
-    /// populate it. Forward-compatible decode-and-ignore for
-    /// older Reolens builds reading a newer cameras.json.
-    ///
-    /// The UID is **never** shown to the user. It exists to
-    /// preserve the zero-config UX contract: the user adds a
-    /// camera on LAN, Reolens silently remembers the UID, and
-    /// remote access "just works" later without any extra step.
-    public var uid: String? = nil
 
     /// 0.9.0 A4 — control plane the session should use to reach this camera.
     /// `nil` means "auto / unknown": the first connect probes HTTP:80 →
@@ -127,7 +110,6 @@ public struct CameraEntry: Identifiable, Hashable, Sendable, Codable {
         tlsFingerprint: String? = nil,
         hiddenAppBadgeChannels: Set<Int> = [],
         homeKitEnabled: Bool = false,
-        uid: String? = nil,
         controlTransport: ControlTransport? = nil
     ) {
         self.id = id
@@ -144,7 +126,6 @@ public struct CameraEntry: Identifiable, Hashable, Sendable, Codable {
         self.tlsFingerprint = tlsFingerprint
         self.hiddenAppBadgeChannels = hiddenAppBadgeChannels
         self.homeKitEnabled = homeKitEnabled
-        self.uid = uid
         self.controlTransport = controlTransport
     }
 
@@ -159,7 +140,6 @@ public struct CameraEntry: Identifiable, Hashable, Sendable, Codable {
              tlsFingerprint,           // 0.4.1: TOFU TLS pinning
              hiddenAppBadgeChannels,   // 0.4.1: per-channel "hide app badges"
              homeKitEnabled,           // 0.6.0 Slice B2: HomeKit exposure opt-in
-             uid,                      // 0.7.0 Phase 4b: Reolink P2P identifier
              controlTransport          // 0.9.0 A4: persisted control plane (skip web-API re-probe)
     }
 
@@ -206,12 +186,6 @@ public struct CameraEntry: Identifiable, Hashable, Sendable, Codable {
         // cameras.json without the field decodes cleanly. Per
         // AGENTS.md §7's forward-compatible-decode rule.
         self.homeKitEnabled = (try? c.decodeIfPresent(Bool.self, forKey: .homeKitEnabled)) ?? false
-        // 0.7.0 Phase 4b — optional, decode-and-ignore. Older
-        // Reolens builds reading a newer cameras.json silently
-        // drop the field; the user keeps LAN-only behavior on
-        // those installs while the newer install has remote
-        // access available.
-        self.uid = try? c.decodeIfPresent(String.self, forKey: .uid)
         // 0.9.0 A4 — optional + `try?` so an absent key (legacy cameras.json)
         // OR an unrecognized future transport string both decode to nil rather
         // than throwing. AGENTS.md §7 forward-compatible-decode.
@@ -238,16 +212,11 @@ public struct CameraEntry: Identifiable, Hashable, Sendable, Codable {
         try c.encode(Array(hiddenAppBadgeChannels).sorted(), forKey: .hiddenAppBadgeChannels)
         // 0.6.0 Slice B2 — only emit when ON so the JSON payload
         // doesn't gain a noisy `homeKitEnabled: false` field on
-        // every camera. Older Reolens builds reading a newer file
+        // every camera. Older DomusCam builds reading a newer file
         // tolerate the field's absence by defaulting to false.
         if homeKitEnabled {
             try c.encode(true, forKey: .homeKitEnabled)
         }
-        // 0.7.0 Phase 4b — emit only when a UID has actually
-        // been captured. A camera that's never reached a
-        // successful LAN login stays "uid-less" and the JSON
-        // doesn't gain a noisy `uid: null` line.
-        try c.encodeIfPresent(uid, forKey: .uid)
         // 0.9.0 A4 — emit only when actually known so an un-probed camera
         // doesn't gain a `controlTransport: null` line and iCloud-sync diffs
         // stay clean vs. a pre-0.9.0 cameras.json.
@@ -270,7 +239,7 @@ public final class CameraStore {
     /// Per-device preferred order for the top-level camera list.
     /// **Not synced via iCloud** — different platforms (sidebar / tab /
     /// single column) have different optimal orderings, and avoiding a
-    /// `cameras.json` schema bump keeps older Reolens versions on the
+    /// `cameras.json` schema bump keeps older DomusCam versions on the
     /// user's other Apple devices compatible. See AGENTS.md "backward-
     /// compatible sync schema". Empty array means "use natural insertion
     /// order"; reconciled with the current `cameras` list at read time
@@ -314,7 +283,7 @@ public final class CameraStore {
     public static var developerModeIsOn: Bool {
         AppPreferences.developerModeIsOn
     }
-    private static let cameraOrderKey = "com.reolens.cameraOrder"
+    private static let cameraOrderKey = "com.75-c.DomusCam.cameraOrder"
 
     /// 0.5.1 — global "Show camera name on feed" preference. Default OFF
     /// because Reolink cameras typically burn their own OSD (date / time
@@ -782,17 +751,9 @@ public final class CameraStore {
         session.dualLensOverride = { [weak self] channel in
             self?.isDualLensOverride(deviceID: id, channel: channel) ?? false
         }
-        // 0.7.0 Phase 4b — back-channel from the session to the
-        // store so a UID captured on first successful Baichuan
-        // login lands in `cameras.json`. Same closure shape as
-        // `dualLensOverride` to keep the wiring uniform.
-        session.onUIDObserved = { [weak self] uid in
-            self?.recordUID(uid, for: id)
-        }
         // 0.9.0 A4 — back-channel: persist the control plane the session
         // actually connected over (notably `.baichuan` after a web-API-off
-        // fallback) so the next connect can skip the 80/443 probes. Same
-        // closure shape as `onUIDObserved`; idempotent on the store side.
+        // fallback) so the next connect can skip the 80/443 probes.
         session.onControlTransportObserved = { [weak self] transport in
             self?.recordControlTransport(transport, for: id)
         }
@@ -836,20 +797,6 @@ public final class CameraStore {
         guard let i = cameras.firstIndex(where: { $0.id == id }) else { return }
         guard cameras[i].tlsFingerprint != fingerprint else { return }
         cameras[i].tlsFingerprint = fingerprint
-        save()
-    }
-
-    /// 0.7.0 Phase 4b — persist the Reolink P2P UID observed
-    /// during the camera's first successful Baichuan login.
-    /// Idempotent: writing the same UID is a no-op, so the
-    /// CameraSession hook can call it on every login without
-    /// thrashing iCloud sync. The UID is never shown to the user
-    /// — see `CameraEntry.uid` for the rationale.
-    public func recordUID(_ uid: String, for id: CameraEntry.ID) {
-        guard !uid.isEmpty else { return }
-        guard let i = cameras.firstIndex(where: { $0.id == id }) else { return }
-        guard cameras[i].uid != uid else { return }
-        cameras[i].uid = uid
         save()
     }
 

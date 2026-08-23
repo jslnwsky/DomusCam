@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "bookmarks")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "bookmarks")
 
 /// User-saved bookmark pointing at a specific moment in a camera's
 /// recording. Bookmarks live as references — no media is ever
@@ -81,14 +81,14 @@ public enum RecordingBookmarkStore {
     /// Mirror of `ICloudCameraStorage`'s ubiquity-container lookup —
     /// reusing the same pattern keeps the layout consistent.
     private static var rootDirectory: URL? {
-        FileManager.default.url(forUbiquityContainerIdentifier: "iCloud.com.reolens.Reolens")?
+        FileManager.default.url(forUbiquityContainerIdentifier: "iCloud.com.75-c.DomusCam")?
             .appending(path: "Documents/bookmarks")
     }
 
     private static var localFallback: URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
-        return docs.appending(path: "Reolens/bookmarks")
+        return docs.appending(path: "DomusCam/bookmarks")
     }
 
     public static func bookmarksURL(for cameraID: UUID) -> URL {

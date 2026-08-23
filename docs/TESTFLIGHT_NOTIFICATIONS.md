@@ -1,6 +1,6 @@
 # Enabling motion notifications on TestFlight iOS / iPadOS
 
-Reolens has no Reolens server (AGENTS.md §5). Motion notifications on iPhone /
+DomusCam has no DomusCam server (AGENTS.md §5). Motion notifications on iPhone /
 iPad reach you over Apple Push (APNS + CloudKit), but **a publisher device on
 your home network has to be running** to feed those notifications into your
 private iCloud database. Today, that publisher is the **macOS app**.
@@ -14,26 +14,26 @@ cellular, miles from home.
 [Reolink camera on LAN]
         │  motion / AI event
         ▼
-[macOS Reolens — publisher at home]
+[macOS DomusCam — publisher at home]
         │  CKRecord → your *private* iCloud DB
         ▼
 [Apple CloudKit + APNS]
         │  silent push (any network the phone has)
         ▼
-[TestFlight Reolens on iPhone / iPad — subscriber]
+[TestFlight DomusCam on iPhone / iPad — subscriber]
         │  wake → fetch record → post local notification
         ▼
 🔔 banner
 ```
 
-Everything runs inside your own iCloud account. Reolens has no server in the
+Everything runs inside your own iCloud account. DomusCam has no server in the
 loop and never sees your camera credentials or motion events.
 
 ## One-time setup
 
 You need **all** of these:
 
-1. **macOS Reolens installed from a GitHub Release DMG.** Local `swift run`
+1. **macOS DomusCam installed from a GitHub Release DMG.** Local `swift run`
    builds and `Scripts/build-app.sh` ad-hoc builds intentionally drop the iCloud
    entitlement (macOS 26 AMFI requires a matching provisioning profile, which
    ad-hoc signing doesn't have). The release DMG is signed with Developer ID
@@ -42,14 +42,14 @@ You need **all** of these:
    Verify your installed copy has CloudKit:
 
    ```sh
-   codesign -d --entitlements - /Applications/Reolens.app 2>/dev/null \
+   codesign -d --entitlements - /Applications/DomusCam.app 2>/dev/null \
      | grep -A1 icloud-services
    ```
 
    You should see `CloudKit` and `CloudDocuments` listed. If not, reinstall
    from the latest [GitHub Release](https://github.com/jestatsio/reolens/releases/latest).
 
-2. **TestFlight Reolens on the iPhone / iPad.** No special setup; the iOS
+2. **TestFlight DomusCam on the iPhone / iPad.** No special setup; the iOS
    build ships with `aps-environment = production` and the
    `remote-notification` background mode.
 
@@ -63,18 +63,18 @@ You need **all** of these:
 
 **On the Mac (publisher):**
 
-- Open Reolens → Settings → **Motion Notifications**
+- Open DomusCam → Settings → **Motion Notifications**
 - Turn **"Relay motion events to my other Apple devices"** ON
 - Optional: hit the **"Send test event"** button to fire a synthetic event
   through the pipeline immediately
 
 **On the iPhone / iPad (subscriber):**
 
-- Open Reolens → Settings → **Motion Notifications**
+- Open DomusCam → Settings → **Motion Notifications**
 - Turn **"Receive on this iPhone / iPad"** ON (default ON since 0.6.0, but
   worth confirming)
-- Accept the system notification permission prompt on first launch (Reolens
-  auto-prompts; if you missed it, iOS Settings → Reolens → Notifications →
+- Accept the system notification permission prompt on first launch (DomusCam
+  auto-prompts; if you missed it, iOS Settings → DomusCam → Notifications →
   Allow)
 
 That's it. Within a few seconds of a real motion event on the camera, you
@@ -99,8 +99,8 @@ If notifications aren't arriving:
     `noEntitlement`, `rateLimitedSuppressed`, …)
 
 - **The Mac has to be awake.** The publisher only runs while the Mac is
-  online and Reolens is running (it can be in the background — does not need
-  to be foreground). If you close Reolens or the Mac sleeps, no events get
+  online and DomusCam is running (it can be in the background — does not need
+  to be foreground). If you close DomusCam or the Mac sleeps, no events get
   published until it wakes.
 
 - **One camera at a time, by design.** The publisher relays motion events
@@ -109,7 +109,7 @@ If notifications aren't arriving:
   relayed events.
 
 - **Test event didn't arrive on the phone:**
-  1. iOS notifications fully off? Settings → Reolens → Notifications.
+  1. iOS notifications fully off? Settings → DomusCam → Notifications.
   2. Per-tag muted? Settings → Motion Notifications → check each tag toggle.
   3. APNS registration failed? Open the relay diagnostics on iOS; the
      "APNS registered" row should show a recent timestamp and a non-zero
@@ -149,8 +149,8 @@ To deploy:
    committed `.ckdb` file is the source of truth for future diffs:
 
    ```sh
-   export CKTOOL_TEAM_ID=5M9UT7VQ8Q
-   export CKTOOL_CONTAINER=iCloud.com.reolens.Reolens
+   export CKTOOL_TEAM_ID=NXVC3868F7
+   export CKTOOL_CONTAINER=iCloud.com.75-c.DomusCam
    Scripts/deploy-cloudkit-schema.sh export
    git add CloudKit/schema.ckdb && git commit -m 'chore: snapshot CloudKit schema'
    ```
@@ -184,9 +184,9 @@ against Dev) without overwriting the snapshot, run
 ### Adding a new field
 
 CloudKit Development normally auto-creates fields the first time the
-app writes them. But Reolens has no Mac binary that publishes to Dev:
+app writes them. But DomusCam has no Mac binary that publishes to Dev:
 the release DMG hits Production, and ad-hoc-signed local builds drop
-the iCloud entitlement entirely (see `App/Reolens.dev.entitlements`).
+the iCloud entitlement entirely (see `App/DomusCam.dev.entitlements`).
 So adding a field requires either the Console or `cktool`:
 
 **Console (easiest):**

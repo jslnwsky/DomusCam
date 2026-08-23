@@ -61,15 +61,15 @@ public enum ConnectFailureMessage {
     /// toggle and mentions the Baichuan retry instead of a single port.
     public static func text(for error: any Error, bothWebPortsRefused: Bool = false) -> String {
         if bothWebPortsRefused {
-            return "Reolens couldn't reach this camera's web API on HTTP or HTTPS — it may be turned off. Open the Reolink app: Network → Advanced → Port Settings, enable HTTP/HTTPS, turn off Privacy Mode, then reconnect. (Reolens also tries the camera's Baichuan port automatically.)"
+            return "DomusCam couldn't reach this camera's web API on HTTP or HTTPS — it may be turned off. Open the Reolink app: Network → Advanced → Port Settings, enable HTTP/HTTPS, turn off Privacy Mode, then reconnect. (DomusCam also tries the camera's Baichuan port automatically.)"
         }
         switch classify(error) {
         case .refusedPort:
             return "The camera refused the connection. If you recently updated its firmware, its HTTP/HTTPS API may be off — open the Reolink app, enable HTTP/HTTPS under Network → Advanced → Port Settings, turn off Privacy Mode, then try again."
         case .timedOut:
-            return "Reolens couldn't reach the camera in time. Check that it's powered on and on the same Wi-Fi, then try again."
+            return "DomusCam couldn't reach the camera in time. Check that it's powered on and on the same Wi-Fi, then try again."
         case .hostNotFound:
-            return "Reolens couldn't find the camera at that address. Double-check the IP or hostname in Settings → Cameras."
+            return "DomusCam couldn't find the camera at that address. Double-check the IP or hostname in Settings → Cameras."
         case .tls:
             return "The camera's HTTPS certificate couldn't be verified — it may have changed. Remove and re-add the camera to trust the new certificate."
         case .offline:

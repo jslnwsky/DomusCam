@@ -17,7 +17,7 @@ public struct TVRootView: View {
     public var body: some View {
         NavigationStack {
             TVCameraGridView(store: list, credentials: credentials)
-                .navigationTitle("Reolens")
+                .navigationTitle("DomusCam")
                 .navigationDestination(for: TVCameraEntry.self) { camera in
                     TVLiveFullscreenView(
                         camera: camera,
@@ -44,7 +44,7 @@ struct TVCameraGridView: View {
                 ContentUnavailableView {
                     Label("No cameras yet", systemImage: "video.slash")
                 } description: {
-                    Text("Add cameras in Reolens on your iPhone or Mac, signed in to the same iCloud account.")
+                    Text("Add cameras in DomusCam on your iPhone or Mac, signed in to the same iCloud account.")
                 }
             } else {
                 ScrollView {
@@ -101,7 +101,7 @@ struct TVLiveFullscreenView: View {
                 ContentUnavailableView {
                     Label("Streaming needs credential sync", systemImage: "key.slash")
                 } description: {
-                    Text("On your iPhone or Mac, open Reolens → Settings → Apple TV and turn on “Stream on Apple TV.”")
+                    Text("On your iPhone or Mac, open DomusCam → Settings → Apple TV and turn on “Stream on Apple TV.”")
                 }
             } else {
                 ProgressView()

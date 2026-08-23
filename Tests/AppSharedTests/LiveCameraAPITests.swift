@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 import ReolinkAPI
-import ReolensCore
+import DomusCamCore
 @testable import AppShared
 
 /// Phase 2 — pure mapping + event-bus tests for the in-process `CameraAPI`

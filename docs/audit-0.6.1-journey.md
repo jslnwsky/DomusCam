@@ -9,7 +9,7 @@ deltas. Capture screenshots into `docs/screenshots/0.6.1/` as you go.
 Recommended hardware: any Apple Silicon Mac on macOS 26.
 
 - [ ] **Cold launch.** No console errors filtered to
-  `subsystem:com.reolens.*`.
+  `subsystem:com.75-c.DomusCam.*`.
 - [ ] **Add a camera.** Verify the add-sheet validates input; password
   lands in Keychain (not UserDefaults).
 - [ ] **Live grid.** Adaptive, spotlight, and a fixed preset (e.g.

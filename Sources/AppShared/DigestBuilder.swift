@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "digest")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "digest")
 
 /// Build a `DailyDigestRecord` from an array of motion events. Pure,
 /// stateless, deterministic — easy to unit-test. Production callers
@@ -88,8 +88,8 @@ public enum DigestBuilder {
 /// without racing against the shared `.standard` instance.
 public struct OvernightDigestSettings {
 
-    public static let enabledKey = "com.reolens.overnightDigest.enabled"
-    public static let hourKey = "com.reolens.overnightDigest.hourOfDay"
+    public static let enabledKey = "com.75-c.DomusCam.overnightDigest.enabled"
+    public static let hourKey = "com.75-c.DomusCam.overnightDigest.hourOfDay"
 
     public let defaults: UserDefaults
 

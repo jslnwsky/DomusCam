@@ -7,7 +7,7 @@ import SwiftUI
 /// list. **iOS-only** — Apple ships HomeKit as a public framework
 /// on iOS / iPadOS only; on macOS it lives under
 /// PrivateFrameworks (not callable) and iOSSupport (Mac Catalyst
-/// only). Native macOS apps like Reolens-for-Mac can't link against
+/// only). Native macOS apps like DomusCam-for-Mac can't link against
 /// it, so the section renders as an empty view there rather than
 /// showing a misleading "framework not available on this device"
 /// message.

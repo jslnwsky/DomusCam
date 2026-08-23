@@ -53,7 +53,7 @@ public struct EnterPasswordSheet: View {
                     #endif
                 }
                 Section {
-                    Text("This password is stored only on this device's Keychain. Reolens never syncs passwords between devices.")
+                    Text("This password is stored only on this device's Keychain. DomusCam never syncs passwords between devices.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

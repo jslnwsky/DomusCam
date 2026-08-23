@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.baichuan", category: "client")
+private let log = Logger(subsystem: "com.75-c.DomusCam.baichuan", category: "client")
 
 public enum BaichuanError: Error, CustomStringConvertible, LocalizedError, Sendable {
     case connectionFailed(String)

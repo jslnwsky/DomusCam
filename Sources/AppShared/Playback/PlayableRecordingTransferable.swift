@@ -3,7 +3,7 @@ import CoreTransferable
 import UniformTypeIdentifiers
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "playback.transferable")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "playback.transferable")
 
 /// Lazy `Transferable` wrapper for a `PlayableRecording`. Lets a
 /// `ShareLink` in the player sheet's Export menu render with no

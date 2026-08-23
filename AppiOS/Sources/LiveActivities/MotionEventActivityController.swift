@@ -3,7 +3,7 @@ import Foundation
 import OSLog
 import AppShared
 
-private let log = Logger(subsystem: "com.reolens.iOS", category: "live-activity")
+private let log = Logger(subsystem: "com.75-c.DomusCam.iOS", category: "live-activity")
 
 /// In-flight motion-event Live Activity lifecycle: start, update,
 /// end. Wired into `EventNotifier` so each motion fire that also
@@ -198,7 +198,7 @@ public final class MotionEventActivityController {
 
 /// `MotionEventLiveActivityBridge` adapter for the AppShared
 /// `EventNotifier` to call into without importing `ActivityKit`. The
-/// iOS app registers this at launch (see `ReolensiOSApp.swift`).
+/// iOS app registers this at launch (see `DomusCamiOSApp.swift`).
 @available(iOS 26.0, *)
 public struct MotionEventActivityBridge: MotionEventLiveActivityBridge {
 

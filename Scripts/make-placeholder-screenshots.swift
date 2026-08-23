@@ -8,7 +8,7 @@
 //   - make-stock-camera-views.swift produces the inner camera-view
 //     imagery (front door, driveway, backyard, etc.).
 //   - this script wraps them in app chrome and writes the final PNGs
-//     to docs/screenshots/, ready to commit and serve from reolens.io.
+//     to docs/screenshots/, ready to commit and serve from github.com/jslinowsky/DomusCam.
 //
 // The previous version produced labeled "Screenshot coming soon"
 // placeholders; this version renders something the user can actually
@@ -166,7 +166,7 @@ func drawWindowChrome(_ ctx: CGContext) -> CGRect {
         ctx.addArc(center: CGPoint(x: titleRect.minX + 32 + CGFloat(i) * 26, y: titleRect.midY), radius: 7, startAngle: 0, endAngle: .pi * 2, clockwise: false)
         ctx.fillPath()
     }
-    drawText(ctx, "Reolens", fontSize: 18, weight: 0.4, at: CGPoint(x: outer.midX - 38, y: titleRect.midY - 7), color: textPrimary)
+    drawText(ctx, "DomusCam", fontSize: 18, weight: 0.4, at: CGPoint(x: outer.midX - 38, y: titleRect.midY - 7), color: textPrimary)
 
     let content = CGRect(x: outer.minX + 1, y: outer.minY + 1, width: outer.width - 2, height: outer.height - titleBarH - 1)
     fill(ctx, content, bgContent)
@@ -386,7 +386,7 @@ func renderNotification() {
     let iconR = CGRect(x: notif.minX + 16, y: notif.maxY - 16 - 56, width: 56, height: 56)
     roundedRect(ctx, iconR, radius: 12, fill: rgb(0.30, 0.55, 1.0))
     drawText(ctx, "R", fontSize: 36, weight: 0.6, at: CGPoint(x: iconR.midX - 10, y: iconR.midY - 14), color: rgb(1, 1, 1))
-    drawText(ctx, "Reolens", fontSize: 12, weight: 0.4, at: CGPoint(x: iconR.maxX + 12, y: notif.maxY - 28), color: rgb(0.4, 0.4, 0.4))
+    drawText(ctx, "DomusCam", fontSize: 12, weight: 0.4, at: CGPoint(x: iconR.maxX + 12, y: notif.maxY - 28), color: rgb(0.4, 0.4, 0.4))
     drawText(ctx, "Motion detected — Front Door", fontSize: 17, weight: 0.6, at: CGPoint(x: iconR.maxX + 12, y: notif.maxY - 54), color: rgb(0.08, 0.08, 0.10))
     drawText(ctx, "Person · 2026-05-12 08:32", fontSize: 13, at: CGPoint(x: iconR.maxX + 12, y: notif.maxY - 74), color: rgb(0.35, 0.35, 0.40))
     let thumb = CGRect(x: notif.maxX - 130, y: notif.minY + 16, width: 110, height: 148)
@@ -454,7 +454,7 @@ func renderAbout() {
         ctx.addArc(center: CGPoint(x: titleRect.minX + 22 + CGFloat(i) * 22, y: titleRect.midY), radius: 6.5, startAngle: 0, endAngle: .pi * 2, clockwise: false)
         ctx.fillPath()
     }
-    drawTextCentered(ctx, "About Reolens", fontSize: 13, weight: 0.3, centerX: outer.midX, y: titleRect.midY - 5, color: textSecondary)
+    drawTextCentered(ctx, "About DomusCam", fontSize: 13, weight: 0.3, centerX: outer.midX, y: titleRect.midY - 5, color: textSecondary)
 
     // Content area. Lay out by distance from the top of the content rect.
     let content = CGRect(x: outer.minX, y: outer.minY, width: outer.width, height: outer.height - titleBarH)
@@ -474,7 +474,7 @@ func renderAbout() {
 
     // App name + version + description, walking down from below the icon.
     var cursor = iconRect.minY - 36
-    drawTextCentered(ctx, "Reolens", fontSize: 30, weight: 0.5, centerX: centerX, y: cursor, color: textPrimary)
+    drawTextCentered(ctx, "DomusCam", fontSize: 30, weight: 0.5, centerX: centerX, y: cursor, color: textPrimary)
     cursor -= 26
     drawTextCentered(ctx, "Version 0.3.0", fontSize: 13, centerX: centerX, y: cursor, color: textSecondary)
     cursor -= 34
@@ -496,7 +496,7 @@ func renderAbout() {
     // Footer — subtle divider, then domain + copyright.
     let dividerY = content.minY + 70
     fill(ctx, CGRect(x: content.minX + 28, y: dividerY, width: content.width - 56, height: 1), strokeFaint)
-    drawTextCentered(ctx, "reolens.io", fontSize: 12, weight: 0.3, centerX: centerX, y: dividerY - 22, color: textSecondary)
+    drawTextCentered(ctx, "github.com/jslinowsky/DomusCam", fontSize: 12, weight: 0.3, centerX: centerX, y: dividerY - 22, color: textSecondary)
     drawTextCentered(ctx, "© 2026 J&E Stats · MIT licensed", fontSize: 11, centerX: centerX, y: dividerY - 40, color: textTertiary)
 
     write(ctx, to: "about.png", width: aw, height: ah)

@@ -1,13 +1,13 @@
 import Foundation
 import ReolinkAPI
-import ReolensCore
+import DomusCamCore
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "api")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "api")
 
 /// In-process implementation of `CameraAPI`, backed by the existing
 /// `CameraStore` / `CameraSession` stack. This is the single source of truth
-/// that the app's own surfaces and the HTTP facade (`ReolensServer`) both call.
+/// that the app's own surfaces and the HTTP facade (`DomusCamServer`) both call.
 ///
 /// Holds the `@MainActor` `CameraStore` (implicitly `Sendable`). All camera
 /// work runs on the main actor — where the store and sessions live — and

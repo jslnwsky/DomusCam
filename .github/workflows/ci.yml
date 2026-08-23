@@ -215,10 +215,10 @@ jobs:
       - name: Validate .app structure + signing
         run: |
           set -euo pipefail
-          APP=Reolens.app
+          APP=DomusCam.app
           echo "==> Bundle exists"
           test -d "${APP}"
-          test -x "${APP}/Contents/MacOS/Reolens"
+          test -x "${APP}/Contents/MacOS/DomusCam"
           test -f "${APP}/Contents/Info.plist"
           test -f "${APP}/Contents/Resources/AppIcon.icns"
 
@@ -227,7 +227,7 @@ jobs:
           VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "${APP}/Contents/Info.plist")
           echo "  bundle id: ${BUNDLE_ID}"
           echo "  version:   ${VERSION}"
-          test "${BUNDLE_ID}" = "com.reolens.Reolens"
+          test "${BUNDLE_ID}" = "com.75-c.DomusCam"
           test -n "${VERSION}"
 
           echo "==> codesign --verify (recursive, deep)"
@@ -236,8 +236,8 @@ jobs:
       - name: Upload .app artifact
         uses: actions/upload-artifact@v7
         with:
-          name: Reolens-app
-          path: Reolens.app
+          name: DomusCam-app
+          path: DomusCam.app
           if-no-files-found: error
 
   # iOS app build. The `.xcodeproj` for the iPad/iPhone app is xcodegen-
@@ -272,7 +272,7 @@ jobs:
           )
           if [ -z "$XCODE_PATH" ]; then
             echo "No archive-compatible non-beta Xcode 26.x below 26.5 found." >&2
-            echo "Reolens targets iOS 26.0; do not build against brand-new Xcode 26.5 until GitHub's runner image has the matching iOS platform installed." >&2
+            echo "DomusCam targets iOS 26.0; do not build against brand-new Xcode 26.5 until GitHub's runner image has the matching iOS platform installed." >&2
             ls /Applications/ | grep -i Xcode || true
             exit 1
           fi
@@ -333,8 +333,8 @@ jobs:
         run: |
           set -x
           xcodebuild \
-            -project AppiOS/ReolensiOS.xcodeproj \
-            -scheme ReolensiOS \
+            -project AppiOS/DomusCamiOS.xcodeproj \
+            -scheme DomusCamiOS \
             -destination 'generic/platform=iOS' \
             -derivedDataPath build-ios \
             CODE_SIGNING_ALLOWED=NO \
@@ -351,8 +351,8 @@ jobs:
         run: |
           set -x
           xcodebuild \
-            -project AppiOS/ReolensiOS.xcodeproj \
-            -scheme ReolensTVOS \
+            -project AppiOS/DomusCamiOS.xcodeproj \
+            -scheme DomusCamTVOS \
             -destination 'generic/platform=tvOS' \
             -derivedDataPath build-tvos \
             CODE_SIGNING_ALLOWED=NO \
@@ -382,18 +382,18 @@ jobs:
             exit 0
           fi
           xcodebuild test \
-            -project AppiOS/ReolensiOS.xcodeproj \
-            -scheme ReolensiOS \
+            -project AppiOS/DomusCamiOS.xcodeproj \
+            -scheme DomusCamiOS \
             -sdk iphonesimulator \
             -destination "platform=iOS Simulator,name=$DEST" \
-            -only-testing:ReolensiOSUITests \
+            -only-testing:DomusCamiOSUITests \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Validate iOS app icons (best-effort)
         continue-on-error: true
         run: |
           set -euo pipefail
-          APP="build-ios/Build/Products/Debug-iphoneos/Reolens.app"
+          APP="build-ios/Build/Products/Debug-iphoneos/DomusCam.app"
           if [ ! -d "${APP}" ]; then
             echo "iOS build did not produce ${APP} — skipping icon validation."
             echo "(Informational: tag-driven release.yml owns the real iOS build.)"

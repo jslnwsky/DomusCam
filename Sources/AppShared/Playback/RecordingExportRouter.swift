@@ -2,7 +2,7 @@ import Foundation
 import OSLog
 import ReolinkAPI
 
-private let log = Logger(subsystem: "com.reolens.app", category: "playback.export")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "playback.export")
 
 /// Cross-platform export dispatch for a `PlayableRecording`. The
 /// router prepares a staged MP4 (downloading + trimming as needed)

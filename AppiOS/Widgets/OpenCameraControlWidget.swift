@@ -14,7 +14,7 @@ import AppShared
 @available(iOS 26.0, *)
 public struct OpenCameraControlWidget: ControlWidget {
 
-    public static let kind = "io.reolens.controlWidget.openCamera"
+    public static let kind = "io.domuscam.controlWidget.openCamera"
 
     public init() {}
 
@@ -27,7 +27,7 @@ public struct OpenCameraControlWidget: ControlWidget {
                 Label(value.cameraName, systemImage: "video.fill")
             }
         }
-        .displayName("Open Reolens Camera")
+        .displayName("Open DomusCam Camera")
         .description("Jump straight into a Reolink camera's live view.")
     }
 
@@ -65,7 +65,7 @@ public struct OpenCameraControlProvider: AppIntentControlValueProvider {
     public init() {}
 
     public func previewValue(configuration: SelectCameraIntent) -> OpenCameraControlValue {
-        OpenCameraControlValue(cameraID: nil, cameraName: "Reolens")
+        OpenCameraControlValue(cameraID: nil, cameraName: "DomusCam")
     }
 
     public func currentValue(configuration: SelectCameraIntent) async throws -> OpenCameraControlValue {
@@ -74,7 +74,7 @@ public struct OpenCameraControlProvider: AppIntentControlValueProvider {
             ?? snapshots.first
         return OpenCameraControlValue(
             cameraID: snap?.cameraID,
-            cameraName: snap?.cameraName ?? "Reolens"
+            cameraName: snap?.cameraName ?? "DomusCam"
         )
     }
 }

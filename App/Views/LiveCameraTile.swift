@@ -465,7 +465,7 @@ struct LiveCameraTile: View {
             // 0.5.0 Liquid Glass — name + motion/AI indicator pill on
             // the live tile. Adapts to whatever the camera frame
             // currently shows instead of a fixed 45 % black tint.
-            .reolensGlassBadge()
+            .domuscamGlassBadge()
         }
         .padding(8)
     }

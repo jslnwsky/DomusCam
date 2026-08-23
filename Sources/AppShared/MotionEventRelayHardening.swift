@@ -3,7 +3,7 @@ import CryptoKit
 import CloudKit
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.Reolens", category: "MotionRelay+H")
+private let log = Logger(subsystem: "com.75-c.DomusCam", category: "MotionRelay+H")
 
 // MARK: - Deterministic record IDs
 
@@ -152,13 +152,13 @@ public actor MotionEventRateLimiter {
 /// to publish until the user explicitly re-enables relay (so a stale
 /// publisher doesn't push events into the wrong family member's iCloud).
 ///
-/// AGENTS.md §5 (privacy: device-local, no Reolens server) is the
+/// AGENTS.md §5 (privacy: device-local, no DomusCam server) is the
 /// invariant — multi-account leak would violate that even though the
 /// data never leaves Apple's infrastructure.
 public enum CloudKitAccountIdentityGuard {
 
-    public static let storedTokenHashKey = "com.reolens.cloudKitRelay.identityHashV1"
-    public static let trustChangedFlagKey = "com.reolens.cloudKitRelay.identityTrustChanged"
+    public static let storedTokenHashKey = "com.75-c.DomusCam.cloudKitRelay.identityHashV1"
+    public static let trustChangedFlagKey = "com.75-c.DomusCam.cloudKitRelay.identityTrustChanged"
 
     /// Compute the hash of the current iCloud account's
     /// ubiquity-identity-token. Returns `nil` if the user isn't signed

@@ -5,7 +5,7 @@ import ReolinkAPI
 import FoundationModels
 #endif
 
-private let log = Logger(subsystem: "com.reolens.app", category: "recording-nl-search")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "recording-nl-search")
 
 /// 0.6.0 — Natural-language query translator. Turns prompts like
 /// "packages this week" into a structured `RecordingIndex.Query` that

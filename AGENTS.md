@@ -1,8 +1,8 @@
-# AGENTS.md — Reolens engineering principles
+# AGENTS.md — DomusCam engineering principles
 
-This file is the source of truth for how to work on Reolens. It applies to humans and to agentic coding tools (Claude Code, Codex, Cursor, etc.) — both should read it before making changes.
+This file is the source of truth for how to work on DomusCam. It applies to humans and to agentic coding tools (Claude Code, Codex, Cursor, etc.) — both should read it before making changes.
 
-Reolens is a Reolink camera client for macOS, iPadOS, and iOS. It streams live video over RTSP from cameras the user owns, exposes recordings and PTZ, and syncs the camera list across the user's own Apple devices via iCloud Drive.
+DomusCam is a Reolink camera client for macOS, iPadOS, and iOS. It streams live video over RTSP from cameras the user owns, exposes recordings and PTZ, and syncs the camera list across the user's own Apple devices via iCloud Drive.
 
 The product is small, opinionated, and trust-sensitive. People install it because they want a clean, native, ad-free way to look at their own cameras. Every change should reinforce that.
 
@@ -16,16 +16,16 @@ When you add a feature, ship it everywhere or open a tracking issue for the miss
 
 **Documented carve-outs (current as of 0.7.0):**
 
-- App distribution — both platforms ship through the App Store / TestFlight under ONE multiplatform record (shared bundle id `com.reolens.Reolens`). 0.7.0 retired the macOS Developer-ID DMG + Sparkle auto-updater; the Mac app now updates via the App Store like iOS. No carve-out — distribution is uniform. See `.github/workflows/release.yml` + `Scripts/build-mac.sh` / `build-ios.sh`.
+- App distribution — both platforms ship through the App Store / TestFlight under ONE multiplatform record (shared bundle id `com.75-c.DomusCam`). 0.7.0 retired the macOS Developer-ID DMG + Sparkle auto-updater; the Mac app now updates via the App Store like iOS. No carve-out — distribution is uniform. See `.github/workflows/release.yml` + `Scripts/build-mac.sh` / `build-ios.sh`.
 - Picture-in-Picture — iOS / iPadOS only (no macOS analog).
 - Menu-bar mode + Launch at Login — macOS only.
-- **Reolens Hub (added in 0.7.0)** — macOS only. iPhone/iPad/Apple TV can't hold a persistent background camera connection, so one Mac acts as the listener that publishes motion events to the user's private CloudKit database; the other platforms consume those events. Explicit per-Mac opt-in (`AppPreferences.runAsHub`) starts the `HubEngine` (connect every camera + publish + CloudKit heartbeat). The engine keeps running after the window closes; pair it with "Launch at login" (the sandbox-safe `SMAppService.mainApp`) to restart after a reboot. The App Store build ships **no** headless `SMAppService.agent` LaunchAgent — a login agent that relaunches the binary itself isn't App Store compatible, so the always-on-while-logged-out tier was dropped when the Mac app moved to the App Store. There is still no Reolens server — CloudKit-under-the-user's-own-iCloud remains "the server" (AGENTS.md §5). See `Sources/AppShared/HubEngine.swift` (cross-platform, testable reconcile logic) and `App/Hub/HubController.swift` (macOS lifecycle shell).
+- **DomusCam Hub (added in 0.7.0)** — macOS only. iPhone/iPad/Apple TV can't hold a persistent background camera connection, so one Mac acts as the listener that publishes motion events to the user's private CloudKit database; the other platforms consume those events. Explicit per-Mac opt-in (`AppPreferences.runAsHub`) starts the `HubEngine` (connect every camera + publish + CloudKit heartbeat). The engine keeps running after the window closes; pair it with "Launch at login" (the sandbox-safe `SMAppService.mainApp`) to restart after a reboot. The App Store build ships **no** headless `SMAppService.agent` LaunchAgent — a login agent that relaunches the binary itself isn't App Store compatible, so the always-on-while-logged-out tier was dropped when the Mac app moved to the App Store. There is still no DomusCam server — CloudKit-under-the-user's-own-iCloud remains "the server" (AGENTS.md §5). See `Sources/AppShared/HubEngine.swift` (cross-platform, testable reconcile logic) and `App/Hub/HubController.swift` (macOS lifecycle shell).
 - Local-network Bonjour discovery sheet — historical iOS-only, gained macOS parity in 0.5.0.
 - **iOS Live Activities + Dynamic Island** — iOS / iPadOS only (ActivityKit has no macOS equivalent; macOS users see the menu-bar mode + desktop widget instead). Added in 0.5.0; 0.5.1 widened to hub-grouped semantics + APNs push-token registration (`pushType: .token`).
 - **Widgets** — ship on both platforms (Home Screen / Lock Screen / Control Center on iOS, desktop widgets on macOS). No carve-out needed for widgets themselves.
 - **FoundationModels on-device inference** — ships on both platforms (iOS 26 / macOS 26 SDK floor) but availability is device-dependent (Apple Intelligence-eligible hardware only). `EventSummarizer` and 0.6.0's new `RecordingNLSearcher.planWithModel(...)` both fall back to deterministic implementations when `SystemLanguageModel.default.availability` is not `.available`. The fallback is documented behaviour, not a carve-out — both code paths ship on both platforms.
 - **HomeKit bridge (added in 0.6.0)** — iOS / iPadOS only. Apple removed the public HomeKit framework from the macOS SDK; native macOS apps (not Mac Catalyst) can't `import HomeKit`. `HomeKitSection` returns `EmptyView()` on macOS so the macOS Privacy tab doesn't surface a misleading "framework not available" message. The per-camera `homeKitEnabled` flag still rides `cameras.json` through iCloud, so a user flipping it on iPhone propagates to the device that has the entitlement. The full HKSV recording-tier is **gated on Apple's MFi certification process** — the bridge ships scaffolding and a stubbed `registerAccessoryIfNeeded(for:)` rather than a working `HMCameraProfile` until that's resolved.
-- **Local HTTP API (added in 0.9.0)** — macOS only, opt-in, off by default. A clean, versioned `/v1` REST + SSE API over the user's cameras (`docs/api/`). The contract (`ReolensCore`) and in-process adapter (`AppShared/API/LiveCameraAPI`) ship on **every** platform, so parity holds at the API level; only the *persistent host* (`ReolensServer` via `App/LocalAPI/LocalAPIController`) is macOS-first — iPhone/iPad can't hold a background listener, exactly like the Hub. Hand-rolled on `NWListener` to preserve the zero-dependency posture (no Vapor/Hummingbird; `dependencies: []` stays). LAN-bound (loopback + RFC-1918) and bearer-token-authed (token in Keychain, device-local, via `LocalAPITokenStore`); never the public internet — §5 still holds, the server runs on the user's own Mac. Surfaced under Developer Mode for now. Requires `com.apple.security.network.server` (added to `App/Reolens.appstore.entitlements`; the unsandboxed `swift build` / ad-hoc dev binary needs no entitlement to bind).
+- **Local HTTP API (added in 0.9.0)** — macOS only, opt-in, off by default. A clean, versioned `/v1` REST + SSE API over the user's cameras (`docs/api/`). The contract (`DomusCamCore`) and in-process adapter (`AppShared/API/LiveCameraAPI`) ship on **every** platform, so parity holds at the API level; only the *persistent host* (`DomusCamServer` via `App/LocalAPI/LocalAPIController`) is macOS-first — iPhone/iPad can't hold a background listener, exactly like the Hub. Hand-rolled on `NWListener` to preserve the zero-dependency posture (no Vapor/Hummingbird; `dependencies: []` stays). LAN-bound (loopback + RFC-1918) and bearer-token-authed (token in Keychain, device-local, via `LocalAPITokenStore`); never the public internet — §5 still holds, the server runs on the user's own Mac. Surfaced under Developer Mode for now. Requires `com.apple.security.network.server` (added to `App/DomusCam.appstore.entitlements`; the unsandboxed `swift build` / ad-hoc dev binary needs no entitlement to bind).
 
 ## 2. Native libraries on each platform
 
@@ -39,9 +39,9 @@ See `Sources/ReolinkStreaming/Player/LiveVideoView.swift` for the canonical exam
 
 **Cross-platform image bridging (0.5.0):** the `ScrubberView` thumbnail rail uses a `PlatformImage` typealias (`NSImage` on macOS, `UIImage` on iOS) with a small `jpegData(quality:)` extension in `Sources/AppShared/ScrubberView.swift`. Reach for the same typealias pattern before adding a fresh `#if`.
 
-**Liquid Glass tokens (0.5.0):** every glass-surface adoption goes through `Sources/AppShared/ReolensGlass.swift` — `reolensGlassBadge`, `reolensGlassCard`, `reolensGlassToolbar`, `reolensGlassToast`, `reolensGlassChip`, `reolensGlassPanel`. New surfaces use one of those rather than calling `.glassEffect(...)` directly, so a future design tweak is a one-file change. **0.5.1 update:** `reolensGlassChip` now applies the interactive variant (`.glassEffect(.regular.interactive())`) on iOS 26 / macOS 26 so pills morph on press — if you need a non-interactive chip variant later, fork a sibling token rather than adding a parameter to this one.
+**Liquid Glass tokens (0.5.0):** every glass-surface adoption goes through `Sources/AppShared/DomusCamGlass.swift` — `domuscamGlassBadge`, `domuscamGlassCard`, `domuscamGlassToolbar`, `domuscamGlassToast`, `domuscamGlassChip`, `domuscamGlassPanel`. New surfaces use one of those rather than calling `.glassEffect(...)` directly, so a future design tweak is a one-file change. **0.5.1 update:** `domuscamGlassChip` now applies the interactive variant (`.glassEffect(.regular.interactive())`) on iOS 26 / macOS 26 so pills morph on press — if you need a non-interactive chip variant later, fork a sibling token rather than adding a parameter to this one.
 
-**Multi-window scenes (0.5.0):** the `ReolensScene` enum + `WindowGroup(for: ReolensScene.self)` declared on both `ReolensApp` and `ReolensiOSApp` is the only path for opening a camera in its own window. Reuse `CameraSceneHost` (macOS) / `CameraSceneHostiOS` (iOS) for additional scene types rather than spinning up an ad-hoc `WindowGroup`.
+**Multi-window scenes (0.5.0):** the `DomusCamScene` enum + `WindowGroup(for: DomusCamScene.self)` declared on both `DomusCamApp` and `DomusCamiOSApp` is the only path for opening a camera in its own window. Reuse `CameraSceneHost` (macOS) / `CameraSceneHostiOS` (iOS) for additional scene types rather than spinning up an ad-hoc `WindowGroup`.
 
 ## 3. Cameras are sensitive
 
@@ -66,7 +66,7 @@ Don't blur this line:
 
 ### iCloud Keychain Sync opt-in (added in 0.4.0)
 
-Settings → Privacy → "Sync camera passwords to iCloud Keychain" is the only path that flips passwords onto the synchronizable side of Keychain. Off by default. Controlled by `Sources/AppShared/Keychain.swift` (`syncEnabled` reads `UserDefaults` for `com.reolens.iCloudKeychainSync`) and `CameraStore.iCloudKeychainSyncEnabled`.
+Settings → Privacy → "Sync camera passwords to iCloud Keychain" is the only path that flips passwords onto the synchronizable side of Keychain. Off by default. Controlled by `Sources/AppShared/Keychain.swift` (`syncEnabled` reads `UserDefaults` for `com.75-c.DomusCam.iCloudKeychainSync`) and `CameraStore.iCloudKeychainSyncEnabled`.
 
 Behavior:
 
@@ -89,12 +89,12 @@ This is allowed to be per-camera because the data is non-credential and the user
 
 - No third-party analytics. None.
 - No remote crash reporting that captures screen contents, network payloads, or PII.
-- The app must function fully without any network call to non-Reolink hosts. The only exceptions are the Sparkle appcast (macOS auto-update) and Apple's own services (iCloud, TestFlight, App Store).
+- The app must function fully without any network call to non-Reolink hosts. The only exceptions are Apple's own services (iCloud, TestFlight, App Store). DomusCam does not use Reolink's P2P/cloud cluster.
 - No telemetry pings. No A/B testing infrastructure. No silent background fetches to our servers — there are no "our servers."
 
 If you find yourself wanting to add a network call, ask whether it can be avoided. If it cannot, document why in the PR.
 
-**Shared App-Group container (0.5.0).** The WidgetKit extension and the Live Activity extension read snapshots + recent motion-event metadata from a *device-local* App Group container at `group.com.reolens.Reolens`. The container holds:
+**Shared App-Group container (0.5.0).** The WidgetKit extension and the Live Activity extension read snapshots + recent motion-event metadata from a *device-local* App Group container at `group.com.75-c.DomusCam`. The container holds:
 
 - `LatestSnapshots.plist` — per-camera last snapshot + last-motion timestamp.
 - `RecentMotionEvents.plist` — capped to 50 entries, rotated by `EventNotifier`.
@@ -125,7 +125,7 @@ If you're tempted to add a 13th `@State` variable to a RecordingsView shell, or 
 
 ## 7. Backward-compatible sync schema
 
-`cameras.json` is read by every Reolens install signed in to the same iCloud account, including older versions that haven't updated yet. Schema changes must be:
+`cameras.json` is read by every DomusCam install signed in to the same iCloud account, including older versions that haven't updated yet. Schema changes must be:
 
 - **Forward-compatible reading**: older apps must tolerate unknown fields (Swift's `Codable` does this by default — don't break it with custom decoders).
 - **Backward-compatible writing**: new versions must continue to populate any field older versions require, or the user's other devices will misbehave.
@@ -137,16 +137,16 @@ When you bump the schema, write the migration in the PR description.
 
 - `bookmarks_v1.json` — recording bookmarks (per-camera) added in 0.5.0. Stored in the per-camera iCloud Drive directory; references only, no media.
 - `DailyDigestRecord` schema-version `1` — overnight-digest JSON files (`digests/<yyyy-MM-dd>.json` under the App Group, capped at 30 days).
-- `MaskSettings` / `MaskArea` — privacy-zone wire model for `GetMask` / `SetMask`. Lives under `Sources/ReolinkAPI/Models/Mask.swift`; tied to Reolink firmware, not a versioned format on our side, but `Sources/AppShared/PrivacyZoneEditorModel.swift` stores the editor's working set in `UserDefaults` keyed by `com.reolens.privacyZones.<deviceID>.<channel>` — bump that key prefix on any breaking shape change.
+- `MaskSettings` / `MaskArea` — privacy-zone wire model for `GetMask` / `SetMask`. Lives under `Sources/ReolinkAPI/Models/Mask.swift`; tied to Reolink firmware, not a versioned format on our side, but `Sources/AppShared/PrivacyZoneEditorModel.swift` stores the editor's working set in `UserDefaults` keyed by `com.75-c.DomusCam.privacyZones.<deviceID>.<channel>` — bump that key prefix on any breaking shape change.
 - `LatestSnapshots.plist` and `RecentMotionEvents.plist` (in the App Group) carry implicit schema versioning via the Codable types in `Sources/AppShared/SharedContainer.swift`. Add new optional fields freely; never rename or remove an existing field without bumping the file name.
 
 **0.5.1 introductions:**
 
 - `live-activity-tokens_v1.json` — APNs push tokens per in-flight Live Activity. Stored in the iCloud Drive ubiquity container (`Documents/live-activity-tokens/`). Schema is a `[String: Token]` dict keyed by `Activity.id`; bump the suffix on any breaking shape change. **0.7.0:** this is a **device-local diagnostic index**, not server fuel — there is no APNs provider and never will be (a true Live Activity push needs a `.p8`-signed server, forbidden by §5). The Live Activity "relay" is the receiver updating its own activity locally when the Hub's `MotionEvent` arrives (`LiveActivityRelayUpdater`); the local Baichuan-event-driven path keeps running regardless.
-- `com.reolens.collapsedHubs` (`NSUbiquitousKeyValueStore` key) — `[String]` of UUIDs for currently-collapsed sidebar hub groups. Empty set is the default "every hub expanded" state. UserDefaults mirror for offline / no-iCloud devices.
-- `com.reolens.mutedCameraNotifications` (`NSUbiquitousKeyValueStore` key) — `[String]` of UUIDs for cameras the user has silenced. Default empty = every camera notifies.
-- `com.reolens.bookmarkDL.allowCellular` (`UserDefaults` key) — bool, default false. **Device-local only** (no iCloud sync) — cellular plans differ device-to-device, so per-device is the safer default.
-- `com.reolens.showCameraNameOnFeed` (`UserDefaults` key) — bool, default false (badges hidden). Per-channel `CameraEntry.hiddenAppBadgeChannels` (in synced `cameras.json`) overrides per-channel; the global is device-local because the feature reads as a display preference.
+- `com.75-c.DomusCam.collapsedHubs` (`NSUbiquitousKeyValueStore` key) — `[String]` of UUIDs for currently-collapsed sidebar hub groups. Empty set is the default "every hub expanded" state. UserDefaults mirror for offline / no-iCloud devices.
+- `com.75-c.DomusCam.mutedCameraNotifications` (`NSUbiquitousKeyValueStore` key) — `[String]` of UUIDs for cameras the user has silenced. Default empty = every camera notifies.
+- `com.75-c.DomusCam.bookmarkDL.allowCellular` (`UserDefaults` key) — bool, default false. **Device-local only** (no iCloud sync) — cellular plans differ device-to-device, so per-device is the safer default.
+- `com.75-c.DomusCam.showCameraNameOnFeed` (`UserDefaults` key) — bool, default false (badges hidden). Per-channel `CameraEntry.hiddenAppBadgeChannels` (in synced `cameras.json`) overrides per-channel; the global is device-local because the feature reads as a display preference.
 
 **0.6.0 introductions:**
 
@@ -154,7 +154,7 @@ When you bump the schema, write the migration in the PR description.
 - `recording-index.v1.json` — cross-day metadata index for the 30-day NL-search window. Lives in the App Group container, device-local. The `RecordingIndex` actor follows the same versioned-codable + atomic-write pattern as `NotificationHistory`.
 - `RecordingBookmark.sourceFileName: String?` — new optional field on the existing `bookmarks_v1.json` schema. Forward-compat: legacy bookmark files without the field decode to `nil`. The launch-time `BookmarkAutoDownloader.reconcile(across:)` uses this to re-enqueue background downloads without needing a Search to find the source file; legacy bookmarks resolve themselves on next interaction.
 - `CameraEntry.homeKitEnabled: Bool` — additive field in synced `cameras.json`. Forward-compat decode-and-default-false. Encode only when true so the JSON payload stays clean.
-- `com.reolens.developerMode`, `com.reolens.showCameraNameOnFeed`, `com.reolens.lastViewedCameraID` (`UserDefaults` keys) — now read/written via the new `AppPreferences` carve-out from `CameraStore`. The key names stay the same so existing prefs migrate transparently. `lastViewedCameraID` is iOS/iPadOS-only (macOS has its own sidebar state restoration).
+- `com.75-c.DomusCam.developerMode`, `com.75-c.DomusCam.showCameraNameOnFeed`, `com.75-c.DomusCam.lastViewedCameraID` (`UserDefaults` keys) — now read/written via the new `AppPreferences` carve-out from `CameraStore`. The key names stay the same so existing prefs migrate transparently. `lastViewedCameraID` is iOS/iPadOS-only (macOS has its own sidebar state restoration).
 - Reolink wire types `RecordingScheduleSettings` and `MotionScheduleSettings` decode **both** observed firmware shapes (`schedule.table` canonical + `scheduleTable.mainStream` legacy) and always emit the canonical shape on write. Adding a future variant means extending `CodingKeys` + the custom `init(from:)` fall-back chain — never break the existing two paths.
 
 **0.9.0 introductions:**
@@ -200,7 +200,7 @@ Bump the suffix on any breaking field change in a future minor release; never ov
 
 - Use Swift Testing (`import Testing`, `@Test`, `#expect`). New tests should not be XCTest.
 - 80% coverage **long-term target** on `AppShared`, `ReolinkAPI`, `ReolinkStreaming`, and `ReolinkBaichuan`. The 0.5.0 release introduced `Scripts/coverage-gate.sh` and wired it into CI. **0.6.0 flipped the gate to enforced** with a different strategy: per-target *baselines* in `Scripts/coverage-baselines.txt` rather than a single global 80% floor. CI now blocks on coverage *regression* against the baseline (with a 1 pp slack); intentional regressions require running `COVERAGE_FORCE_UPDATE_BASELINE=1 ./Scripts/coverage-gate.sh` locally and committing the updated baselines file. The 80% goal is still tracked in the script header — baselines ratchet upward as new tests land. **0.6.0 baseline is ~340 tests across 68 suites** (AppShared 13.81%, ReolinkAPI 56.47%, ReolinkStreaming 23.70%, ReolinkBaichuan 32.70%). The bar moves on every new feature.
-- **XCUITest harness (added in 0.6.0)** — `AppiOS/UITests/ReolensiOSUITests.swift` covers the high-risk navigation journeys (cold-launch → primary navigation, Settings → Notifications, Notification log push). Wired into CI as a best-effort step that auto-selects the first available iPhone simulator. New journeys should land here when they cover regressions a unit test couldn't catch.
+- **XCUITest harness (added in 0.6.0)** — `AppiOS/UITests/DomusCamiOSUITests.swift` covers the high-risk navigation journeys (cold-launch → primary navigation, Settings → Notifications, Notification log push). Wired into CI as a best-effort step that auto-selects the first available iPhone simulator. New journeys should land here when they cover regressions a unit test couldn't catch.
 - No real network in tests. Use fixture servers (`URLProtocol` stubs, in-process HTTP servers) or protocol-injected fakes.
 - Each test gets a fresh instance — `init`/`deinit`, no shared mutable state.
 - Tests must be deterministic. If a test depends on timing, it's wrong.
@@ -236,7 +236,7 @@ The WidgetKit and ActivityKit extensions are special-purpose bundles with signif
 
 **Data flow:**
 
-- Extensions read from the App-Group container `group.com.reolens.Reolens` only — see [Sources/AppShared/SharedContainer.swift](Sources/AppShared/SharedContainer.swift) for the canonical I/O paths.
+- Extensions read from the App-Group container `group.com.75-c.DomusCam` only — see [Sources/AppShared/SharedContainer.swift](Sources/AppShared/SharedContainer.swift) for the canonical I/O paths.
 - The main app writes; extensions read. Atomically. Never the other way around.
 - The container is **device-local**, never CloudKit-synced. Cross-device widget consistency relies on each device's main app publishing locally; nothing fans out via iCloud.
 
@@ -251,7 +251,7 @@ The WidgetKit and ActivityKit extensions are special-purpose bundles with signif
 
 - One activity **per hub** (not per camera). A fresh fire on the **same hub** *merges* into the existing activity — dedup `aiTags`, bump `coalescedCount`, refresh `lastUpdatedAt`. Activities never stack; previous-per-camera replacement semantics from 0.5.0 are gone.
 - 8-hour stale-date window (was 4h in 0.5.0). `SharedContainer.purgeStaleActivityAssets()` still runs on every activity start to keep the trigger-frame directory bounded.
-- `Activity.request(... pushType: .token)` opts the activity in to APNs push updates; iOS hands us a token via `for await tokenData in activity.pushTokenUpdates`, which `MotionEventActivityController` forwards to `LiveActivityPushTokenRegistry`. **0.7.0:** those tokens stay device-local — Reolens has no push provider (§5). Activities are updated by the local `update(...)` path: the device's own Baichuan events, and — new in 0.7.0 — relayed `MotionEvent`s from the Hub, applied locally by `LiveActivityRelayUpdater` in the silent-push handler. `EventNotifier.liveActivityBridge` must be assigned at launch (`AppDelegate.didFinishLaunchingWithOptions`) or no activity starts at all.
+- `Activity.request(... pushType: .token)` opts the activity in to APNs push updates; iOS hands us a token via `for await tokenData in activity.pushTokenUpdates`, which `MotionEventActivityController` forwards to `LiveActivityPushTokenRegistry`. **0.7.0:** those tokens stay device-local — DomusCam has no push provider (§5). Activities are updated by the local `update(...)` path: the device's own Baichuan events, and — new in 0.7.0 — relayed `MotionEvent`s from the Hub, applied locally by `LiveActivityRelayUpdater` in the silent-push handler. `EventNotifier.liveActivityBridge` must be assigned at launch (`AppDelegate.didFinishLaunchingWithOptions`) or no activity starts at all.
 - `relevanceScore` is recency-decayed (linear over the stale window) so Dynamic Island prefers the currently-active hub when multiple activities are running.
 
 **Why this matters:** widgets and Live Activities run in user-visible OS-managed surfaces (Home Screen, Lock Screen, Dynamic Island). A leaked URL or credential here is visible system-wide. The constraints above are deliberate and non-negotiable. AGENTS.md §3, §5, §11 all apply double in this directory.

@@ -1,27 +1,27 @@
 #if os(macOS)
 import Foundation
 import AppShared
-import ReolensServer
+import DomusCamServer
 import os
 
 /// 0.9.0 — macOS lifecycle shell for the opt-in Local HTTP API.
 ///
 /// Mirrors `HubController`: a thin `@MainActor` coordinator that brings the
-/// `ReolensAPIServer` up/down based on `AppPreferences.runLocalAPI`, injecting
+/// `DomusCamAPIServer` up/down based on `AppPreferences.runLocalAPI`, injecting
 /// the in-process `LiveCameraAPI` and the device-local bearer token. The server
 /// binds to the LAN (loopback + RFC-1918) on the configured port and rejects
 /// non-LAN peers (AGENTS.md §5 — opt-in, LAN-local, no cloud).
 ///
 /// macOS-only by intent (AGENTS.md §1 carve-out): iPhone/iPad can't hold a
 /// persistent background listener, exactly like the Hub. The contract
-/// (`ReolensCore`) and adapter (`LiveCameraAPI`) ship everywhere; only the
+/// (`DomusCamCore`) and adapter (`LiveCameraAPI`) ship everywhere; only the
 /// persistent host is macOS-first.
 @MainActor
 final class LocalAPIController {
     static let shared = LocalAPIController()
 
-    private var server: ReolensAPIServer?
-    private let log = Logger(subsystem: "com.reolens.Reolens", category: "LocalAPI")
+    private var server: DomusCamAPIServer?
+    private let log = Logger(subsystem: "com.75-c.DomusCam", category: "LocalAPI")
 
     private init() {}
 
@@ -63,7 +63,7 @@ final class LocalAPIController {
             return
         }
         let port = UInt16(exactly: store.preferences.localAPIPort) ?? 8443
-        let server = ReolensAPIServer(
+        let server = DomusCamAPIServer(
             api: LiveCameraAPI(store: store),
             token: token,
             config: ServerConfig(port: port, bindScope: .lan)

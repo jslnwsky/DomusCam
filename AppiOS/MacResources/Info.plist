@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Reolens</string>
+	<string>DomusCam</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIconName</key>
@@ -41,12 +41,12 @@
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Reolens needs to connect to Reolink cameras, NVRs, and Home Hubs on your local network.</string>
+	<string>DomusCam needs to connect to Reolink cameras, NVRs, and Home Hubs on your local network.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Reolens uses the microphone for two-way talk to your Reolink cameras.</string>
+	<string>DomusCam uses the microphone for two-way talk to your Reolink cameras.</string>
 	<key>NSUserActivityTypes</key>
 	<array>
-		<string>io.reolens.camera-detail</string>
+		<string>io.domuscam.camera-detail</string>
 	</array>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
@@ -56,9 +56,9 @@
 				<string>public.data</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Reolens channel drag payload</string>
+			<string>DomusCam channel drag payload</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.reolens.channelDrag</string>
+			<string>com.75-c.DomusCam.channelDrag</string>
 			<key>UTTypeTagSpecification</key>
 			<dict/>
 		</dict>
@@ -68,9 +68,9 @@
 				<string>public.data</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Reolens device drag payload</string>
+			<string>DomusCam device drag payload</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.reolens.deviceDrag</string>
+			<string>com.75-c.DomusCam.deviceDrag</string>
 			<key>UTTypeTagSpecification</key>
 			<dict/>
 		</dict>

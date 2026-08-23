@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- 0.6.5: cloudd refuses any CloudKit request whose process is
+         missing `com.apple.application-identifier` (logged as
+         "Invalid value of (null) for entitlement
+         com.apple.application-identifier" + the NSError it returns
+         localizes to "Trying to initialize a container without an
+         application id"). Xcode-signed targets get this entitlement
+         injected automatically from the provisioning profile, but the
+         macOS DMG is signed via `codesign` directly out of
+         Scripts/build-app.sh — codesign uses this file verbatim and
+         never injects the key, so without this line the entitlement
+         is absent in the running binary and the CloudKit motion-event
+         relay silently dies at the cloudd boundary on every save. -->
+    <key>com.apple.application-identifier</key>
+    <string>NXVC3868F7.com.75-c.DomusCam</string>
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <!-- 0.9.0: opt-in Local HTTP API (LocalAPIController). The hand-rolled
+         NWListener server needs the network-server entitlement to bind a LAN
+         port. The API is OFF by default, LAN-bound (loopback + RFC-1918), and
+         bearer-token-authed — never the public internet. AGENTS.md §1, §5. -->
+    <key>com.apple.security.network.server</key>
+    <true/>
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+    <key>com.apple.security.application-groups</key>
+    <array>
+        <string>com.75-c.DomusCam</string>
+        <!-- 0.5.0: shared container for the WidgetKit extension. The
+             widget reads latest snapshots + recent motion-event metadata
+             from this container; the main app atomically rewrites those
+             files via SharedContainer.swift. The container is device-
+             local (never CloudKit-synced); Keychain entries stay off it
+             entirely. AGENTS.md §5, §16 (new). -->
+        <string>group.com.75-c.DomusCam</string>
+    </array>
+    <!-- iCloud Drive sync for cameras.json shared across Mac/iPad/iPhone.
+         Container is "iCloud.com.75-c.DomusCam"; the JSON lives under
+         the container's Documents/ folder so it shows up in the Files
+         app and `FileManager.url(forUbiquityContainerIdentifier:)` can
+         resolve it. Passwords stay per-device in Keychain. -->
+    <key>com.apple.developer.icloud-container-identifiers</key>
+    <array>
+        <string>iCloud.com.75-c.DomusCam</string>
+    </array>
+    <key>com.apple.developer.ubiquity-container-identifiers</key>
+    <array>
+        <string>iCloud.com.75-c.DomusCam</string>
+    </array>
+    <key>com.apple.developer.icloud-services</key>
+    <array>
+        <string>CloudDocuments</string>
+        <!-- CloudKit (0.4.1) — motion-event relay uses the private
+             CloudKit database to push events to the user's other
+             Apple devices. Same container as iCloud Drive sync.
+             AGENTS.md §5 — runs inside the user's iCloud, no
+             DomusCam server. -->
+        <string>CloudKit</string>
+    </array>
+    <!-- Identifier for `NSUbiquitousKeyValueStore` (hub-expansion
+         state + per-camera notification preferences sync). Must
+         be team ID + the *shared* bundle ID used across macOS and
+         iOS so the two platforms see the same store. Without this
+         key the runtime logs "Unable to find entitlement for KVS
+         store" and `NSUbiquitousKeyValueStore.default.set/get`
+         silently no-op. -->
+    <key>com.apple.developer.ubiquity-kvstore-identifier</key>
+    <string>NXVC3868F7.com.75-c.DomusCam</string>
+    <!-- 0.6.0 Slice B2: HomeKit bridge entitlement.
+         Uncomment when signing under a Team ID with HomeKit capability
+         enabled and the project has the HomeKit capability checked in
+         Xcode → Signing & Capabilities. Without this, `HomeKitBridge`
+         surfaces `.entitlementMissing` and the Settings → Privacy
+         section explains the gap. Full HomeKit Secure Video recording
+         tier also requires Apple's Made-for-HomeKit (MFi) certification
+         — see HomeKitBridge.swift comments. -->
+    <!--
+    <key>com.apple.developer.homekit</key>
+    <true/>
+    -->
+</dict>
+</plist>

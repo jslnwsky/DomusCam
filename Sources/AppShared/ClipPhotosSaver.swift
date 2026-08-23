@@ -5,7 +5,7 @@ import OSLog
 import Photos
 #endif
 
-private let log = Logger(subsystem: "com.reolens.app", category: "clip-photos-saver")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "clip-photos-saver")
 
 /// 0.6.2 — iOS / iPadOS "Save to Photos" route for the unified clip
 /// export storyline. Mirrors `SnapshotSaver`'s shape (add-only Photos

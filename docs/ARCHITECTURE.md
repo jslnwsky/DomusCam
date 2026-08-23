@@ -1,6 +1,6 @@
 # Architecture
 
-How Reolens is put together. For the engineering principles that gate
+How DomusCam is put together. For the engineering principles that gate
 every change — platform parity by default, no telemetry, no credentials
 in logs — see [AGENTS.md](../AGENTS.md). For the iOS-specific project
 layout, see [AppiOS/README.md](../AppiOS/README.md).
@@ -9,12 +9,12 @@ layout, see [AppiOS/README.md](../AppiOS/README.md).
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│ App (SwiftUI views, @Observable state, ReolensApp / RootView)    │
+│ App (SwiftUI views, @Observable state, DomusCamApp / RootView)    │
 │ AppiOS/ (iOS twin) + Widget extensions + Live Activity ext.      │
 ├──────────────────────────────────────────────────────────────────┤
 │ AppShared (CameraStore split, RecordingsLoader, RecordingIndex,  │
 │            PollManager, EventNotifier, RelayDiagnostics,         │
-│            SharedContainer, ReolensGlass design tokens, …)       │
+│            SharedContainer, DomusCamGlass design tokens, …)       │
 ├──────────────────────────────────────────────────────────────────┤
 │ ReolinkBaichuan (port 9000: talkback, alarm push, findAlarmVideo)│
 │ ReolinkStreaming (RTSP + VideoToolbox + H.264 / H.265 + SDP)     │
@@ -46,7 +46,7 @@ extensions, and the Live Activity extension.
 ```
 Package.swift            — SwiftPM manifest (libs + macOS executable + tests)
 App/                     — macOS SwiftUI executable
-  ReolensApp.swift       — @main, About panel, Check-for-Updates menu
+  DomusCamApp.swift       — @main, About panel, Check-for-Updates menu
   Views/                 — sidebar, grid, detail, PTZ, settings, scrubber,
                            bookmarks, schedule editors, About
   Widgets/               — macOS desktop WidgetKit extension target
@@ -62,12 +62,12 @@ Sources/
   ReolinkAPI/            — CGI client + Codable models + StreamURLs
   ReolinkStreaming/      — RTSP / VideoToolbox / H.264 + H.265 / SDP
   ReolinkBaichuan/       — port-9000 protocol (talkback, push, alarms)
-  ReolensCore/           — platform-agnostic /v1 API contract + DTOs
-  ReolensServer/         — local /v1 REST API (Network.framework, macOS)
+  DomusCamCore/           — platform-agnostic /v1 API contract + DTOs
+  DomusCamServer/         — local /v1 REST API (Network.framework, macOS)
 Tests/                   — ~675 tests across 117 suites
 Scripts/                 — build, sign, App Store (TestFlight) upload,
                            icon generation, coverage gate, version-check gate
-docs/                    — reolens.io landing page (GitHub Pages),
+docs/                    — github.com/jslinowsky/DomusCam landing page (GitHub Pages),
                            FEATURES.md, ARCHITECTURE.md, API contract,
                            RELEASE.md + IOS_RELEASE.md + MAC_RELEASE.md runbooks
 .github/workflows/

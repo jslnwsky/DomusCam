@@ -5,7 +5,7 @@ import AVFoundation
 import Combine
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.streaming", category: "pip")
+private let log = Logger(subsystem: "com.75-c.DomusCam.streaming", category: "pip")
 
 /// Wraps `AVPictureInPictureController` for our custom-decoded RTSP feed.
 ///
@@ -54,7 +54,7 @@ public final class LiveVideoPiP: NSObject {
         // logs `err=-19431` (PiP gave up).
         //
         // `.mixWithOthers` keeps other audio (music, video calls) from
-        // being interrupted by Reolens — important because we're a
+        // being interrupted by DomusCam — important because we're a
         // surveillance app, not a media-playback app.
         let audioSession = AVAudioSession.sharedInstance()
         if audioSession.category != .playback && audioSession.category != .playAndRecord {

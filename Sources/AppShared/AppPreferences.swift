@@ -76,7 +76,7 @@ public final class AppPreferences {
         }
     }
 
-    /// 0.7.0 — "Run this Mac as a Reolens Hub" opt-in. When on, this
+    /// 0.7.0 — "Run this Mac as a DomusCam Hub" opt-in. When on, this
     /// Mac connects every camera and publishes motion events to the
     /// user's private CloudKit database even with no window open, so it
     /// can act as the always-on listener that drives notifications,
@@ -131,16 +131,16 @@ public final class AppPreferences {
 
     // MARK: - Keys
 
-    static let developerModeKey = "com.reolens.developerMode"
-    static let showCameraNameKey = "com.reolens.showCameraNameOnFeed"
-    static let defaultRecordingQualityKey = "com.reolens.defaultRecordingQuality"
-    static let lastViewedCameraKey = "com.reolens.lastViewedCameraID"
+    static let developerModeKey = "com.75-c.DomusCam.developerMode"
+    static let showCameraNameKey = "com.75-c.DomusCam.showCameraNameOnFeed"
+    static let defaultRecordingQualityKey = "com.75-c.DomusCam.defaultRecordingQuality"
+    static let lastViewedCameraKey = "com.75-c.DomusCam.lastViewedCameraID"
     /// Public so the macOS Settings "Run as Hub" toggle can bind to it
     /// via `@AppStorage` (mirrors `MotionEventRelaySettings.publisherEnabledKey`).
-    public static let runAsHubKey = "com.reolens.runAsHub"
+    public static let runAsHubKey = "com.75-c.DomusCam.runAsHub"
     /// Public so the macOS Settings "Local API" toggle can bind via `@AppStorage`.
-    public static let runLocalAPIKey = "com.reolens.runLocalAPI"
-    public static let localAPIPortKey = "com.reolens.localAPIPort"
+    public static let runLocalAPIKey = "com.75-c.DomusCam.runLocalAPI"
+    public static let localAPIPortKey = "com.75-c.DomusCam.localAPIPort"
 
     // MARK: - Non-isolated peeks
 

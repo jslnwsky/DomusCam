@@ -1,12 +1,12 @@
-# Reolens Local API
+# DomusCam Local API
 
-A clean, versioned, **Reolink-agnostic** REST API for the cameras Reolens
+A clean, versioned, **Reolink-agnostic** REST API for the cameras DomusCam
 manages. It is the single contract the app's own surfaces and external
 consumers (Home Assistant, scripts, third-party apps) are both built on.
 
-- **Contract source of truth:** the `ReolensCore` Swift target
-  (`Sources/ReolensCore/`). The resource types here mirror those DTOs exactly —
-  if they ever disagree, `ReolensCore` wins, and that's a bug to fix here.
+- **Contract source of truth:** the `DomusCamCore` Swift target
+  (`Sources/DomusCamCore/`). The resource types here mirror those DTOs exactly —
+  if they ever disagree, `DomusCamCore` wins, and that's a bug to fix here.
 - **Formal schema:** [`openapi.yaml`](openapi.yaml) (OpenAPI 3.1). The running
   server also serves it at `GET /v1/openapi.json`.
 
@@ -112,6 +112,6 @@ bearer token, so no Reolink credentials are exposed to Home Assistant.
 ## Status
 
 Shipping in 0.9.0 (macOS, opt-in): the in-process adapter (`LiveCameraAPI`), the
-HTTP facade (`ReolensServer`), and the Settings → Advanced → Developer Mode →
+HTTP facade (`DomusCamServer`), and the Settings → Advanced → Developer Mode →
 Local API toggle. HLS streaming, a server-side recording byte-relay, two-way
 audio, and the end-to-end-encrypted relay transport are later phases.

@@ -6,7 +6,7 @@ import AppTVOS
 /// All viewer logic lives in the `AppTVOS` SPM library so this target
 /// stays minimal and the logic is shared/testable.
 @main
-struct ReolensTVApp: App {
+struct DomusCamTVApp: App {
     var body: some Scene {
         WindowGroup {
             TVRootView()

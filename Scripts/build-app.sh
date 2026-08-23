@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build Reolens as a proper .app bundle and sign it.
+# Build DomusCam as a proper .app bundle and sign it.
 #
 # Required on macOS 14+ because raw SwiftPM binaries can't request Local Network
 # Privacy and get -1009 ("offline") errors on any LAN connection.
@@ -33,7 +33,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP_DIR="${REPO_ROOT}/Reolens.app"
+APP_DIR="${REPO_ROOT}/DomusCam.app"
 INFO_PLIST="${REPO_ROOT}/App/Info.plist"
 ICON_SRC="${REPO_ROOT}/Resources/AppIcon.icns"
 
@@ -44,8 +44,8 @@ SIGNING_IDENTITY="${SIGNING_IDENTITY:--}"
 #
 # Entitlements: production builds (Developer ID) get the full
 # sandbox + iCloud + application-group entitlements from
-# `Reolens.entitlements`. Ad-hoc dev builds use a slimmed-down
-# `Reolens.dev.entitlements` that omits the team-bound capabilities —
+# `DomusCam.entitlements`. Ad-hoc dev builds use a slimmed-down
+# `DomusCam.dev.entitlements` that omits the team-bound capabilities —
 # starting on macOS 26 (Tahoe), AMFI rejects sandbox-profile
 # compilation when team-bound entitlements aren't backed by a
 # matching provisioning profile, and launchd fails the spawn with
@@ -55,11 +55,11 @@ SIGNING_IDENTITY="${SIGNING_IDENTITY:--}"
 if [[ "${SIGNING_IDENTITY}" == "-" ]]; then
     TIMESTAMP_FLAG="--timestamp=none"
     SIGN_LABEL="ad-hoc"
-    ENTITLEMENTS="${REPO_ROOT}/App/Reolens.dev.entitlements"
+    ENTITLEMENTS="${REPO_ROOT}/App/DomusCam.dev.entitlements"
 else
     TIMESTAMP_FLAG="--timestamp"
     SIGN_LABEL="${SIGNING_IDENTITY}"
-    ENTITLEMENTS="${REPO_ROOT}/App/Reolens.entitlements"
+    ENTITLEMENTS="${REPO_ROOT}/App/DomusCam.entitlements"
 fi
 
 # Decode AC_API_KEY_P8_BASE64 → AC_API_KEY_P8_PATH if only the base64
@@ -99,7 +99,7 @@ fi
 echo "==> swift build -c ${CONFIG}"
 swift build -c "${CONFIG}"
 
-BIN_PATH="${REPO_ROOT}/.build/${CONFIG}/Reolens"
+BIN_PATH="${REPO_ROOT}/.build/${CONFIG}/DomusCam"
 if [[ ! -x "${BIN_PATH}" ]]; then
     echo "Binary not found at ${BIN_PATH}" >&2
     exit 1
@@ -110,7 +110,7 @@ rm -rf "${APP_DIR}"
 mkdir -p "${APP_DIR}/Contents/MacOS"
 mkdir -p "${APP_DIR}/Contents/Resources"
 
-cp "${BIN_PATH}" "${APP_DIR}/Contents/MacOS/Reolens"
+cp "${BIN_PATH}" "${APP_DIR}/Contents/MacOS/DomusCam"
 cp "${INFO_PLIST}" "${APP_DIR}/Contents/Info.plist"
 cp "${ICON_SRC}"   "${APP_DIR}/Contents/Resources/AppIcon.icns"
 
@@ -143,8 +143,8 @@ if [[ "${SIGNING_IDENTITY}" != "-" ]]; then
     fi
     echo "==> Ensuring MAC_APP_DIRECT provisioning profile via ASC API"
     export PLATFORM=MAC
-    export MAC_BUNDLE_ID="${MAC_BUNDLE_ID:-com.reolens.Reolens}"
-    export PROFILE_NAME="${MAC_PROFILE_NAME:-Reolens macOS Developer ID}"
+    export MAC_BUNDLE_ID="${MAC_BUNDLE_ID:-com.75-c.DomusCam}"
+    export PROFILE_NAME="${MAC_PROFILE_NAME:-DomusCam macOS Developer ID}"
     # Helper prints two lines on stdout: profile name, then the
     # absolute path to the installed .mobileprovision. We use the path
     # to embed the profile into the .app bundle before signing, which

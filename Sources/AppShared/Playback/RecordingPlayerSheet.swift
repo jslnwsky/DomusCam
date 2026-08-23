@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 import UIKit
 #endif
 
-private let log = Logger(subsystem: "com.reolens.app", category: "playback.sheet")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "playback.sheet")
 
 /// The single shared recording playback sheet — used by per-camera
 /// `RecordingsView` (iOS + macOS) and by `AllRecordingsView`.

@@ -3,7 +3,7 @@ import Observation
 import OSLog
 import ReolinkAPI
 
-private let log = Logger(subsystem: "com.reolens.tvOS", category: "list")
+private let log = Logger(subsystem: "com.75-c.DomusCam.tvOS", category: "list")
 
 /// 0.7.0 — slim, decode-only mirror of the `CameraEntry` fields the Apple
 /// TV viewer needs. Re-declared here (rather than depending on
@@ -49,14 +49,14 @@ public struct TVCameraEntry: Decodable, Identifiable, Sendable, Hashable {
 /// container — the same file the Mac/iOS apps publish via
 /// `ICloudCameraStorage`. Read-only on tvOS; best-effort (a missing or
 /// not-yet-downloaded file surfaces as an empty list, and the UI shows a
-/// "open Reolens on your iPhone/Mac" hint).
+/// "open DomusCam on your iPhone/Mac" hint).
 @MainActor
 @Observable
 public final class TVCameraListStore {
     public private(set) var cameras: [TVCameraEntry] = []
     public private(set) var didLoad = false
 
-    private static let containerID = "iCloud.com.reolens.Reolens"
+    private static let containerID = "iCloud.com.75-c.DomusCam"
 
     public init() {}
 

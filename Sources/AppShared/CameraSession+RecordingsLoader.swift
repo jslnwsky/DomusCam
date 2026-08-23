@@ -3,7 +3,7 @@ import OSLog
 import ReolinkAPI
 import ReolinkBaichuan
 
-private let log = Logger(subsystem: "com.reolens.app", category: "recordings-loader")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "recordings-loader")
 
 /// Bridges the live `CameraSession` to the
 /// `RecordingsDataSource` protocol consumed by `RecordingsLoader`.
@@ -74,7 +74,7 @@ extension CameraSession: RecordingsDataSource {
             }
             if let cgiError = envelope.error {
                 let detail: String = {
-                    if cgiError.rspCode == -10 { return "Session expired. Reolens will retry on the next refresh." }
+                    if cgiError.rspCode == -10 { return "Session expired. DomusCam will retry on the next refresh." }
                     if cgiError.rspCode == -17 { return "Camera is busy — retry in a moment." }
                     return "Reolink error \(cgiError.rspCode): \(cgiError.detail ?? "no detail")"
                 }()

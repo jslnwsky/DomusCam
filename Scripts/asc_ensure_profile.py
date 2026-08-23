@@ -18,14 +18,14 @@ Two flavors covered, selected by env `PLATFORM`:
   PLATFORM=IOS  (default)
     - profile type:    IOS_APP_STORE
     - cert type:       DISTRIBUTION  (Apple Distribution)
-    - bundle id:       IOS_BUNDLE_ID  (e.g. com.reolens.Reolens.iOS)
-    - profile name:    PROFILE_NAME   (e.g. "Reolens iOS App Store")
+    - bundle id:       IOS_BUNDLE_ID  (e.g. com.75-c.DomusCam.iOS)
+    - profile name:    PROFILE_NAME   (e.g. "DomusCam iOS App Store")
 
   PLATFORM=MAC
     - profile type:    MAC_APP_DIRECT  (Developer ID Direct distribution)
     - cert type:       DEVELOPER_ID_APPLICATION
-    - bundle id:       MAC_BUNDLE_ID  (e.g. com.reolens.Reolens)
-    - profile name:    PROFILE_NAME   (e.g. "Reolens macOS Developer ID")
+    - bundle id:       MAC_BUNDLE_ID  (e.g. com.75-c.DomusCam)
+    - profile name:    PROFILE_NAME   (e.g. "DomusCam macOS Developer ID")
 
 Common env (both flavors):
   AC_API_KEY_ID         — ASC API key id (10-char)
@@ -94,7 +94,7 @@ FLAVORS: dict[str, Flavor] = {
         cert_type="DISTRIBUTION",
         bundle_env_var="IOS_BUNDLE_ID",
         bundle_platform="IOS",
-        default_profile_name="Reolens iOS App Store",
+        default_profile_name="DomusCam iOS App Store",
     ),
     "IOS_WIDGETS": Flavor(
         platform_label="iOS App Store (Widgets extension)",
@@ -102,7 +102,7 @@ FLAVORS: dict[str, Flavor] = {
         cert_type="DISTRIBUTION",
         bundle_env_var="IOS_WIDGETS_BUNDLE_ID",
         bundle_platform="IOS",
-        default_profile_name="Reolens iOS Widgets App Store",
+        default_profile_name="DomusCam iOS Widgets App Store",
     ),
     "IOS_NOTIFICATION_SERVICE": Flavor(
         platform_label="iOS App Store (Notification Service extension)",
@@ -110,7 +110,7 @@ FLAVORS: dict[str, Flavor] = {
         cert_type="DISTRIBUTION",
         bundle_env_var="IOS_NOTIFICATION_SERVICE_BUNDLE_ID",
         bundle_platform="IOS",
-        default_profile_name="Reolens iOS Notification Service App Store",
+        default_profile_name="DomusCam iOS Notification Service App Store",
     ),
     "MAC": Flavor(
         platform_label="macOS Developer ID (Direct)",
@@ -118,7 +118,7 @@ FLAVORS: dict[str, Flavor] = {
         cert_type="DEVELOPER_ID_APPLICATION",
         bundle_env_var="MAC_BUNDLE_ID",
         bundle_platform="MAC_OS",
-        default_profile_name="Reolens macOS Developer ID",
+        default_profile_name="DomusCam macOS Developer ID",
     ),
     # Mac App Store / TestFlight. Same unified "Apple Distribution" cert
     # (DISTRIBUTION) the iOS App Store flow uses signs the .app; the .pkg
@@ -131,7 +131,7 @@ FLAVORS: dict[str, Flavor] = {
         cert_type="DISTRIBUTION",
         bundle_env_var="MAC_APP_BUNDLE_ID",
         bundle_platform="MAC_OS",
-        default_profile_name="Reolens Mac App Store",
+        default_profile_name="DomusCam Mac App Store",
     ),
 }
 
@@ -158,7 +158,7 @@ def _query(params: dict[str, str]) -> str:
     ASC's filter syntax uses literal square brackets like
     `filter[name]` which the API is happiest to receive un-escaped.
     Spaces and other control characters in *values* (e.g. profile
-    names like "Reolens iOS App Store") MUST be encoded though,
+    names like "DomusCam iOS App Store") MUST be encoded though,
     otherwise Python 3.14's stricter `http.client._validate_path`
     raises `InvalidURL`.
     """
@@ -196,8 +196,8 @@ def find_bundle_id_resource(bundle_id: str, platform: str) -> str:
     """Return the ASC resource id for our bundle id (creates if missing).
 
     ASC's `filter[identifier]` is a *prefix* match, not exact — asking
-    for `com.reolens.Reolens` happily returns
-    `com.reolens.Reolens.iOS` if that's the only thing registered. We
+    for `com.75-c.DomusCam` happily returns
+    `com.75-c.DomusCam.iOS` if that's the only thing registered. We
     iterate up to a page of results and only accept an exact match;
     otherwise we treat the bundle as missing and try to POST. If the
     POST fails (often does, because creating bundle ids needs Admin
@@ -245,7 +245,7 @@ def find_bundle_id_resource(bundle_id: str, platform: str) -> str:
                 "  Easiest fix — register it manually, once:\n"
                 "    https://developer.apple.com/account/resources/identifiers/list/bundleId\n"
                 "    • '+' → App IDs → App\n"
-                f"    • Description: 'Reolens {platform}'\n"
+                f"    • Description: 'DomusCam {platform}'\n"
                 "    • Bundle ID: Explicit\n"
                 f"    • Identifier: '{bundle_id}'\n"
                 "    • Capabilities: enable any your entitlements need\n"
@@ -469,7 +469,7 @@ def main() -> int:
     bundle_id = (
         os.environ.get(flavor.bundle_env_var)
         or os.environ.get("IOS_BUNDLE_ID")  # back-compat for the iOS-only call sites
-        or "com.reolens.Reolens"
+        or "com.75-c.DomusCam"
     )
     profile_name = os.environ.get("PROFILE_NAME") or flavor.default_profile_name
 

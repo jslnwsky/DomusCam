@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Deploy or export the CloudKit schema for the Reolens container.
+# Deploy or export the CloudKit schema for the DomusCam container.
 #
 # The exported file is the WHOLE container schema, not just one record
 # type. As of 0.7.0 it covers:
@@ -43,7 +43,7 @@
 #
 # Required environment:
 #   CKTOOL_TEAM_ID    — 10-char Apple Developer team identifier
-#   CKTOOL_CONTAINER  — typically "iCloud.com.reolens.Reolens"
+#   CKTOOL_CONTAINER  — typically "iCloud.com.75-c.DomusCam"
 #
 # One-time auth (per machine):
 #   xcrun cktool save-token --type management
@@ -73,7 +73,7 @@ Subcommands:
 
 Required env vars:
   CKTOOL_TEAM_ID    Apple Developer team ID
-  CKTOOL_CONTAINER  CloudKit container, e.g. iCloud.com.reolens.Reolens
+  CKTOOL_CONTAINER  CloudKit container, e.g. iCloud.com.75-c.DomusCam
 
 One-time auth: run `xcrun cktool save-token --type management` and paste a
 token from https://icloud.developer.apple.com/dashboard.
@@ -94,7 +94,7 @@ require_env() {
         missing=1
     fi
     if [[ -z "${CKTOOL_CONTAINER:-}" ]]; then
-        echo "ERROR: CKTOOL_CONTAINER is not set (expected e.g. iCloud.com.reolens.Reolens)." >&2
+        echo "ERROR: CKTOOL_CONTAINER is not set (expected e.g. iCloud.com.75-c.DomusCam)." >&2
         missing=1
     fi
     if [[ $missing -ne 0 ]]; then
@@ -185,7 +185,7 @@ cmd_diff() {
         exit 2
     fi
     local tmp
-    tmp="$(mktemp -t reolens-ckschema.XXXXXX)"
+    tmp="$(mktemp -t domuscam-ckschema.XXXXXX)"
     trap 'rm -f "$tmp"' EXIT
     xcrun cktool export-schema \
         --team-id "$CKTOOL_TEAM_ID" \

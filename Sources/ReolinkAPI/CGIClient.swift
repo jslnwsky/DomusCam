@@ -2,7 +2,7 @@ import Foundation
 import CryptoKit
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.api", category: "cgi")
+private let log = Logger(subsystem: "com.75-c.DomusCam.api", category: "cgi")
 
 public enum ReolinkClientError: Error, CustomStringConvertible {
     case transport(any Error)
@@ -138,7 +138,7 @@ public actor CGIClient {
     /// transport, authenticated with the current login token.
     ///
     /// Returns the raw image bytes (typically `image/jpeg`). This is the
-    /// fetch path behind the Reolens API's `snapshot` endpoint; the live UI
+    /// fetch path behind the DomusCam API's `snapshot` endpoint; the live UI
     /// uses the preview cache instead. The snapshot GET goes straight to the
     /// device's `cmd=Snap` URL using the same TLS-pinned `URLSession` as the
     /// CGI control plane, so self-signed-cert pinning (AGENTS.md §3) applies

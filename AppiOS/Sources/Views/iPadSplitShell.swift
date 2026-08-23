@@ -50,7 +50,7 @@ struct iPadSplitShell: View {
         // that selecting a row always lands on a fresh Live view.
         NavigationSplitView {
             List(selection: $selectedSection) {
-                Section("Reolens") {
+                Section("DomusCam") {
                     Label("Live", systemImage: "play.rectangle.fill")
                         .tag(SidebarSection.live)
                         .contentShape(.rect)
@@ -72,7 +72,7 @@ struct iPadSplitShell: View {
                     }
                 }
             }
-            .navigationTitle("Reolens")
+            .navigationTitle("DomusCam")
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
                     if isReorderingCameras {
@@ -275,11 +275,11 @@ struct iPadSplitShell: View {
     }
 
     /// 0.5.0 Theme A4 — iPadOS "Open in New Window". Opens a fresh
-    /// scene via the shared `WindowGroup(for: ReolensScene.self)`
-    /// declared on `ReolensiOSApp`. iPadOS surfaces this as a new
+    /// scene via the shared `WindowGroup(for: DomusCamScene.self)`
+    /// declared on `DomusCamiOSApp`. iPadOS surfaces this as a new
     /// scene the user can drag into Stage Manager's tile grid.
     private struct OpenInNewSceneButton: View {
-        let scene: ReolensScene
+        let scene: DomusCamScene
         @Environment(\.openWindow) private var openWindow
 
         var body: some View {

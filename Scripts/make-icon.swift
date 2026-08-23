@@ -1,5 +1,5 @@
 #!/usr/bin/env swift
-// Generate the Reolens app icon master (1024×1024 PNG) using CoreGraphics.
+// Generate the DomusCam app icon master (1024×1024 PNG) using CoreGraphics.
 //
 // Reproducible, no external dependencies — only the macOS SDK. Run from the
 // repo root:

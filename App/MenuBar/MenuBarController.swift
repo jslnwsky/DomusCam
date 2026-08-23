@@ -16,7 +16,7 @@ import os
 /// - A menu-bar icon shows the most recent events from any active
 ///   `CameraSession.aiEventLog` so the user can glance at what's
 ///   happening without surfacing the full UI.
-/// - Clicking "Open Reolens" in the popover routes through
+/// - Clicking "Open DomusCam" in the popover routes through
 ///   `AppIntentFocus.requestFocus` to re-show the window. Quit is its
 ///   own row so users can still close the process from the menu bar
 ///   when the window is gone.
@@ -34,18 +34,18 @@ final class MenuBarController {
 
     /// UserDefaults key for "run in menu bar when closed" — read also
     /// by `AppDelegate.applicationShouldTerminateAfterLastWindowClosed`.
-    static let menuBarModeKey = "com.reolens.menuBarMode"
+    static let menuBarModeKey = "com.75-c.DomusCam.menuBarMode"
     /// UserDefaults key for "launch at login". Distinct from the
     /// menu-bar flag so the user can opt into one without the other.
-    static let launchAtLoginKey = "com.reolens.launchAtLogin"
+    static let launchAtLoginKey = "com.75-c.DomusCam.launchAtLogin"
 
     private var statusItem: NSStatusItem?
     private var popover: NSPopover?
-    private let log = Logger(subsystem: "com.reolens.Reolens", category: "MenuBar")
+    private let log = Logger(subsystem: "com.75-c.DomusCam", category: "MenuBar")
 
     private init() {}
 
-    /// Menu-bar-tinted Reolens logo. Drawn at runtime as a monochrome
+    /// Menu-bar-tinted DomusCam logo. Drawn at runtime as a monochrome
     /// silhouette (lens ring + offset pupil, echoing the app icon's
     /// camera-eye motif) and marked as a template image so macOS
     /// renders it in the menu bar's text color regardless of light /
@@ -84,7 +84,7 @@ final class MenuBarController {
             return true
         }
         image.isTemplate = true
-        image.accessibilityDescription = "Reolens"
+        image.accessibilityDescription = "DomusCam"
         return image
     }()
 
@@ -104,7 +104,7 @@ final class MenuBarController {
         guard statusItem == nil else { return }
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = item.button {
-            // Reolens-logo template image — macOS auto-tints template
+            // DomusCam-logo template image — macOS auto-tints template
             // images to match the menu bar's appearance (light/dark,
             // graphite/accent), so a single drawn silhouette renders
             // correctly in every menu-bar style.
@@ -157,7 +157,7 @@ final class MenuBarController {
         // one because WindowGroup tracks the app activation. Iterating
         // visible windows is safer than `NSApp.windows[0]`, which
         // returns popovers and About panels too.
-        for window in NSApp.windows where window.title == "Reolens" {
+        for window in NSApp.windows where window.title == "DomusCam" {
             window.makeKeyAndOrderFront(nil)
             return
         }
@@ -197,7 +197,7 @@ private struct MenuBarPopoverView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Reolens")
+            Text("DomusCam")
                 .font(.headline)
                 .padding(.horizontal, 14)
                 .padding(.top, 12)
@@ -209,7 +209,7 @@ private struct MenuBarPopoverView: View {
             // 0.7.0 — when this Mac is the always-on Hub, give the user
             // the confidence signal where they expect it: the menu bar.
             if AppPreferences.runAsHubIsOn {
-                Label("This Mac is your Reolens Hub", systemImage: "antenna.radiowaves.left.and.right")
+                Label("This Mac is your DomusCam Hub", systemImage: "antenna.radiowaves.left.and.right")
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.green)
                     .padding(.horizontal, 14)
@@ -234,7 +234,7 @@ private struct MenuBarPopoverView: View {
             }
             Divider()
             HStack(spacing: 8) {
-                Button("Open Reolens") { onOpenApp() }
+                Button("Open DomusCam") { onOpenApp() }
                     .buttonStyle(.borderedProminent)
                 Spacer()
                 Button("Quit") { onQuit() }
@@ -246,7 +246,7 @@ private struct MenuBarPopoverView: View {
         // The Recent-events list renders directly over the user's
         // desktop without an opaque wrapper, matching the rest of
         // macOS 26's quick-glance HUDs.
-        .reolensGlassPanel()
+        .domuscamGlassPanel()
     }
 
     /// Latest events from every running camera session, newest first,

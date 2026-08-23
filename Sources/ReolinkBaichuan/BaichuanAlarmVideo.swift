@@ -2,7 +2,7 @@ import Foundation
 import OSLog
 import ReolinkAPI
 
-private let log = Logger(subsystem: "com.reolens.baichuan", category: "alarmVideo")
+private let log = Logger(subsystem: "com.75-c.DomusCam.baichuan", category: "alarmVideo")
 
 /// One entry in the hub's alarm-tagged video list (recordings that were
 /// triggered by motion or AI events).

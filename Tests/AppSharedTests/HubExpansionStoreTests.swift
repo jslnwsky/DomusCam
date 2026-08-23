@@ -14,7 +14,7 @@ struct HubExpansionStoreTests {
     /// piggy-backing on UserDefaults's removeObject before init.
     private static func makeStore() -> HubExpansionStore {
         // Wipe the canonical key so this test runs in a clean state.
-        UserDefaults.standard.removeObject(forKey: "com.reolens.collapsedHubs")
+        UserDefaults.standard.removeObject(forKey: "com.75-c.DomusCam.collapsedHubs")
         return HubExpansionStore()
     }
 

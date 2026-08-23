@@ -3,7 +3,7 @@ import AppKit
 import AppShared
 import os
 
-/// 0.7.0 — macOS coordinator for "Reolens Hub" mode: the explicit,
+/// 0.7.0 — macOS coordinator for "DomusCam Hub" mode: the explicit,
 /// per-Mac opt-in that turns this Mac into the active listener driving
 /// notifications, Live Activities, and the hub-health heartbeat for the
 /// user's other devices.
@@ -16,7 +16,7 @@ import os
 ///    CloudKit publisher gate (`EventNotifier` already checks it); being
 ///    the Hub *is* being the publisher.
 ///
-/// The Hub keeps publishing as long as Reolens is running, including
+/// The Hub keeps publishing as long as DomusCam is running, including
 /// after the last window closes (see
 /// `applicationShouldTerminateAfterLastWindowClosed`). To have it come
 /// back automatically after a reboot, pair it with "Launch at login"
@@ -34,7 +34,7 @@ final class HubController {
     static let shared = HubController()
 
     private var engine: HubEngine?
-    private let log = Logger(subsystem: "com.reolens.Reolens", category: "Hub")
+    private let log = Logger(subsystem: "com.75-c.DomusCam", category: "Hub")
 
     private init() {}
 
@@ -78,7 +78,7 @@ final class HubController {
         startEngine(store: store)
     }
 
-    /// Apply the user's "Run this Mac as a Reolens Hub" toggle. Flips the
+    /// Apply the user's "Run this Mac as a DomusCam Hub" toggle. Flips the
     /// runAsHub flag + the CloudKit publisher flag together, and starts /
     /// stops the engine.
     func setRunAsHub(_ enabled: Bool, store: CameraStore) {

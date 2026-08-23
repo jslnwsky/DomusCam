@@ -4,7 +4,7 @@ import OSLog
 import ReolinkBaichuan
 import AppShared
 
-private let log = Logger(subsystem: "com.reolens.app", category: "ios-talk")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "ios-talk")
 
 /// Push-to-talk button for iOS / iPadOS. Holding captures mic audio,
 /// ADPCM-encodes 16 kHz mono, and streams to the camera via Baichuan

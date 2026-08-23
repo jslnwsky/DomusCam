@@ -118,7 +118,7 @@ struct SettingsView: View {
         .formStyle(.grouped)
     }
 
-    /// 0.7.0 — macOS-only "Reolens Hub" section. Designating this Mac as
+    /// 0.7.0 — macOS-only "DomusCam Hub" section. Designating this Mac as
     /// the Hub makes it the active listener: it connects every camera and
     /// publishes motion events to the user's private CloudKit database so
     /// their other Apple devices get notifications, Live Activities, and
@@ -128,13 +128,13 @@ struct SettingsView: View {
     /// viewers. No iOS analog (iPhone/iPad can't hold a background
     /// listener) — AGENTS.md §1 carve-out.
     private var hubSection: some View {
-        Section("Reolens Hub") {
-            Toggle("Run this Mac as a Reolens Hub", isOn: $runAsHub)
+        Section("DomusCam Hub") {
+            Toggle("Run this Mac as a DomusCam Hub", isOn: $runAsHub)
                 .onChange(of: runAsHub) { _, newValue in
                     HubController.shared.setRunAsHub(newValue, store: store)
                     hubEngine = HubController.shared.activeEngine
                 }
-            Text("New in 0.7.0. Pick one Mac (a Mac mini is ideal) as your Hub — it watches every camera and relays motion to your iPhone, iPad, Apple TV, and Watch using your own iCloud, no Reolens server. It keeps watching after you close the window; turn on “Launch at login” to have it start automatically. Turn it off here anytime.")
+            Text("New in 0.7.0. Pick one Mac (a Mac mini is ideal) as your Hub — it watches every camera and relays motion to your iPhone, iPad, Apple TV, and Watch using your own iCloud, no DomusCam server. It keeps watching after you close the window; turn on “Launch at login” to have it start automatically. Turn it off here anytime.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             if runAsHub, let engine = hubEngine {
@@ -186,7 +186,7 @@ struct SettingsView: View {
                         }
                     }
                 }
-            Text("New in 0.4.0. Closing the window keeps Reolens running in the menu bar so motion notifications keep firing. Quit from the menu bar item to fully stop the app.")
+            Text("New in 0.4.0. Closing the window keeps DomusCam running in the menu bar so motion notifications keep firing. Quit from the menu bar item to fully stop the app.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             if #available(macOS 13.0, *) {
@@ -195,7 +195,7 @@ struct SettingsView: View {
                     .onChange(of: launchAtLogin) { _, newValue in
                         MenuBarController.shared.setLaunchAtLogin(newValue)
                     }
-                Text("Reolens starts in the menu bar at login so events from the moment you sit down at the Mac aren't missed.")
+                Text("DomusCam starts in the menu bar at login so events from the moment you sit down at the Mac aren't missed.")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }

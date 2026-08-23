@@ -5,7 +5,7 @@ import ReolinkAPI
 import ReolinkBaichuan
 import AppShared
 
-private let log = Logger(subsystem: "com.reolens.app", category: "recordings")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "recordings")
 
 /// Browses recordings stored on the Reolink Home Hub / NVR for a given channel.
 /// Date picker → Search query → list of files → AVPlayer for playback.
@@ -363,7 +363,7 @@ struct RecordingsView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         // 0.5.0 Liquid Glass — recordings footer notice.
-        .reolensGlassToolbar()
+        .domuscamGlassToolbar()
     }
 
     private var baichuanActiveFooter: some View {
@@ -381,7 +381,7 @@ struct RecordingsView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         // 0.5.0 Liquid Glass — recordings footer notice.
-        .reolensGlassToolbar()
+        .domuscamGlassToolbar()
     }
 
     private var controls: some View {
@@ -436,7 +436,7 @@ struct RecordingsView: View {
         .padding(12)
         // 0.5.0 Liquid Glass — recordings header reads as a hovering
         // toolbar over the calendar / timeline / list stack below.
-        .reolensGlassToolbar()
+        .domuscamGlassToolbar()
     }
 
     @ViewBuilder
@@ -749,7 +749,7 @@ struct RecordingsView: View {
             source = file
         }
         let suffix = bookmarkRange == nil ? "(\(quality.label))" : "(bookmark \(quality.label))"
-        let defaultName = "Reolens \(channel.name ?? "Channel \(channel.channel)") \(timeLabel(for: file)) \(suffix).mp4"
+        let defaultName = "DomusCam \(channel.name ?? "Channel \(channel.channel)") \(timeLabel(for: file)) \(suffix).mp4"
             .replacingOccurrences(of: ":", with: ".")
 
         let panel = NSSavePanel()

@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "camera-list-persist")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "camera-list-persist")
 
 /// 0.6.0 Slice 15c — list-persistence carve-out from CameraStore.
 ///

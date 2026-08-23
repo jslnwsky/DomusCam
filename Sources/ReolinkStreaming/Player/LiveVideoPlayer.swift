@@ -13,7 +13,7 @@ import AppKit
 import UIKit
 #endif
 
-private let log = Logger(subsystem: "com.reolens.streaming", category: "player")
+private let log = Logger(subsystem: "com.75-c.DomusCam.streaming", category: "player")
 
 /// 0.6.1 — TTFF (time-to-first-frame) signposter. Begins on `start()`
 /// and ends on the first `enqueue(_:)`. Use `xcrun xctrace record
@@ -23,7 +23,7 @@ private let log = Logger(subsystem: "com.reolens.streaming", category: "player")
 /// Subsystem / category match the `os.Logger` above so Console.app and
 /// Instruments group the signposts under the same source.
 private let ttffSignposter = OSSignposter(
-    subsystem: "com.reolens.streaming",
+    subsystem: "com.75-c.DomusCam.streaming",
     category: "TTFF"
 )
 
@@ -207,7 +207,7 @@ public final class LiveVideoPlayer {
 
         let sdp = try await client.connect()
         guard let video = sdp.firstVideoTrack else {
-            throw NSError(domain: "Reolens.LivePlayer", code: 1, userInfo: [NSLocalizedDescriptionKey: "No video track"])
+            throw NSError(domain: "DomusCam.LivePlayer", code: 1, userInfo: [NSLocalizedDescriptionKey: "No video track"])
         }
         let codec = video.rtpmap?.codec.uppercased() ?? ""
         let clockRate = Int32(video.rtpmap?.clockRate ?? 90_000)
@@ -233,7 +233,7 @@ public final class LiveVideoPlayer {
                     try await self.runH265Pipeline(video: video, clockRate: clockRate, stream: stream)
                 default:
                     throw NSError(
-                        domain: "Reolens.LivePlayer", code: 2,
+                        domain: "DomusCam.LivePlayer", code: 2,
                         userInfo: [NSLocalizedDescriptionKey: "Unsupported codec: \(codec.isEmpty ? "(none)" : codec)"]
                     )
                 }
@@ -254,7 +254,7 @@ public final class LiveVideoPlayer {
                     if idleSeconds >= Int(Self.stallTimeout) {
                         log.error("Stream watchdog: no new samples in \(idleSeconds)s (last count=\(lastCount))")
                         throw NSError(
-                            domain: "Reolens.LivePlayer", code: 3,
+                            domain: "DomusCam.LivePlayer", code: 3,
                             userInfo: [NSLocalizedDescriptionKey: "stream stalled after \(idleSeconds)s of inactivity"]
                         )
                     }

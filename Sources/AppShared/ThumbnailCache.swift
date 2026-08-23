@@ -2,11 +2,11 @@ import Foundation
 import OSLog
 import CryptoKit
 
-private let log = Logger(subsystem: "com.reolens.app", category: "thumbcache")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "thumbcache")
 
 /// Content-addressed JPEG thumbnail cache for the recording scrubber
 /// phase 2 (Theme A3). Entries live under
-/// `~/Library/Caches/Reolens/thumbs/`; the cache caps at 500 MB with
+/// `~/Library/Caches/DomusCam/thumbs/`; the cache caps at 500 MB with
 /// last-access LRU eviction.
 ///
 /// Reads are synchronous (file system, cheap). Writes are
@@ -26,7 +26,7 @@ public actor ThumbnailCache {
         self.capacityBytes = capacityBytes
         let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
-        let dir = caches.appending(path: "Reolens/thumbs")
+        let dir = caches.appending(path: "DomusCam/thumbs")
         // safe: idempotent makeDir; existing-dir is the common case.
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         self.directory = dir

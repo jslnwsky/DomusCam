@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "preview-prefetch")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "preview-prefetch")
 
 /// 0.5.1 — Background snapshot prefetcher. The user reported that
 /// cameras with no cached preview render a "No preview yet"

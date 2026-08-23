@@ -1,6 +1,6 @@
 # Features
 
-The full feature surface of Reolens. For a quick overview see the
+The full feature surface of DomusCam. For a quick overview see the
 [README](../README.md); for the per-release history see
 [CHANGELOG.md](../CHANGELOG.md).
 
@@ -38,7 +38,7 @@ The full feature surface of Reolens. For a quick overview see the
 - **Rich motion / AI notifications** with the trigger frame, not just
   text. Tap to jump straight to the clip.
 - **CloudKit-relayed background pushes** to iOS / iPadOS — events ride
-  through *your own* iCloud private database, no Reolens server.
+  through *your own* iCloud private database, no DomusCam server.
 - **Per-camera mute** (default on, iCloud-synced) and **per-AI-tag
   filters**. **Notification diagnostics** screen + a 1,000-record
   rolling **notification log** so silent-push issues are self-
@@ -79,7 +79,7 @@ The full feature surface of Reolens. For a quick overview see the
   device in Keychain by default; optional iCloud Keychain sync is in
   Settings.
 - **Shortcuts & Siri** — "Hey Siri, open the Front Door camera in
-  Reolens." Three App Intents: Open Camera, Show Today's Events,
+  DomusCam." Three App Intents: Open Camera, Show Today's Events,
   Mute Camera Notifications.
 - **Auto-updates** — App Store and TestFlight on every Apple platform.
 
@@ -89,6 +89,6 @@ A clean, versioned `/v1` HTTP API — list cameras, pull snapshots, move
 PTZ, search recordings, watch a live MJPEG stream, and follow a live
 motion/AI event stream (SSE). Turn it on under **Settings → Advanced →
 Developer Mode → Local API**. It binds to your LAN only, is secured with
-a bearer token, is off by default, and adds no dependencies (no Reolens
+a bearer token, is off by default, and adds no dependencies (no DomusCam
 server — it runs on your own Mac). Built for Home Assistant, Shortcuts,
 and scripts. Full contract in [docs/api/](api/README.md).

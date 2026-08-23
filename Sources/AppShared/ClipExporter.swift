@@ -2,7 +2,7 @@ import Foundation
 import AVFoundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "clip-export")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "clip-export")
 
 /// Trim + export a recording into a fresh MP4 on disk. Used by the
 /// bookmarks UI (Theme C1) to save / share a single clip.

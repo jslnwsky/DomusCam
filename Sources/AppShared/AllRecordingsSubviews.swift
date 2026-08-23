@@ -3,7 +3,7 @@ import OSLog
 import ReolinkAPI
 import ReolinkStreaming
 
-private let log = Logger(subsystem: "com.reolens.app", category: "all-recordings.subviews")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "all-recordings.subviews")
 
 /// 0.6.2 — extracted from `Sources/AppShared/AllRecordingsView.swift`
 /// to start the file-decomposition ratchet. Hosts the three trailing

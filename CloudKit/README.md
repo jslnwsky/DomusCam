@@ -1,7 +1,7 @@
-# CloudKit schema (`iCloud.com.reolens.Reolens`)
+# CloudKit schema (`iCloud.com.75-c.DomusCam`)
 
-Reolens stores its cross-device data in the user's **private** CloudKit
-database — there is no Reolens server (AGENTS.md §5). CloudKit keeps two
+DomusCam stores its cross-device data in the user's **private** CloudKit
+database — there is no DomusCam server (AGENTS.md §5). CloudKit keeps two
 schemas per container: **Development** (auto-creates record types/fields
 on first write) and **Production** (locked; must be promoted explicitly).
 TestFlight, App Store, and Developer-ID DMG builds all hit Production, so
@@ -73,8 +73,8 @@ Record name = `cred-<cameraUUID>`. Code:
 ```bash
 # 0. One-time auth (paste a token from https://icloud.developer.apple.com/dashboard)
 xcrun cktool save-token --type management
-export CKTOOL_TEAM_ID=5M9UT7VQ8Q
-export CKTOOL_CONTAINER=iCloud.com.reolens.Reolens
+export CKTOOL_TEAM_ID=NXVC3868F7
+export CKTOOL_CONTAINER=iCloud.com.75-c.DomusCam
 
 # 1. Seed Development with the new types, the safe way:
 #    EITHER define them in the CloudKit Console (Development env) — create

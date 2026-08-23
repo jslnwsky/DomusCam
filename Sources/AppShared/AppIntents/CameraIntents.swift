@@ -2,11 +2,11 @@ import Foundation
 import AppIntents
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "intents")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "intents")
 
 /// Shortcuts integration. Exposes "Open Camera" as a configurable
 /// shortcut and Siri voice command so users can say "Hey Siri, open
-/// the Front Door camera in Reolens" or chain a camera open into a
+/// the Front Door camera in DomusCam" or chain a camera open into a
 /// Shortcuts automation.
 ///
 /// Pattern:
@@ -72,7 +72,7 @@ public struct CameraEntityQuery: EntityQuery {
 @available(iOS 16, macOS 13, *)
 public struct OpenCameraIntent: AppIntent {
     public static let title: LocalizedStringResource = "Open Camera"
-    public static let description = IntentDescription("Opens Reolens with a specific camera focused for live view.")
+    public static let description = IntentDescription("Opens DomusCam with a specific camera focused for live view.")
     public static let openAppWhenRun: Bool = true
 
     @Parameter(title: "Camera")
@@ -126,18 +126,18 @@ public enum AppIntentFocus {
         case digest(day: Date)
     }
 
-    private static let key = "com.reolens.intent.focusTarget"
+    private static let key = "com.75-c.DomusCam.intent.focusTarget"
     /// Legacy key used before 0.3.0 added richer Target. Drained on
     /// `consumePending()` so notifications/Shortcuts written by a
     /// pre-0.3.x build still route correctly after the user upgrades.
-    private static let legacyKey = "com.reolens.intent.focusedCameraID"
+    private static let legacyKey = "com.75-c.DomusCam.intent.focusedCameraID"
 
     /// Broadcast when a focus request is written. Subscribed to by
     /// app scenes that need to re-drain the pending intent without
     /// waiting for the next scene-phase or active-notification cycle
     /// — the cold-launch-via-notification-tap path writes the intent
     /// AFTER the scene's launch `.task` has already drained it.
-    public static let didUpdate = Notification.Name("com.reolens.intent.focusUpdated")
+    public static let didUpdate = Notification.Name("com.75-c.DomusCam.intent.focusUpdated")
 
     public static func request(_ target: Target) {
         guard let data = try? JSONEncoder().encode(target) else { return }
@@ -185,7 +185,7 @@ public enum AppIntentFocus {
 @available(iOS 16, macOS 13, *)
 public struct ShowTodayEventsIntent: AppIntent {
     public static let title: LocalizedStringResource = "Show Today's Events"
-    public static let description = IntentDescription("Opens Reolens to today's recordings. Optionally filter to a specific camera.")
+    public static let description = IntentDescription("Opens DomusCam to today's recordings. Optionally filter to a specific camera.")
     public static let openAppWhenRun: Bool = true
 
     @Parameter(title: "Camera (optional)", default: nil)
@@ -252,7 +252,7 @@ public struct MuteCameraNotificationsIntent: AppIntent {
 }
 
 @available(iOS 16, macOS 13, *)
-public struct ReolensShortcuts: AppShortcutsProvider {
+public struct DomusCamShortcuts: AppShortcutsProvider {
     @AppShortcutsBuilder
     public static var appShortcuts: [AppShortcut] {
         AppShortcut(

@@ -20,7 +20,7 @@ struct AppPreferencesTests {
     /// pattern used by `NotificationHistoryTests` and the new
     /// `RecordingIndexTests`.
     private func makeFreshDefaults() -> UserDefaults {
-        let suiteName = "reolens-app-prefs-tests-\(UUID().uuidString)"
+        let suiteName = "domuscam-app-prefs-tests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         // Belt-and-braces — even with a unique suite name, blow away
         // any residual entries before the test runs.

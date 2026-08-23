@@ -1,0 +1,547 @@
+import SwiftUI
+import UIKit
+import CloudKit
+import UserNotifications
+import AppShared
+import ReolinkAPI
+import os
+
+@main
+struct DomusCamiOSApp: App {
+    /// `UIApplicationDelegateAdaptor` so we can install the
+    /// `NotificationTapDelegate` during `didFinishLaunchingWithOptions`.
+    /// That timing is essential for cold-launch notification taps —
+    /// installing in scene `.task` is too late, because iOS attempts
+    /// to dispatch the tap response before the scene has even
+    /// mounted.
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+
+    /// The shared camera model. Lives for the lifetime of the app and is
+    /// injected into every view via `.environment(_:)`. The store wakes
+    /// up the iCloud Drive sync helper in its initializer, so cameras
+    /// added on the Mac (or any other signed-in device) appear here
+    /// without any explicit pull on launch.
+    @State private var store = CameraStore()
+    @Environment(\.scenePhase) private var scenePhase
+
+    var body: some Scene {
+        WindowGroup {
+            RootView()
+                .environment(store)
+                .task {
+                    // Drain any pending intent the user fired before
+                    // the app was running (Shortcuts/Siri or a
+                    // notification tap on a cold launch — both write
+                    // to the same UserDefaults pointer via
+                    // `AppIntentFocus.request`; `CameraStore` consumes
+                    // it here). The delegate itself is already
+                    // installed by AppDelegate.
+                    store.applyPendingIntentFocus()
+
+                    // Auto-request notification permission on first
+                    // launch — matches the macOS app's behavior. Until
+                    // 0.4.0, iOS users had to dig into Settings → "Request
+                    // permission" before any motion notification could
+                    // fire, so for the vast majority of users the rich
+                    // alarm notifications listed in the README simply
+                    // never appeared. `EventNotifier.notify` is gated by
+                    // `permissionStatus == .authorized`, which can only
+                    // reach `.authorized` after a prompt the user
+                    // accepts. The status check makes this idempotent —
+                    // subsequent launches no-op because the OS records
+                    // the user's decision permanently.
+                    await EventNotifier.shared.refreshPermissionStatus()
+                    if EventNotifier.shared.permissionStatus == .notDetermined {
+                        await EventNotifier.shared.requestPermission()
+                    }
+
+                    // 0.5.0 Theme A5 — reconcile the daily overnight
+                    // digest with the user's current settings. The
+                    // scheduled local notification fires at the
+                    // configured hour without any background mode;
+                    // `UNCalendarNotificationTrigger(repeats: true)`
+                    // handles the daily fire.
+                    await DigestScheduler.shared.reconcileSchedule()
+
+                    // CloudKit motion-event subscription (0.4.1).
+                    // Installs idempotently on every launch — CloudKit
+                    // no-ops on a re-register, so this is safe and
+                    // survives schema drift. Background pushes wake
+                    // the AppDelegate's didReceiveRemoteNotification
+                    // handler; that handler does the local-notification
+                    // fan-out. AGENTS.md §5 — runs inside the user's
+                    // own iCloud account, no DomusCam server.
+                    if MotionEventRelaySettings.subscriberEnabled {
+                        await CloudKitMotionEventSubscriber().installSubscriptionIfNeeded()
+                        await MainActor.run {
+                            UIApplication.shared.registerForRemoteNotifications()
+                        }
+                    }
+
+                    // 0.7.0 — if Apple TV credential sync is on, re-publish
+                    // the encrypted credentials so the TV picks up password
+                    // changes made on this device.
+                    TVCredentialSync.republishIfEnabled(store: store)
+                }
+                .onContinueUserActivity(CameraContinuity.cameraDetailActivityType) { activity in
+                    if CameraContinuity.handle(activity: activity) {
+                        store.applyPendingIntentFocus()
+                    }
+                }
+                .onChange(of: scenePhase) { _, phase in
+                    switch phase {
+                    case .active:
+                        store.applyPendingIntentFocus()
+                        // 0.5.1 — start (or resume) the background
+                        // snapshot prefetcher. Idempotent. Battery
+                        // cameras are skipped inside the prefetcher
+                        // — see CameraPreviewPrefetcher header.
+                        CameraPreviewPrefetcher.shared.start(store: store)
+                        Task { await CameraPreviewPrefetcher.shared.sweepNow() }
+                        // 0.6.0 — reconcile bookmark downloads. Picks
+                        // up any bookmark whose background download
+                        // failed / was killed and re-enqueues it now
+                        // that we have working sessions. The
+                        // reconciler waits for each session to reach
+                        // `.connected` before reading its token, so
+                        // calling it on every `.active` is safe.
+                        Task {
+                            let sessions = await MainActor.run {
+                                store.cameras.compactMap { store.session(for: $0.id) }
+                            }
+                            await BookmarkAutoDownloader.shared.reconcile(across: sessions)
+                        }
+                        // 0.6.0 — bump every CameraSession's poll
+                        // cadence back to foreground (10 s). The next
+                        // poll iteration picks up the shorter interval.
+                        AdaptivePollSchedule.shared.enteredForeground()
+                        // 0.7.0 — re-check whether the always-on Hub is
+                        // alive so the "Hub offline" banner clears (or
+                        // appears) when the user returns to the app.
+                        Task { await HubHealth.shared.refresh() }
+                    case .background:
+                        // Cancel the periodic loop while backgrounded
+                        // so we don't fire snapshot HTTP calls iOS
+                        // would interrupt anyway. The next .active
+                        // transition kicks an immediate sweep.
+                        CameraPreviewPrefetcher.shared.stop()
+                        // 0.6.0 — relax motion polling to 60 s while
+                        // suspended (or 120 s under Low Power Mode).
+                        AdaptivePollSchedule.shared.enteredBackground()
+                    default:
+                        break
+                    }
+                }
+                // Drain when a focus request is written AFTER the
+                // scene's launch `.task` ran — typically the
+                // cold-launch-via-notification-tap path, where
+                // `NotificationTapDelegate.didReceive` fires after
+                // `application(_:didFinishLaunchingWithOptions:)` and
+                // the scene is already `.active`, so the scenePhase
+                // observer doesn't catch the transition.
+                .onReceive(NotificationCenter.default.publisher(for: AppIntentFocus.didUpdate)) { _ in
+                    store.applyPendingIntentFocus()
+                }
+                // TLS pinning mismatches surface as a global sheet so
+                // they can't be missed in any specific tab. AGENTS.md
+                // §3 — TLS changes need explicit user re-consent.
+                .sheet(item: Binding(
+                    get: { store.pendingTrustChange },
+                    set: { store.pendingTrustChange = $0 }
+                )) { request in
+                    TrustChangedSheet(request: request)
+                        .environment(store)
+                }
+                // 0.5.0 Theme A5 — digest sheet, presented when a
+                // digest notification tap routes through
+                // `applyPendingIntentFocus()`.
+                .sheet(item: Binding<DigestDaySheet?>(
+                    get: { store.pendingDigestDay.map { DigestDaySheet(day: $0) } },
+                    set: { _ in store.pendingDigestDay = nil }
+                )) { sheet in
+                    DigestDetailView(requestedDay: sheet.day)
+                }
+                // Same Keychain-write-failure alert as macOS — turns
+                // silent password-save failures into observable ones.
+                .alert(
+                    "Couldn't save password",
+                    isPresented: Binding(
+                        get: { store.passwordSaveError != nil },
+                        set: { isShown in if !isShown { store.passwordSaveError = nil } }
+                    ),
+                    presenting: store.passwordSaveError
+                ) { _ in
+                    Button("OK", role: .cancel) {
+                        store.passwordSaveError = nil
+                    }
+                } message: { err in
+                    Text(err.message)
+                }
+        }
+
+        // 0.5.0 Theme A4 — secondary scene for iPadOS "Open in New
+        // Window". The iPadOS sidebar's per-camera context menu uses
+        // `openWindow(value: DomusCamScene.camera(...))` which matches
+        // here. SwiftUI handles multi-scene state on iPadOS Stage
+        // Manager automatically; on iPhone (no multi-window), this
+        // scene declaration is harmless.
+        WindowGroup(for: DomusCamScene.self) { $scene in
+            CameraSceneHostiOS(scene: scene ?? .main)
+                .environment(store)
+        }
+    }
+}
+
+/// 0.5.0 Theme A4 — iOS twin of `App/Views/CameraSceneHost.swift`.
+/// Resolves a `DomusCamScene` value into the matching view; the
+/// camera case dives straight into the channel's live view.
+private struct CameraSceneHostiOS: View {
+    let scene: DomusCamScene
+    @Environment(CameraStore.self) private var store
+
+    var body: some View {
+        switch scene {
+        case .main:
+            RootView()
+        case .camera(let id, let channel):
+            if let session = store.sessions[id],
+               let ch = session.liveChannels.first(where: { $0.channel == channel })
+                ?? session.channels.first(where: { $0.channel == channel }) {
+                SingleChannelView(session: session, channel: ch)
+            } else {
+                ContentUnavailableView(
+                    "Camera not available",
+                    systemImage: "video.slash",
+                    description: Text("DomusCam lost the session for this camera. Reopen it from the main window.")
+                )
+            }
+        case .digest:
+            RootView()
+        }
+    }
+}
+
+/// `UIApplicationDelegate` that installs the notification-tap delegate
+/// early in the launch sequence. SwiftUI scenes mount AFTER
+/// `didFinishLaunchingWithOptions` returns, so installing in
+/// `.task` could miss a cold-launch tap — the response may be
+/// dispatched before the scene appears. Doing it here guarantees the
+/// delegate is in place no matter how the app comes up.
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    private let log = Logger(subsystem: "com.75-c.DomusCam", category: "MotionRelay")
+
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        NotificationTapDelegate.install()
+        // 0.7.0 — register the Live Activity bridge so AppShared's
+        // `EventNotifier` can drive ActivityKit (it can't import
+        // ActivityKit itself). Without this the bridge stays nil and NO
+        // Live Activity — local OR relayed — ever starts; this closes
+        // that latent gap and is the prerequisite for the relay path.
+        if #available(iOS 26.0, *) {
+            EventNotifier.liveActivityBridge = MotionEventActivityBridge()
+        }
+        return true
+    }
+
+    // MARK: - CloudKit motion-event push handling (0.4.1)
+
+    /// Apple Push registration outcome. Required for CloudKit silent
+    /// pushes to be delivered — without `registerForRemoteNotifications`
+    /// returning successfully, CloudKit subscriptions never fire on
+    /// device. APNS token itself isn't used by DomusCam (we don't have
+    /// our own push server); we just need the registration handshake.
+    func application(
+        _ application: UIApplication,
+        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+    ) {
+        // Token is opaque to us — CloudKit handles its own routing.
+        // Don't log token bytes (privacy).
+        log.info("APNS registered (\(deviceToken.count) byte token)")
+        let tokenLength = deviceToken.count
+        Task { await RelayDiagnostics.shared.recordAPNSRegistered(tokenByteCount: tokenLength) }
+    }
+
+    func application(
+        _ application: UIApplication,
+        didFailToRegisterForRemoteNotificationsWithError error: any Error
+    ) {
+        log.warning("APNS registration failed: \(error.localizedDescription, privacy: .public)")
+        let message = error.localizedDescription
+        Task { await RelayDiagnostics.shared.recordAPNSFailed(message: message) }
+    }
+
+    /// CloudKit silent-push entry point. iOS wakes the app briefly
+    /// (≤30 s) and hands us the CloudKit notification metadata. We
+    /// fetch the new MotionEvent record, post a local notification
+    /// with the snapshot attachment, and call back with the
+    /// background-fetch result.
+    func application(
+        _ application: UIApplication,
+        didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+        fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+    ) {
+        guard let notification = CKNotification(fromRemoteNotificationDictionary: userInfo) else {
+            completionHandler(.noData)
+            return
+        }
+        // We only care about query subscriptions on the MotionEvent
+        // record type. Other CKNotification kinds (database changes
+        // unrelated to our subscription) get noData.
+        guard let queryNotification = notification as? CKQueryNotification,
+              let recordID = queryNotification.recordID else {
+            completionHandler(.noData)
+            return
+        }
+        Task {
+            // Record arrival before fetch — the silent push got through
+            // APNS + CloudKit even if the record fetch later fails. This
+            // is the signal the diagnostic screen needs to confirm the
+            // push pipeline is alive.
+            await RelayDiagnostics.shared.recordSilentPushReceived()
+            let subscriber = CloudKitMotionEventSubscriber()
+            if let motionEvent = await subscriber.fetch(recordID: recordID) {
+                await postLocalNotification(for: motionEvent)
+                completionHandler(.newData)
+            } else {
+                completionHandler(.failed)
+            }
+        }
+    }
+
+    /// Compose + post a local notification from a fetched motion
+    /// event. Runs the same `EventNotifier`-style format / throttle /
+    /// permission gates so the user's notification preferences (per-
+    /// tag mutes, motion-only off, master enable) apply uniformly
+    /// to local AND relayed events.
+    private func postLocalNotification(for event: MotionEvent) async {
+        // Honor master + per-tag user preferences before posting.
+        let notifier = EventNotifier.shared
+        // Prefer the publisher-supplied name embedded in the CKRecord.
+        // Falls back to "Camera <n+1>" only for legacy records written
+        // before the `cameraName` field was deployed to Production.
+        let cameraNameFallback = event.cameraName ?? "Camera \(event.channel + 1)"
+        let detection = ReolinkAPI.DetectionType.fromReolinkString(event.detection)
+        let syntheticTitle: String
+        if let detection {
+            syntheticTitle = "\(detection.label) detected"
+        } else if event.detection == "motion" {
+            syntheticTitle = "Motion detected"
+        } else if event.detection == "test" {
+            syntheticTitle = "DomusCam test event received"
+        } else {
+            return
+        }
+
+        // 0.6.0 — log silent drops to the notification history so users
+        // can see relayed events that didn't surface as a banner.
+        func logDrop(_ status: NotificationRecord.DeliveryStatus) async {
+            let record = NotificationRecord(
+                id: event.id,
+                timestamp: event.timestamp,
+                source: .cloudKitSilentPush,
+                cameraID: event.cameraID,
+                channel: event.channel,
+                cameraName: cameraNameFallback,
+                detectionTag: detection?.rawValue ?? event.detection,
+                title: syntheticTitle,
+                body: cameraNameFallback,
+                thumbnailRelativePath: nil,
+                deliveryStatus: status
+            )
+            await NotificationHistory.shared.record(record)
+        }
+
+        guard await MainActor.run(body: { notifier.enabled }) else {
+            await logDrop(.globallyDisabled)
+            return
+        }
+        if let detection {
+            // Per-category user gate, mirroring the local-notification
+            // path (`EventNotifier.classify`). One gate for every category
+            // including Motion. Before 0.8.2 a relayed "motion" event
+            // mapped to `DetectionType.motion` and rode through this AI
+            // branch — gated by `notifyAI` with no `notifyPerTag[.motion]`
+            // entry — so motion leaked whenever AI was on. The dead
+            // `else if event.detection == "motion"` branch never ran.
+            let on = await MainActor.run { notifier.isCategoryEnabled(detection) }
+            if !on {
+                await logDrop(detection == .motion ? .motionMutedGlobally : .tagMuted)
+                return
+            }
+        }
+        let title = syntheticTitle
+        let cameraName = cameraNameFallback
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = cameraName
+        content.sound = .default
+        content.threadIdentifier = "ch-\(event.channel)"
+        content.categoryIdentifier = "domuscam.alarm"
+        content.userInfo = [
+            EventNotifier.userInfoCameraIDKey: event.cameraID.uuidString,
+            EventNotifier.userInfoChannelKey: event.channel,
+            EventNotifier.userInfoEventTimeKey: event.timestamp.timeIntervalSince1970,
+        ]
+        if let snapshotURL = event.snapshotFileURL {
+            // CloudKit-staged snapshots arrive as local file URLs;
+            // copy into our temp dir with a recognized extension so
+            // UNNotificationAttachment accepts them.
+            let dest = FileManager.default.temporaryDirectory
+                .appendingPathComponent("domuscam-relay-\(UUID().uuidString).jpg")
+            if (try? FileManager.default.copyItem(at: snapshotURL, to: dest)) != nil,
+               let attachment = try? UNNotificationAttachment(
+                identifier: dest.lastPathComponent,
+                url: dest,
+                options: [UNNotificationAttachmentOptionsTypeHintKey: "public.jpeg"]
+               ) {
+                content.attachments = [attachment]
+            }
+        }
+        log.info("Relayed motion received (channel \(event.channel), detection \(event.detection, privacy: .public))")
+
+        // 0.6.11 — post the enriched local notification IF the NSE
+        // didn't win the race against CloudKit replication.
+        //
+        // Historical context: 0.6.7 silenced this local post on the
+        // assumption that the NSE would always enrich the alert push
+        // delivered by APNs. In the field on TestFlight + DMG-release
+        // builds we observed the NSE's fetch hit `CKError.unknownItem`
+        // because the push arrives before CloudKit replicates the
+        // new record into the read replica the NSE process queries.
+        // The host app's fetch — which runs a few seconds later in
+        // this method — succeeds, because by then replication has
+        // completed. So the host app has the right data to post a
+        // properly-enriched banner; we just need to detect when the
+        // NSE failed and post our own.
+        //
+        // Coordination is via the App Group `UserDefaults` keys the
+        // NSE writes for telemetry. After the host fetch returns, we
+        // wait up to ~17 s (the NSE's retry budget plus a small
+        // buffer) for the NSE to settle, then check its outcome:
+        //   * Success in the recent window → skip our local post;
+        //     the user already has an enriched NSE banner.
+        //   * Anything else (failure, timeout, no recent invocation)
+        //     → post the enriched local notification. iOS groups it
+        //     with the NSE's fallback banner via threadIdentifier so
+        //     the user sees one entry in Notification Center.
+        let pushArrivalDate = Date()
+        let waitForNSESeconds: TimeInterval = 17
+        try? await Task.sleep(nanoseconds: UInt64(waitForNSESeconds * 1_000_000_000))
+        let nseHandledSuccessfully = AppDelegate.nseHandledRecently(after: pushArrivalDate)
+
+        if !nseHandledSuccessfully {
+            // Remove any un-enriched NSE banner for this channel so
+            // the user doesn't see two banners stack briefly. The
+            // NSE-delivered notification has the same threadIdentifier
+            // ("ch-N") set in `NotificationService.enrich(...)`, so we
+            // can find and pull it.
+            let threadID = "ch-\(event.channel)"
+            let center = UNUserNotificationCenter.current()
+            let delivered = await center.deliveredNotifications()
+            let staleIDs = delivered
+                .filter { $0.request.content.threadIdentifier == threadID }
+                .map(\.request.identifier)
+            if !staleIDs.isEmpty {
+                center.removeDeliveredNotifications(withIdentifiers: staleIDs)
+            }
+
+            let request = UNNotificationRequest(
+                identifier: event.id.uuidString,
+                content: content,
+                trigger: nil
+            )
+            do {
+                try await center.add(request)
+                log.info("Posted enriched local notification (NSE race fallback)")
+            } catch {
+                log.warning("Failed to post enriched local notification: \(error.localizedDescription, privacy: .public)")
+            }
+        } else {
+            log.info("Skipping local post — NSE already delivered enriched banner")
+        }
+
+        // 0.6.0 — record the relayed event into the user-facing
+        // notification log so iPhone/iPad users see CloudKit-delivered
+        // events alongside local ones, with the right source tag.
+        let postedRecord = NotificationRecord(
+            id: event.id,
+            timestamp: event.timestamp,
+            source: .cloudKitSilentPush,
+            cameraID: event.cameraID,
+            channel: event.channel,
+            cameraName: cameraName,
+            detectionTag: detection?.rawValue ?? event.detection,
+            title: title,
+            body: cameraName,
+            thumbnailRelativePath: nil,
+            deliveryStatus: .posted
+        )
+        await NotificationHistory.shared.record(postedRecord)
+
+        // 0.6.0 — feed the per-camera health badge + widgets on iOS too.
+        // Until now only the macOS publisher path wrote to the shared
+        // widget log via `EventNotifier`; CloudKit-relayed events arriving
+        // on iOS skipped this entirely, leaving widgets and badges stale.
+        let widgetEvent = SharedContainer.RecentMotionEvent(
+            id: event.id,
+            cameraID: event.cameraID,
+            channel: event.channel,
+            cameraName: cameraName,
+            timestamp: event.timestamp,
+            aiTags: detection.map { [$0.label] } ?? [],
+            triggerFrameRelativePath: nil
+        )
+        try? SharedContainer.appendMotionEvent(widgetEvent)
+        await MainActor.run {
+            CameraNotificationHealth.shared.refresh()
+        }
+
+        // 0.7.0 — drive the in-flight Live Activity from this relayed
+        // event. Only reached after the user's notification gates passed
+        // above, mirroring the local Baichuan-driven path. This is the
+        // server-free "Live Activity relay": the Hub already published
+        // the MotionEvent; we update the activity locally here (a true
+        // ActivityKit push would need a provider server — AGENTS.md §5).
+        if #available(iOS 26.0, *) {
+            await LiveActivityRelayUpdater.apply(event)
+        }
+    }
+
+    /// 0.6.11 — check whether the Notification Service Extension
+    /// successfully enriched the current push within a recent window.
+    ///
+    /// The NSE writes its outcome telemetry to the shared App Group
+    /// `UserDefaults` (keys mirrored from
+    /// `AppiOS/NotificationService/NotificationService.swift`). If the
+    /// last invocation landed after `cutoff` and reported "success",
+    /// the user already has an enriched NSE-delivered banner and the
+    /// host app should skip its local fallback post.
+    ///
+    /// Returns false when:
+    ///   * The App Group isn't accessible (entitlement misconfig),
+    ///   * No NSE invocation has been recorded after `cutoff`,
+    ///   * The most recent outcome isn't "success".
+    nonisolated static func nseHandledRecently(after cutoff: Date) -> Bool {
+        guard let defaults = UserDefaults(suiteName: "group.com.75-c.DomusCam") else {
+            return false
+        }
+        let lastInvocationEpoch = defaults.object(forKey: "nse.lastInvocationDate") as? Double
+        guard let lastInvocationEpoch else { return false }
+        let lastInvocation = Date(timeIntervalSince1970: lastInvocationEpoch)
+        guard lastInvocation >= cutoff else { return false }
+        let outcome = defaults.string(forKey: "nse.lastOutcome")
+        return outcome == "success"
+    }
+}
+
+/// 0.5.0 Theme A5 — `Identifiable` wrapper for `Date` so the digest
+/// sheet's `.sheet(item:)` binding has a stable identity that matches
+/// the requested-day epoch. Mirrors `App/DomusCamApp.swift`.
+private struct DigestDaySheet: Identifiable {
+    let day: Date
+    var id: TimeInterval { day.timeIntervalSince1970 }
+}
+

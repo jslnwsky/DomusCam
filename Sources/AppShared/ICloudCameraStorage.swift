@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "icloud")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "icloud")
 
 /// File-level iCloud Drive helper for `cameras.json`.
 ///
@@ -171,8 +171,8 @@ package final class ICloudCameraStorage {
             appropriateFor: nil,
             create: true
         )
-        let dir = appSupport?.appendingPathComponent("Reolens", isDirectory: true)
-            ?? URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("Reolens", isDirectory: true)
+        let dir = appSupport?.appendingPathComponent("DomusCam", isDirectory: true)
+            ?? URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("DomusCam", isDirectory: true)
         // safe: idempotent makeDir; existing-dir is the common case.
         try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir.appendingPathComponent(fileName)

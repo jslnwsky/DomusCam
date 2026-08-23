@@ -21,11 +21,11 @@ import os
 /// UUID's full form, or the host. The category-only Logger here exists so
 /// migration counts and OSStatus errors land in unified logging.
 package enum Keychain {
-    private static let service = "com.reolens.cameraPassword"
+    private static let service = "com.75-c.DomusCam.cameraPassword"
 
     /// UserDefaults key for the user's iCloud Keychain opt-in. Default
     /// false — i.e. device-local — to preserve the AGENTS.md §4 default.
-    package static let syncDefaultsKey = "com.reolens.iCloudKeychainSync"
+    package static let syncDefaultsKey = "com.75-c.DomusCam.iCloudKeychainSync"
 
     /// Whether writes should mark new items as synchronizable. Reads the
     /// `UserDefaults` flag; absence ⇒ false.
@@ -189,5 +189,5 @@ package enum Keychain {
         package let skipped: Int
     }
 
-    private static let log = Logger(subsystem: "com.reolens.Reolens", category: "Keychain")
+    private static let log = Logger(subsystem: "com.75-c.DomusCam", category: "Keychain")
 }

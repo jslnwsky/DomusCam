@@ -47,7 +47,7 @@ struct ChannelDetailContent: View {
             .padding(.vertical, 8)
             // 0.5.0 Liquid Glass — Live / Recordings / Settings tab
             // picker reads as a glass header bar above the panel body.
-            .reolensGlassToolbar()
+            .domuscamGlassToolbar()
             Divider()
             content
         }
@@ -55,7 +55,7 @@ struct ChannelDetailContent: View {
         // can pick it up on iPhone or iPad. AGENTS.md §11 — userInfo
         // carries only the UUID + channel index, never the host,
         // username, or display name beyond the `title`.
-        .reolensCameraActivity(
+        .domuscamCameraActivity(
             cameraID: session.entry.id,
             cameraName: session.entry.displayName,
             channelID: channel.channel

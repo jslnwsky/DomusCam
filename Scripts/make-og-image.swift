@@ -1,5 +1,5 @@
 #!/usr/bin/env swift
-// Generate the social/OpenGraph image (1200×630) for reolens.io.
+// Generate the social/OpenGraph image (1200×630) for github.com/jslinowsky/DomusCam.
 //
 // Centered app icon on the same slate-blue → indigo gradient as the icon
 // itself, with the wordmark to the right. Output: docs/assets/og.png.
@@ -68,7 +68,7 @@ let iconSize: CGFloat = 320
 ctx.draw(icon, in: CGRect(x: 220, y: (H - iconSize) / 2, width: iconSize, height: iconSize))
 
 // Wordmark (CoreText). System bold, white.
-let title = "Reolens"
+let title = "DomusCam"
 let subtitle = "A modern macOS client for Reolink cameras"
 
 func drawText(_ string: String, fontSize: CGFloat, weight: CGFloat, at point: CGPoint, alpha: CGFloat = 1) {

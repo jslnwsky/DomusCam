@@ -7,7 +7,7 @@
 # AppShared + the three Reolink libraries, but the current measured
 # coverage is well below that because AppShared accumulated
 # substantial SwiftUI-view code (ScrubberView, DigestDetailView,
-# PrivacyZoneEditorView, ReolensGlass, ChannelSettingsView,
+# PrivacyZoneEditorView, DomusCamGlass, ChannelSettingsView,
 # RecordingsScreenHeader, …) that isn't unit-testable in isolation.
 #
 # Instead of setting an absolute 80% floor that nothing meets, the
@@ -78,7 +78,7 @@ if [[ ! -f "$profdata" ]]; then
     exit 2
 fi
 
-xctest_binary=$(find "$build_dir" -name 'ReolensPackageTests.xctest' -type d 2>/dev/null | head -n1 || true)
+xctest_binary=$(find "$build_dir" -name 'DomusCamPackageTests.xctest' -type d 2>/dev/null | head -n1 || true)
 if [[ -z "$xctest_binary" ]]; then
     xctest_binary=$(find .build -name '*PackageTests.xctest' -type d 2>/dev/null | head -n1 || true)
 fi
@@ -122,7 +122,7 @@ lookup_observed() {
 }
 for target in "${TARGETS[@]}"; do
     # Use llvm-cov report with regex source-file filter to isolate
-    # the target. Each Reolens target's sources live under
+    # the target. Each DomusCam target's sources live under
     # Sources/<target>/, which gives a clean regex anchor.
     summary=$(xcrun llvm-cov report \
         "$xctest_binary" \

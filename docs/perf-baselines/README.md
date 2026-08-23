@@ -7,18 +7,18 @@ defensible.
 
 ## Time-to-First-Frame (TTFF) — added 0.6.1
 
-The most user-visible perf metric in Reolens: time from tap on a
+The most user-visible perf metric in DomusCam: time from tap on a
 camera tile to the first decoded `CMSampleBuffer` appearing on the
 display layer.
 
 ### How to measure
 
 The `LiveVideoPlayer` emits an `OSSignposter` interval named **TTFF**
-on subsystem `com.reolens.streaming`, category `TTFF`.
+on subsystem `com.75-c.DomusCam.streaming`, category `TTFF`.
 
 1. Open **Instruments** → **Time Profiler** template (or any template
    that includes the **os_signpost** instrument).
-2. Add a custom os_signpost filter: subsystem `com.reolens.streaming`,
+2. Add a custom os_signpost filter: subsystem `com.75-c.DomusCam.streaming`,
    category `TTFF`, name `TTFF`.
 3. Launch a debug build of the app — `swift build` (macOS) or
    `./Scripts/build-ios.sh debug` (iOS) — and attach Instruments.

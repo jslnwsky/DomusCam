@@ -2,7 +2,7 @@ import SwiftUI
 import OSLog
 import ReolinkAPI
 
-private let log = Logger(subsystem: "com.reolens.app", category: "motion-schedule")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "motion-schedule")
 
 /// 0.6.0 Slice 12b — UI for editing the per-channel motion-detection
 /// schedule plus optional per-AI-tag override schedules.

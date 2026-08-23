@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.baichuan", category: "uid")
+private let log = Logger(subsystem: "com.75-c.DomusCam.baichuan", category: "uid")
 
 extension BaichuanClient {
 

@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.Reolens", category: "RelayDiagnostics")
+private let log = Logger(subsystem: "com.75-c.DomusCam", category: "RelayDiagnostics")
 
 /// Per-device diagnostic state for the CloudKit motion-event relay.
 ///
@@ -172,7 +172,7 @@ public actor RelayDiagnostics {
 
     public init(
         suiteName: String? = SharedContainer.groupIdentifier,
-        storageKey: String = "com.reolens.relayDiagnostics.v1"
+        storageKey: String = "com.75-c.DomusCam.relayDiagnostics.v1"
     ) {
         let suite = suiteName.flatMap { UserDefaults(suiteName: $0) } ?? .standard
         self.defaults = suite

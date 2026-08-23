@@ -14,19 +14,19 @@ public struct MotionRelayPublisherSection: View {
 
     public var body: some View {
         let cloudKitAvailable = CloudKitAvailability.canUseCloudKit(
-            containerID: "iCloud.com.reolens.Reolens"
+            containerID: "iCloud.com.75-c.DomusCam"
         )
         Section("Push notifications to iPhone / iPad") {
             Toggle("Relay motion events to my other Apple devices", isOn: $publisherEnabled)
                 .disabled(!cloudKitAvailable)
             if cloudKitAvailable {
-                Text("New in 0.4.1. When on, this Mac uses your iCloud account to push motion events to your other Apple devices — so Reolens on iPhone/iPad can post notifications even when the app is closed.")
+                Text("New in 0.4.1. When on, this Mac uses your iCloud account to push motion events to your other Apple devices — so DomusCam on iPhone/iPad can post notifications even when the app is closed.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Text("Only the event types you've enabled above are relayed — so a category you mute on this Mac (Motion is off by default) won't push to your other devices.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Text("This works without any Reolens server — events ride through Apple's CloudKit under your own iCloud account. Apple throttles silent push delivery for free iCloud tiers, so busy cameras may not get every event. For round-the-clock delivery, turn on Reolens Hub (Settings → Background) so this Mac keeps listening even when closed.")
+                Text("This works without any DomusCam server — events ride through Apple's CloudKit under your own iCloud account. Apple throttles silent push delivery for free iCloud tiers, so busy cameras may not get every event. For round-the-clock delivery, turn on DomusCam Hub (Settings → Background) so this Mac keeps listening even when closed.")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
                 Button {
@@ -49,10 +49,10 @@ public struct MotionRelayPublisherSection: View {
                         .foregroundStyle(.secondary)
                 }
             } else {
-                Label("iCloud isn't available on this Reolens build.", systemImage: "icloud.slash")
+                Label("iCloud isn't available on this DomusCam build.", systemImage: "icloud.slash")
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.orange)
-                Text("Locally-built (./Scripts/build-app.sh) Reolens uses slim entitlements that drop the iCloud container to keep AMFI happy. Run the ReolensMac scheme in Xcode, or install the App Store / TestFlight build, to use the CloudKit motion-event relay. The toggle is disabled until iCloud is reachable.")
+                Text("Locally-built (./Scripts/build-app.sh) DomusCam uses slim entitlements that drop the iCloud container to keep AMFI happy. Run the DomusCamMac scheme in Xcode, or install the App Store / TestFlight build, to use the CloudKit motion-event relay. The toggle is disabled until iCloud is reachable.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -88,7 +88,7 @@ public struct MotionRelayPublisherSection: View {
         // pointing them to the diagnostics screen.
         let snapshot = await RelayDiagnostics.shared.snapshot()
         if snapshot.lastPublisherSaveSucceeded == true {
-            testEventFeedback = "Test event published. Open Reolens on your iPhone or iPad within ~30 s to confirm the notification arrived."
+            testEventFeedback = "Test event published. Open DomusCam on your iPhone or iPad within ~30 s to confirm the notification arrived."
         } else if let outcome = snapshot.lastPublisherSaveOutcome {
             testEventFeedback = "Publish reported: \(outcome). See the diagnostics row below for context."
         } else {

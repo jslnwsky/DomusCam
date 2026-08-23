@@ -6,7 +6,7 @@ import ReolinkStreaming
 /// Typed error surface for failures the app wants to track, surface to
 /// the user, or include in a local diagnostic bundle.
 ///
-/// AGENTS.md §5: Reolens has a hard "no telemetry" rule. `AppError`
+/// AGENTS.md §5: DomusCam has a hard "no telemetry" rule. `AppError`
 /// values are recorded to a *device-local* log (`AppErrorRecorder`),
 /// never relayed to a server. The same posture as `NotificationHistory`.
 ///
@@ -238,7 +238,7 @@ extension AppError: LocalizedError {
         case .schedule(.notSupported): return "This camera's firmware doesn't support editing schedules."
         case .schedule(.saveFailed): return "Couldn't save the schedule. Try again or restart the camera."
         case .schedule(.loadFailed): return "Couldn't load the schedule from the camera."
-        case .bookmark(.downloadFailed): return "Couldn't finish downloading the bookmark. Reolens will retry later."
+        case .bookmark(.downloadFailed): return "Couldn't finish downloading the bookmark. DomusCam will retry later."
         case .bookmark(.fileMissing): return "The bookmarked clip is no longer on this device."
         case .bookmark(.reconcileFailed): return "Couldn't sync bookmarks with iCloud."
         case .other(let s): return s

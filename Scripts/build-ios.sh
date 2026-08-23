@@ -13,18 +13,18 @@
 #
 # Both archive and upload assume:
 #   - You have signed in to your Apple ID in Xcode (Settings → Accounts).
-#   - The bundle ID `com.reolens.Reolens` exists in App Store Connect
+#   - The bundle ID `com.75-c.DomusCam` exists in App Store Connect
 #     (https://appstoreconnect.apple.com/apps → "+" → New App).
-#   - Xcode's automatic signing has access to your team (5M9UT7VQ8Q).
+#   - Xcode's automatic signing has access to your team (NXVC3868F7).
 
 set -euo pipefail
 
 MODE="${1:-archive}"
-SCHEME="ReolensiOS"
+SCHEME="DomusCamiOS"
 PROJECT_DIR="AppiOS"
-PROJECT="${PROJECT_DIR}/ReolensiOS.xcodeproj"
+PROJECT="${PROJECT_DIR}/DomusCamiOS.xcodeproj"
 BUILD_DIR="${BUILD_DIR:-build-ios}"
-ARCHIVE_PATH="${BUILD_DIR}/ReolensiOS.xcarchive"
+ARCHIVE_PATH="${BUILD_DIR}/DomusCamiOS.xcarchive"
 EXPORT_DIR="${BUILD_DIR}/export"
 EXPORT_OPTIONS="${BUILD_DIR}/ExportOptions.plist"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -241,7 +241,7 @@ validate_ios_source_icons
 mkdir -p "${BUILD_DIR}"
 
 if command -v security >/dev/null 2>&1 && command -v openssl >/dev/null 2>&1; then
-    CERT_PEM="$(mktemp -t reolens-ios-dist-cert.XXXXXX)"
+    CERT_PEM="$(mktemp -t domuscam-ios-dist-cert.XXXXXX)"
     if security find-certificate -c "Apple Distribution" -p > "${CERT_PEM}" 2>/dev/null; then
         CERT_SERIAL="$(
             openssl x509 -in "${CERT_PEM}" -noout -serial 2>/dev/null \
@@ -278,15 +278,15 @@ NSE_PROFILE_UUID=""
 if [[ -n "${AC_API_KEY_ID:-}" && -n "${AC_API_KEY_P8_PATH:-}" ]]; then
     echo "==> Ensuring App Store provisioning profile via ASC API (main app)"
     export PLATFORM=IOS
-    export IOS_BUNDLE_ID="${IOS_BUNDLE_ID:-com.reolens.Reolens}"
-    export PROFILE_NAME="${PROFILE_NAME:-Reolens iOS App Store}"
+    export IOS_BUNDLE_ID="${IOS_BUNDLE_ID:-com.75-c.DomusCam}"
+    export PROFILE_NAME="${PROFILE_NAME:-DomusCam iOS App Store}"
     HELPER_OUT="$(python3 "${REPO_ROOT}/Scripts/asc_ensure_profile.py")"
     PROFILE_NAME="$(printf '%s\n' "${HELPER_OUT}" | sed -n '1p')"
     PROFILE_UUID="$(printf '%s\n' "${HELPER_OUT}" | sed -n '3p')"
     echo "    using main-app profile: ${PROFILE_NAME} (${PROFILE_UUID})"
 
     # 0.5.0 — the widget extension target has its own bundle id
-    # (com.reolens.Reolens.Widgets) and Apple requires a
+    # (com.75-c.DomusCam.Widgets) and Apple requires a
     # SEPARATE provisioning profile per bundle id. Run the helper
     # again with PLATFORM=IOS_WIDGETS so the widget extension gets
     # its own profile registered/created/installed alongside the
@@ -297,7 +297,7 @@ if [[ -n "${AC_API_KEY_ID:-}" && -n "${AC_API_KEY_P8_PATH:-}" ]]; then
     echo "==> Ensuring App Store provisioning profile via ASC API (widget extension)"
     SAVED_PROFILE_NAME="${PROFILE_NAME}"
     export PLATFORM=IOS_WIDGETS
-    export IOS_WIDGETS_BUNDLE_ID="${IOS_WIDGETS_BUNDLE_ID:-com.reolens.Reolens.Widgets}"
+    export IOS_WIDGETS_BUNDLE_ID="${IOS_WIDGETS_BUNDLE_ID:-com.75-c.DomusCam.Widgets}"
     unset PROFILE_NAME
     WIDGETS_HELPER_OUT="$(python3 "${REPO_ROOT}/Scripts/asc_ensure_profile.py")"
     WIDGETS_PROFILE_NAME="$(printf '%s\n' "${WIDGETS_HELPER_OUT}" | sed -n '1p')"
@@ -308,7 +308,7 @@ if [[ -n "${AC_API_KEY_ID:-}" && -n "${AC_API_KEY_P8_PATH:-}" ]]; then
 
     # 0.6.8 — Notification Service Extension target (NSE). Same
     # rationale as widgets above: distinct bundle id
-    # (com.reolens.Reolens.NotificationService) requires a
+    # (com.75-c.DomusCam.NotificationService) requires a
     # distinct provisioning profile. The App ID must already exist
     # in the developer portal with iCloud + App Groups capabilities
     # configured — `asc_ensure_profile.py` can't create bundle ids
@@ -321,7 +321,7 @@ if [[ -n "${AC_API_KEY_ID:-}" && -n "${AC_API_KEY_P8_PATH:-}" ]]; then
     echo "==> Ensuring App Store provisioning profile via ASC API (notification service extension)"
     SAVED_PROFILE_NAME="${PROFILE_NAME}"
     export PLATFORM=IOS_NOTIFICATION_SERVICE
-    export IOS_NOTIFICATION_SERVICE_BUNDLE_ID="${IOS_NOTIFICATION_SERVICE_BUNDLE_ID:-com.reolens.Reolens.NotificationService}"
+    export IOS_NOTIFICATION_SERVICE_BUNDLE_ID="${IOS_NOTIFICATION_SERVICE_BUNDLE_ID:-com.75-c.DomusCam.NotificationService}"
     unset PROFILE_NAME
     NSE_HELPER_OUT="$(python3 "${REPO_ROOT}/Scripts/asc_ensure_profile.py")"
     NSE_PROFILE_NAME="$(printf '%s\n' "${NSE_HELPER_OUT}" | sed -n '1p')"
@@ -341,9 +341,9 @@ if [[ -n "${PROFILE_NAME}" ]]; then
     SIGN_BUILD_SETTINGS=(
         "CODE_SIGN_STYLE=Manual"
         "CODE_SIGN_IDENTITY=Apple Distribution"
-        "DEVELOPMENT_TEAM=5M9UT7VQ8Q"
-        "REOLENS_IOS_APP_PROFILE_NAME=${PROFILE_NAME}"
-        "REOLENS_IOS_APP_PROFILE_UUID=${PROFILE_UUID}"
+        "DEVELOPMENT_TEAM=NXVC3868F7"
+        "DOMUSCAM_IOS_APP_PROFILE_NAME=${PROFILE_NAME}"
+        "DOMUSCAM_IOS_APP_PROFILE_UUID=${PROFILE_UUID}"
     )
     # 0.5.0 — pass widget profile data through distinct variables.
     # xcodebuild does NOT support command-line build settings scoped
@@ -352,15 +352,15 @@ if [[ -n "${PROFILE_NAME}" ]]; then
     # correct targets in AppiOS/project.yml instead.
     if [[ -n "${WIDGETS_PROFILE_NAME}" ]]; then
         SIGN_BUILD_SETTINGS+=(
-            "REOLENS_IOS_WIDGETS_PROFILE_NAME=${WIDGETS_PROFILE_NAME}"
-            "REOLENS_IOS_WIDGETS_PROFILE_UUID=${WIDGETS_PROFILE_UUID}"
+            "DOMUSCAM_IOS_WIDGETS_PROFILE_NAME=${WIDGETS_PROFILE_NAME}"
+            "DOMUSCAM_IOS_WIDGETS_PROFILE_UUID=${WIDGETS_PROFILE_UUID}"
         )
     fi
     # 0.6.8 — same plumbing as widgets, for the NSE.
     if [[ -n "${NSE_PROFILE_NAME}" ]]; then
         SIGN_BUILD_SETTINGS+=(
-            "REOLENS_IOS_NOTIFICATION_SERVICE_PROFILE_NAME=${NSE_PROFILE_NAME}"
-            "REOLENS_IOS_NOTIFICATION_SERVICE_PROFILE_UUID=${NSE_PROFILE_UUID}"
+            "DOMUSCAM_IOS_NOTIFICATION_SERVICE_PROFILE_NAME=${NSE_PROFILE_NAME}"
+            "DOMUSCAM_IOS_NOTIFICATION_SERVICE_PROFILE_UUID=${NSE_PROFILE_UUID}"
         )
     fi
 else
@@ -406,7 +406,7 @@ echo "==> Using xcodebuild at: ${XCODEBUILD}"
     "${SIGN_BUILD_SETTINGS[@]}" \
     archive
 
-validate_ios_app_bundle "${ARCHIVE_PATH}/Products/Applications/Reolens.app"
+validate_ios_app_bundle "${ARCHIVE_PATH}/Products/Applications/DomusCam.app"
 
 if [[ "${MODE}" == "archive" ]]; then
     echo "==> Archive ready: ${ARCHIVE_PATH}"
@@ -419,24 +419,24 @@ echo "==> Writing ExportOptions.plist"
 # otherwise xcodebuild re-signs the .ipa with whatever it would have
 # picked automatically (often: nothing, since automatic signing fails
 # for the same reason archive does).
-EXPORT_BUNDLE_ID="${IOS_BUNDLE_ID:-com.reolens.Reolens}"
-EXPORT_PROFILE="${PROFILE_UUID:-${PROFILE_NAME:-Reolens iOS App Store}}"
+EXPORT_BUNDLE_ID="${IOS_BUNDLE_ID:-com.75-c.DomusCam}"
+EXPORT_PROFILE="${PROFILE_UUID:-${PROFILE_NAME:-DomusCam iOS App Store}}"
 # 0.5.0 — emit a second `<key>...</key><string>...</string>` pair
 # for the widget extension target so xcodebuild's `-exportArchive`
 # step signs both the main app and the widget bundle correctly.
 # Without the widgets entry, xcodebuild falls back to automatic
 # signing for the widget extension (which fails on CI for the same
 # "no devices" reason the main app does).
-WIDGETS_BUNDLE_ID="${IOS_WIDGETS_BUNDLE_ID:-com.reolens.Reolens.Widgets}"
-WIDGETS_PROFILE_FOR_EXPORT="${WIDGETS_PROFILE_UUID:-${WIDGETS_PROFILE_NAME:-Reolens iOS Widgets App Store}}"
+WIDGETS_BUNDLE_ID="${IOS_WIDGETS_BUNDLE_ID:-com.75-c.DomusCam.Widgets}"
+WIDGETS_PROFILE_FOR_EXPORT="${WIDGETS_PROFILE_UUID:-${WIDGETS_PROFILE_NAME:-DomusCam iOS Widgets App Store}}"
 # 0.6.8 — emit a third <key>...</key><string>...</string> pair for
 # the Notification Service Extension so xcodebuild's -exportArchive
 # step signs the NSE bundle with the dedicated profile. Without it,
 # export falls back to automatic signing for the NSE (which fails
 # on CI for the same "no devices" reason the main app and widgets
 # would).
-NSE_BUNDLE_ID="${IOS_NOTIFICATION_SERVICE_BUNDLE_ID:-com.reolens.Reolens.NotificationService}"
-NSE_PROFILE_FOR_EXPORT="${NSE_PROFILE_UUID:-${NSE_PROFILE_NAME:-Reolens iOS Notification Service App Store}}"
+NSE_BUNDLE_ID="${IOS_NOTIFICATION_SERVICE_BUNDLE_ID:-com.75-c.DomusCam.NotificationService}"
+NSE_PROFILE_FOR_EXPORT="${NSE_PROFILE_UUID:-${NSE_PROFILE_NAME:-DomusCam iOS Notification Service App Store}}"
 cat > "${EXPORT_OPTIONS}" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -447,7 +447,7 @@ cat > "${EXPORT_OPTIONS}" <<PLIST
     <key>destination</key>
     <string>export</string>
     <key>teamID</key>
-    <string>5M9UT7VQ8Q</string>
+    <string>NXVC3868F7</string>
     <key>signingStyle</key>
     <string>manual</string>
     <key>signingCertificate</key>

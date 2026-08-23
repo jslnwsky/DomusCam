@@ -37,7 +37,7 @@ struct PTZControlView: View {
         .frame(maxWidth: .infinity)
         // 0.5.0 Liquid Glass — PTZ pad reads as a hovering control
         // surface over the live video.
-        .reolensGlassCard()
+        .domuscamGlassCard()
     }
 
     private func ptzGroup(label: String,

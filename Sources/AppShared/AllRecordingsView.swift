@@ -3,7 +3,7 @@ import OSLog
 import ReolinkAPI
 import ReolinkStreaming
 
-private let log = Logger(subsystem: "com.reolens.app", category: "all-recordings-view")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "all-recordings-view")
 
 /// 0.5.1 — Hub-scoped All Recordings view. Fans out a `Search` across
 /// every channel on the given session, merges into one chronological
@@ -138,15 +138,15 @@ public struct AllRecordingsView: View {
     public var body: some View {
         VStack(spacing: 0) {
             controls
-                .reolensGlassToolbar()
+                .domuscamGlassToolbar()
             if Calendar.current.isDateInToday(selectedDate), let digest {
                 TodayDigestRow(digest: digest)
-                    .reolensGlassToolbar()
+                    .domuscamGlassToolbar()
             }
             AIEventFilterBar(selected: $aiFilter)
-                .reolensGlassToolbar()
+                .domuscamGlassToolbar()
             CameraFilterBar(selected: $cameraFilter, cameras: availableCameras)
-                .reolensGlassToolbar()
+                .domuscamGlassToolbar()
             Divider()
             content
         }
@@ -353,7 +353,7 @@ public struct AllRecordingsView: View {
                         .font(.caption.weight(.medium))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
-                        .reolensGlassChip(selected: false)
+                        .domuscamGlassChip(selected: false)
                     if let dur = row.file.durationSeconds {
                         Text(durationLabel(seconds: dur))
                             .font(.caption.monospacedDigit())
@@ -406,13 +406,13 @@ public struct AllRecordingsView: View {
                         .font(.caption.weight(.medium))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
-                        .reolensGlassChip(selected: false)
+                        .domuscamGlassChip(selected: false)
                     Label("Bookmarked", systemImage: "bookmark.fill")
                         .labelStyle(.titleAndIcon)
                         .font(.caption.weight(.medium))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
-                        .reolensGlassChip(selected: true, tint: .yellow)
+                        .domuscamGlassChip(selected: true, tint: .yellow)
                     Text(durationLabel(seconds: bm.duration))
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
@@ -851,7 +851,7 @@ public struct AllRecordingsView: View {
                         .font(.caption.weight(.medium))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
-                        .reolensGlassChip(selected: false)
+                        .domuscamGlassChip(selected: false)
                 }
             }
             Spacer()

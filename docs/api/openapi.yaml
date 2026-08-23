@@ -1,10 +1,10 @@
 openapi: 3.1.0
 info:
-  title: Reolens Local API
+  title: DomusCam Local API
   version: "v1"
   description: >
-    Clean, Reolink-agnostic REST API for the cameras Reolens manages.
-    LAN-local, bearer-authenticated, opt-in. The `ReolensCore` Swift target is
+    Clean, Reolink-agnostic REST API for the cameras DomusCam manages.
+    LAN-local, bearer-authenticated, opt-in. The `DomusCamCore` Swift target is
     the source of truth for these schemas; see docs/api/README.md.
   license:
     name: See repository LICENSE

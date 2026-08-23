@@ -61,5 +61,5 @@ public final class NLSearchHistory {
         defaults.set(entries, forKey: Self.key)
     }
 
-    static let key = "com.reolens.nlSearchHistory"
+    static let key = "com.75-c.DomusCam.nlSearchHistory"
 }

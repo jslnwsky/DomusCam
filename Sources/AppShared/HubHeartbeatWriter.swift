@@ -3,7 +3,7 @@ import Foundation
 import OSLog
 
 /// 0.7.0 — drives the Hub-offline heartbeat on the macOS side. While
-/// this Mac is the designated Reolens Hub it writes a `HubStatus` record
+/// this Mac is the designated DomusCam Hub it writes a `HubStatus` record
 /// every ~5 minutes (plus immediately on start and on app-active), so
 /// the user's other devices can tell the always-on listener is alive.
 /// On a graceful stop it writes one final record marked
@@ -23,7 +23,7 @@ public final class HubHeartbeatWriter {
 
     private let publisher = CloudKitHubStatusPublisher()
     private var timer: Task<Void, Never>?
-    private let log = Logger(subsystem: "com.reolens.Reolens", category: "HubStatus")
+    private let log = Logger(subsystem: "com.75-c.DomusCam", category: "HubStatus")
 
     private init() {}
 

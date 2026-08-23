@@ -108,7 +108,7 @@ public struct BookmarksSheet: View {
             .padding(16)
             // 0.5.0 Liquid Glass — sheet header reads as a hovering
             // chrome strip over the list below.
-            .reolensGlassPanel()
+            .domuscamGlassPanel()
             Divider()
             if visibleBookmarks.isEmpty {
                 ContentUnavailableView(

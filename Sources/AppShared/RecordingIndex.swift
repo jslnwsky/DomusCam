@@ -3,7 +3,7 @@ import OSLog
 import ReolinkAPI
 import ReolinkBaichuan
 
-private let log = Logger(subsystem: "com.reolens.app", category: "recording-index")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "recording-index")
 
 /// 0.6.0 — Cross-day index of recording metadata.
 ///

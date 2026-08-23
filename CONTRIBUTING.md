@@ -1,6 +1,6 @@
-# Contributing to Reolens
+# Contributing to DomusCam
 
-Thanks for thinking about contributing. Reolens is a small, opinionated
+Thanks for thinking about contributing. DomusCam is a small, opinionated
 app — a few rules upfront save us all time.
 
 ## Before you start
@@ -56,7 +56,7 @@ iOS:
 ```sh
 brew install xcodegen
 cd AppiOS && xcodegen generate
-open ReolensiOS.xcodeproj
+open DomusCamiOS.xcodeproj
 # Set DEVELOPMENT_TEAM, ⌘R to a Simulator or device
 ```
 
@@ -70,7 +70,7 @@ the diagram. The short version:
 | RTSP / VideoToolbox / sample buffer / H.264 + H.265 decode | `Sources/ReolinkStreaming/` |
 | CGI commands, Codable models, URL building, `MaskSettings` | `Sources/ReolinkAPI/` |
 | Baichuan (port 9000, talkback, push, `findAlarmVideo`, XML helpers) | `Sources/ReolinkBaichuan/` |
-| State, persistence, iCloud, Keychain, App Intents, EventNotifier, SharedContainer, DigestScheduler, ThumbnailCache, ClipExporter, RecordingBookmarkStore, PrivacyZoneEditor*, ReolensGlass, ScrubberView, MotionEventActivityAttributes, ReolensScene, AllRecordingsView, AllRecordingsLoader, RecordingsCache, CameraFilterBar, HubExpansionStore, CameraNotificationPreferences, PerCameraNotificationsSection, BookmarkAutoDownloader, BackgroundDownloadPreferences, EventSummarizer, LiveActivityPushTokenRegistry, **RecordingsLoader, RecordingIndex, RecordingNLSearcher, PollManager, AppPreferences, CameraKeychainStore, CameraListPersistence, RecordingsScreenHeader, WeeklyScheduleEditor, NotificationHistory, RelayDiagnostics, CameraNotificationHealth, AdaptivePollSchedule, HomeKitBridge** | `Sources/AppShared/` |
+| State, persistence, iCloud, Keychain, App Intents, EventNotifier, SharedContainer, DigestScheduler, ThumbnailCache, ClipExporter, RecordingBookmarkStore, PrivacyZoneEditor*, DomusCamGlass, ScrubberView, MotionEventActivityAttributes, DomusCamScene, AllRecordingsView, AllRecordingsLoader, RecordingsCache, CameraFilterBar, HubExpansionStore, CameraNotificationPreferences, PerCameraNotificationsSection, BookmarkAutoDownloader, BackgroundDownloadPreferences, EventSummarizer, LiveActivityPushTokenRegistry, **RecordingsLoader, RecordingIndex, RecordingNLSearcher, PollManager, AppPreferences, CameraKeychainStore, CameraListPersistence, RecordingsScreenHeader, WeeklyScheduleEditor, NotificationHistory, RelayDiagnostics, CameraNotificationHealth, AdaptivePollSchedule, HomeKitBridge** | `Sources/AppShared/` |
 | macOS SwiftUI views | `App/Views/` |
 | macOS menu-bar item + Recent-events popover | `App/MenuBar/` |
 | macOS desktop widgets (extension target) | `App/Widgets/` |
@@ -123,7 +123,7 @@ instead — that's the rule from [`AGENTS.md`](AGENTS.md) §6.
   `xcodebuild` against the regenerated Xcode project; SPM-side tests
   don't exercise them.
 - **XCUITest journeys (added in 0.6.0)** live under
-  `AppiOS/UITests/ReolensiOSUITests.swift`. New journeys land here
+  `AppiOS/UITests/DomusCamiOSUITests.swift`. New journeys land here
   when a regression class can only be caught at the SwiftUI-shell
   level (e.g. a nav-link that compiles but doesn't route). Keep
   journey count small and high-signal — UI tests are slow.
@@ -178,5 +178,5 @@ automatically from the tag.
 ## Code of conduct
 
 Be kind. Assume good faith. If someone's behavior in an issue or PR
-makes you uncomfortable, email `conduct@reolens.io` and a maintainer
+makes you uncomfortable, email `conduct@github.com/jslinowsky/DomusCam` and a maintainer
 will look at it.

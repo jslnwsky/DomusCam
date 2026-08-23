@@ -11,7 +11,7 @@ DEFINE SCHEMA
         password        ENCRYPTED STRING,
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud",
-        GRANT READ TO "_world"
+        GRANT READ TO "_creator"
     );
 
     RECORD TYPE HubStatus (
@@ -28,7 +28,7 @@ DEFINE SCHEMA
         relayPublisherEnabled INT64,
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud",
-        GRANT READ TO "_world"
+        GRANT READ TO "_creator"
     );
 
     RECORD TYPE MotionEvent (
@@ -46,7 +46,7 @@ DEFINE SCHEMA
         timestamp       TIMESTAMP QUERYABLE SORTABLE,
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud",
-        GRANT READ TO "_world"
+        GRANT READ TO "_creator"
     );
 
     RECORD TYPE Users (
@@ -58,5 +58,5 @@ DEFINE SCHEMA
         "___recordID"   REFERENCE,
         roles           LIST<INT64>,
         GRANT WRITE TO "_creator",
-        GRANT READ TO "_world"
+        GRANT READ TO "_creator"
     );

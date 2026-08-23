@@ -76,7 +76,7 @@ struct NotificationRoutingTests {
     func consumePendingDrainsOnce() async {
         // Run under an ephemeral suite name so we don't disturb the
         // default UserDefaults the app uses on the same machine.
-        let suiteName = "com.reolens.tests.routing.\(UUID().uuidString)"
+        let suiteName = "com.75-c.DomusCam.tests.routing.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defer { defaults.removePersistentDomain(forName: suiteName) }
 

@@ -11,7 +11,7 @@ import Security
 /// Kept separate from the per-camera password store (`Keychain`, keyed by
 /// camera UUID): this is a single, app-scoped secret under its own service.
 public enum LocalAPITokenStore {
-    private static let service = "com.reolens.localAPIToken"
+    private static let service = "com.75-c.DomusCam.localAPIToken"
     private static let account = "default"
 
     /// The current token, or nil if none has been generated yet.

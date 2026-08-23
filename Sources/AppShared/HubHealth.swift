@@ -25,7 +25,7 @@ public final class HubHealth {
     public static let stalenessThreshold: TimeInterval = 15 * 60
 
     @ObservationIgnored private let reader: CloudKitHubStatusReader
-    @ObservationIgnored private let log = Logger(subsystem: "com.reolens.Reolens", category: "HubHealth")
+    @ObservationIgnored private let log = Logger(subsystem: "com.75-c.DomusCam", category: "HubHealth")
 
     public init(reader: CloudKitHubStatusReader = CloudKitHubStatusReader()) {
         self.reader = reader

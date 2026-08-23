@@ -2,7 +2,7 @@ import SwiftUI
 import OSLog
 import ReolinkAPI
 
-private let log = Logger(subsystem: "com.reolens.app", category: "recording-schedule")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "recording-schedule")
 
 /// 0.6.0 Slice 12 — UI for editing the weekly recording schedule on
 /// a single channel.

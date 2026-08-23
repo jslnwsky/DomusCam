@@ -175,7 +175,7 @@ struct iPhoneTabShell: View {
             case .digest:
                 // 0.5.0 Theme A5 — digest tap shows the
                 // `DigestDetailView` sheet bound at the app
-                // entry point (`ReolensiOSApp` watches
+                // entry point (`DomusCamiOSApp` watches
                 // `store.pendingDigestDay`). Nothing to do here
                 // — the sheet binding takes care of presentation
                 // independently of the tab shell.

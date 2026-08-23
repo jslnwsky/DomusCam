@@ -1,13 +1,13 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "live-activity-push")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "live-activity-push")
 
 /// 0.5.1 — Persists the push tokens iOS hands us for in-flight Live
 /// Activities, indexed by activity ID and camera UUID.
 ///
 /// **0.7.0 correction:** these tokens are a **device-local index**, NOT
-/// fuel for a server. Reolens has no APNs provider and never will (a
+/// fuel for a server. DomusCam has no APNs provider and never will (a
 /// true ActivityKit push requires a `.p8`-signed provider server, which
 /// AGENTS.md §5 forbids). The "Live Activity relay" shipped in 0.7.0 is
 /// the *receiver* updating its own activity locally when the Hub's
@@ -69,14 +69,14 @@ public actor LiveActivityPushTokenRegistry {
     // MARK: - Persistence
 
     private static var rootDirectory: URL? {
-        FileManager.default.url(forUbiquityContainerIdentifier: "iCloud.com.reolens.Reolens")?
+        FileManager.default.url(forUbiquityContainerIdentifier: "iCloud.com.75-c.DomusCam")?
             .appending(path: "Documents/live-activity-tokens")
     }
 
     private static var localFallback: URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
-        return docs.appending(path: "Reolens/live-activity-tokens")
+        return docs.appending(path: "DomusCam/live-activity-tokens")
     }
 
     private static func storageURL() -> URL {

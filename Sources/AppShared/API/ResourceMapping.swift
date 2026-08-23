@@ -1,8 +1,8 @@
 import Foundation
 import ReolinkAPI
-import ReolensCore
+import DomusCamCore
 
-/// Pure mappers from Reolink wire models to clean `ReolensCore` resources.
+/// Pure mappers from Reolink wire models to clean `DomusCamCore` resources.
 ///
 /// Kept as static functions over value types so the mapping logic is unit-
 /// testable without a `CameraStore`, a session, or any network. This is the

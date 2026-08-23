@@ -11,12 +11,12 @@ import UIKit
 import Photos
 #endif
 
-private let log = Logger(subsystem: "com.reolens.app", category: "snapshot")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "snapshot")
 
 /// Platform-aware save flow for captured live-camera frames.
 ///
-/// macOS: writes a PNG to `~/Pictures/Reolens/` using a sortable
-/// timestamped filename (`Reolens-{camera}-{yyyyMMdd-HHmmss}.png`).
+/// macOS: writes a PNG to `~/Pictures/DomusCam/` using a sortable
+/// timestamped filename (`DomusCam-{camera}-{yyyyMMdd-HHmmss}.png`).
 /// No save panel — the goal is "I tapped Snapshot, where did it go" being
 /// answerable from the toolbar item action without any modal click.
 ///
@@ -34,13 +34,13 @@ public enum SnapshotSaver {
     }
 
     /// Save the given image as a PNG. `cameraName` is used in the file
-    /// name so a Photos library or a `~/Pictures/Reolens/` folder is
+    /// name so a Photos library or a `~/Pictures/DomusCam/` folder is
     /// browsable without inspecting metadata.
     public static func save(_ image: CGImage?, cameraName: String) async -> Result {
         guard let image else { return .noFrame }
         let stamp = Self.timestamp()
         let safeName = sanitize(cameraName)
-        let filename = "Reolens-\(safeName)-\(stamp).png"
+        let filename = "DomusCam-\(safeName)-\(stamp).png"
         #if os(macOS)
         return await saveOnMac(image: image, filename: filename)
         #elseif os(iOS) || os(visionOS)
@@ -58,7 +58,7 @@ public enum SnapshotSaver {
         guard let pictures = fm.urls(for: .picturesDirectory, in: .userDomainMask).first else {
             return .failed("Pictures folder not available")
         }
-        let dir = pictures.appendingPathComponent("Reolens", isDirectory: true)
+        let dir = pictures.appendingPathComponent("DomusCam", isDirectory: true)
         do {
             try fm.createDirectory(at: dir, withIntermediateDirectories: true)
         } catch {

@@ -18,7 +18,7 @@ struct LivePlaceholderView: View {
                 ContentUnavailableView {
                     Label("No Cameras", systemImage: "video.slash")
                 } description: {
-                    Text("Add a camera to start streaming. The camera list syncs from your other Reolens devices via iCloud.")
+                    Text("Add a camera to start streaming. The camera list syncs from your other DomusCam devices via iCloud.")
                 } actions: {
                     Button("Add Camera…") { showingAdd = true }
                         .buttonStyle(.borderedProminent)

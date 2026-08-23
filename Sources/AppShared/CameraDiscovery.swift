@@ -4,7 +4,7 @@ import OSLog
 import Darwin
 import ReolinkBaichuan
 
-private let log = Logger(subsystem: "com.reolens.app", category: "discovery")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "discovery")
 
 /// A Reolink-shaped device found during a LAN scan. We try Bonjour/mDNS
 /// first (most Reolink devices advertise as `Reolink-<model>-<serial>._http._tcp`
@@ -527,7 +527,7 @@ package final class BonjourCollector: @unchecked Sendable {
 
 // MARK: - Local IP helpers (CameraDiscovery static)
 // `public` (not `package`) so the out-of-package macOS App Store target
-// (ReolensMac in AppiOS/project.yml) can call primarySubnetPrefix() to
+// (DomusCamMac in AppiOS/project.yml) can call primarySubnetPrefix() to
 // show the subnet label in Add Camera. The iOS app only needs the public
 // scan() APIs; the macOS Add Camera sheet surfaces the detected subnet.
 public extension CameraDiscovery {

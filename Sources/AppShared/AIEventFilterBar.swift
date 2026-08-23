@@ -78,7 +78,7 @@ public struct AIEventFilterBar: View {
                 // 0.5.0 Liquid Glass — selected chips tint the glass
                 // with accent; unselected stay neutral glass so the
                 // morph between states is smooth.
-                .reolensGlassChip(selected: isOn)
+                .domuscamGlassChip(selected: isOn)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(tag.label) filter")

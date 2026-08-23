@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.baichuan", category: "battery")
+private let log = Logger(subsystem: "com.75-c.DomusCam.baichuan", category: "battery")
 
 /// Battery status for a paired camera. Populated from Baichuan msg 252
 /// (`batteryInfoList`) pushes and on-demand requests. Reolink emits this

@@ -14,7 +14,7 @@ import OSLog
 /// - The password is stored in `CKRecord.encryptedValues` — CloudKit
 ///   encrypts it client-side with keys held in the **user's own iCloud
 ///   account** (reachable by their Apple TV); Apple's servers store only
-///   ciphertext. There is no Reolens server (AGENTS.md §5).
+///   ciphertext. There is no DomusCam server (AGENTS.md §5).
 /// - Publishing is an **explicit, off-by-default opt-in** distinct from
 ///   iCloud-Keychain sync (see `TVCredentialSync`), surfaced with its
 ///   trade-off in Settings.
@@ -74,9 +74,9 @@ public struct CameraCredential: Sendable, Equatable {
 /// + account guards. Never logs the password.
 public actor CloudKitCameraCredentialPublisher {
     private let containerID: String
-    private let log = Logger(subsystem: "com.reolens.Reolens", category: "CredentialSync")
+    private let log = Logger(subsystem: "com.75-c.DomusCam", category: "CredentialSync")
 
-    public init(containerID: String = "iCloud.com.reolens.Reolens") {
+    public init(containerID: String = "iCloud.com.75-c.DomusCam") {
         self.containerID = containerID
     }
 

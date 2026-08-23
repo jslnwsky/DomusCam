@@ -9,7 +9,7 @@
 # regenerates it after a pull. Without this hook, xcodebuild fails
 # immediately with:
 #
-#     xcodebuild: error: '/Volumes/workspace/repository/AppiOS/ReolensiOS.xcodeproj' does not exist.
+#     xcodebuild: error: '/Volumes/workspace/repository/AppiOS/DomusCamiOS.xcodeproj' does not exist.
 #
 # Location: this script lives at `AppiOS/ci_scripts/ci_post_clone.sh`,
 # alongside the `.xcodeproj` Xcode Cloud is configured to build. Apple's
@@ -48,11 +48,11 @@ xcodegen generate
 
 # Sanity check — confirm the project Xcode Cloud is about to open
 # actually exists now.
-if [[ ! -d "${PROJECT_DIR}/ReolensiOS.xcodeproj" ]]; then
-    echo "ERROR: xcodegen ran but ReolensiOS.xcodeproj is still missing" >&2
+if [[ ! -d "${PROJECT_DIR}/DomusCamiOS.xcodeproj" ]]; then
+    echo "ERROR: xcodegen ran but DomusCamiOS.xcodeproj is still missing" >&2
     exit 1
 fi
-echo "==> ReolensiOS.xcodeproj generated successfully"
+echo "==> DomusCamiOS.xcodeproj generated successfully"
 
 # Xcode Cloud workflows default to "automatic dependency resolution"
 # being disabled, which means xcodebuild requires a Package.resolved
@@ -61,7 +61,7 @@ echo "==> ReolensiOS.xcodeproj generated successfully"
 # place after the workspace exists.
 REPO_ROOT="$(cd "${PROJECT_DIR}/.." && pwd)"
 SOURCE_RESOLVED="${REPO_ROOT}/Package.resolved"
-TARGET_RESOLVED_DIR="${PROJECT_DIR}/ReolensiOS.xcodeproj/project.xcworkspace/xcshareddata/swiftpm"
+TARGET_RESOLVED_DIR="${PROJECT_DIR}/DomusCamiOS.xcodeproj/project.xcworkspace/xcshareddata/swiftpm"
 TARGET_RESOLVED="${TARGET_RESOLVED_DIR}/Package.resolved"
 if [[ -f "${SOURCE_RESOLVED}" ]]; then
     mkdir -p "${TARGET_RESOLVED_DIR}"

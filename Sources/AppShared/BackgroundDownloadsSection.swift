@@ -27,7 +27,7 @@ public struct BackgroundDownloadsSection: View {
         } header: {
             Text("Background downloads")
         } footer: {
-            Text("When you bookmark a recording, Reolens downloads it in the background so it's available offline. By default downloads only run on Wi-Fi to keep cellular data low. Turn this on to allow them on cellular too. Already-pending downloads finish on the prior setting.")
+            Text("When you bookmark a recording, DomusCam downloads it in the background so it's available offline. By default downloads only run on Wi-Fi to keep cellular data low. Turn this on to allow them on cellular too. Already-pending downloads finish on the prior setting.")
         }
     }
 }

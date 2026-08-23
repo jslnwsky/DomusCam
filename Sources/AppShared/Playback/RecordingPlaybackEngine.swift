@@ -3,7 +3,7 @@ import AVFoundation
 import Observation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.app", category: "playback.engine")
+private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "playback.engine")
 
 /// Orchestrates streaming, playback, and explicit export for a single
 /// `PlayableRecording`. The shared `RecordingPlayerSheet` binds to
@@ -157,7 +157,7 @@ public final class RecordingPlaybackEngine {
         }
 
         // Streaming path: install the resource loader against a
-        // `reolens-stream://` placeholder URL.
+        // `domuscam-stream://` placeholder URL.
         let loader = ChunkedResourceLoader(upstreamURL: variant.url)
         self.loader = loader
         let asset = AVURLAsset(url: loader.placeholderURL)

@@ -7,7 +7,7 @@ import AppShared
 /// network, no Keychain. AGENTS.md §16.
 public struct LastMotionWidget: Widget {
 
-    public static let kind = "io.reolens.widget.lastMotion"
+    public static let kind = "io.domuscam.widget.lastMotion"
 
     public init() {}
 

@@ -12,8 +12,8 @@ import Foundation
 struct CameraNotificationPreferencesTests {
 
     private static func makeStore() -> CameraNotificationPreferences {
-        UserDefaults.standard.removeObject(forKey: "com.reolens.mutedCameraNotifications")
-        UserDefaults.standard.removeObject(forKey: "com.reolens.mutedChannelNotifications")
+        UserDefaults.standard.removeObject(forKey: "com.75-c.DomusCam.mutedCameraNotifications")
+        UserDefaults.standard.removeObject(forKey: "com.75-c.DomusCam.mutedChannelNotifications")
         return CameraNotificationPreferences()
     }
 

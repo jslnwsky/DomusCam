@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import AppShared
 
-/// 0.7.0 — `HubEngine` is the always-on listener behind Reolens Hub
+/// 0.7.0 — `HubEngine` is the always-on listener behind DomusCam Hub
 /// mode. These tests pin its reconcile contract against an in-memory
 /// `HubCameraHosting` fake — no live `CameraStore`, Keychain, or
 /// network (AGENTS.md §6 / §12):

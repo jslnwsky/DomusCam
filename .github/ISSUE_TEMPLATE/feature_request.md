@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Something Reolens should be able to do, but doesn't
+about: Something DomusCam should be able to do, but doesn't
 title: ''
 labels: enhancement
 assignees: ''
@@ -18,12 +18,12 @@ PiP" — the underlying problem is the more useful framing.
 
 ## Proposed solution
 
-What would the ideal Reolens behavior look like? UI sketches welcome.
+What would the ideal DomusCam behavior look like? UI sketches welcome.
 
 ## Alternatives you've considered
 
 Other apps that solve this; ways you've worked around it without
-Reolens; designs that would be simpler but worse.
+DomusCam; designs that would be simpler but worse.
 
 ## Platform scope
 

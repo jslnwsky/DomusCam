@@ -1,13 +1,13 @@
 # Remote Connectivity — Tailscale Setup Guide
 
-Reolens is LAN-only. The app reaches your camera at its LAN IP and
+DomusCam is LAN-only. The app reaches your camera at its LAN IP and
 never talks to Reolink's cloud, a DDNS provider, or any third-party
 relay. To make a LAN-only app work when you're away from home, put
 your phone *on* the LAN by joining an overlay network. **Tailscale**
 is the recommended path.
 
 This guide walks the full setup end-to-end. It assumes you have a
-Reolink camera or Home Hub already paired in Reolens and working on
+Reolink camera or Home Hub already paired in DomusCam and working on
 your home Wi-Fi, and that you want it to keep working when you leave
 the house.
 
@@ -45,7 +45,7 @@ Tailscale, Inc.'s coordination server.
 
 ## What you need
 
-1. **A Reolink camera or Home Hub** already paired in Reolens on
+1. **A Reolink camera or Home Hub** already paired in DomusCam on
    your home Wi-Fi.
 2. **An always-on device on the same LAN as the camera**, capable of
    running Tailscale as a *subnet router*. You probably already have
@@ -66,7 +66,7 @@ Tailscale, Inc.'s coordination server.
 3. **A Tailscale account** (free, sign in with Apple / Google /
    GitHub at <https://tailscale.com>).
 4. **The Tailscale app on every Apple device** you want to use
-   Reolens from — iPhone, iPad, Mac. All from the App Store.
+   DomusCam from — iPhone, iPad, Mac. All from the App Store.
 
 ---
 
@@ -134,7 +134,7 @@ routes — you confirm which routes are real.
 3. Click the "⋯" menu → **Edit route settings**.
 4. Toggle on the route you just advertised. Save.
 
-### 4. Install Tailscale on every Apple device that runs Reolens
+### 4. Install Tailscale on every Apple device that runs DomusCam
 
 App Store → Tailscale → Install → sign in with the same account on
 iPhone, iPad, and Mac. iOS installs a VPN configuration; approve it.
@@ -146,9 +146,9 @@ iPhone, iPad, and Mac. iOS installs a VPN configuration; approve it.
 3. In Safari, open `http://<your-hub's-LAN-IP>`. The Reolink web UI
    should load just as if you were home. If it does, the route is
    working.
-4. Open Reolens. The hub appears online, live tiles play. Done.
+4. Open DomusCam. The hub appears online, live tiles play. Done.
 
-You don't need to change anything in Reolens — there's no remote-host
+You don't need to change anything in DomusCam — there's no remote-host
 field to fill in. The app dials the camera's LAN IP, and Tailscale
 delivers the packets.
 
@@ -160,12 +160,12 @@ delivers the packets.
   network stack alive even when the TV is "off" (as long as it's
   plugged in).
 - **MagicDNS** (one toggle in the admin console) lets you reach
-  tailnet devices by name — handy but not required for Reolens.
+  tailnet devices by name — handy but not required for DomusCam.
 - **Don't enable "Use Exit Node"** unless you actually want *all*
   your phone's traffic routed through home. Subnet routing is what
-  Reolens needs; exit-node routing is a different feature.
+  DomusCam needs; exit-node routing is a different feature.
 - **Family members** can join your tailnet for free (invite from the
-  admin console) and Reolens will work for them too. Their phones do
+  admin console) and DomusCam will work for them too. Their phones do
   not need your Tailscale login.
 - **CGNAT is not a problem** for Tailscale. The mesh punches through
   most NATs; in the rare cases it can't, it falls back to a relay.
@@ -189,10 +189,10 @@ the iPhone is *not* on the same LAN's Wi-Fi while testing — on-LAN,
 your phone reaches the hub directly without using Tailscale, so a
 broken Tailscale config still appears to "work."
 
-**Reolens shows the camera as offline off-LAN.** Open Safari on the
+**DomusCam shows the camera as offline off-LAN.** Open Safari on the
 phone and try `http://<hub-LAN-IP>` first. If Safari can't reach it
-either, the issue is Tailscale routing, not Reolens. If Safari works
-but Reolens doesn't, force-quit Reolens and reopen — the session
+either, the issue is Tailscale routing, not DomusCam. If Safari works
+but DomusCam doesn't, force-quit DomusCam and reopen — the session
 may have cached an unreachable state.
 
 **iOS keeps disconnecting Tailscale.** Settings → General → VPN &
@@ -223,6 +223,6 @@ LAN-side subnet router." Equivalents:
 - **Headscale** — drop-in self-hostable replacement for Tailscale's
   coordination server.
 
-Reolens does not ship integration with any of these — it doesn't
+DomusCam does not ship integration with any of these — it doesn't
 need to. As long as something puts your phone and the camera on the
-same routable network, Reolens just works.
+same routable network, DomusCam just works.

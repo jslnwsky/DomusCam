@@ -2,7 +2,7 @@ import Foundation
 import AVFoundation
 import OSLog
 
-private let log = Logger(subsystem: "com.reolens.baichuan", category: "talk")
+private let log = Logger(subsystem: "com.75-c.DomusCam.baichuan", category: "talk")
 
 /// Two-way audio (talkback) over the Baichuan TCP channel.
 ///

@@ -80,12 +80,12 @@ struct ClipExportCoordinatorTests {
 
     // MARK: - Staging directory
 
-    @Test("Ensuring the staging directory creates it under caches/Reolens/exports")
+    @Test("Ensuring the staging directory creates it under caches/DomusCam/exports")
     func stagingDirectoryCreated() throws {
         let dir = try ClipExportCoordinator.ensureStagingDirectory()
         #expect(FileManager.default.fileExists(atPath: dir.path))
         #expect(dir.lastPathComponent == "exports")
-        #expect(dir.deletingLastPathComponent().lastPathComponent == "Reolens")
+        #expect(dir.deletingLastPathComponent().lastPathComponent == "DomusCam")
     }
 
     @Test("stagedURL returns an MP4 path inside the staging directory")

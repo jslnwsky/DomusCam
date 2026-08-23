@@ -105,7 +105,7 @@ public struct SettingsDisplayBucket: View {
         Group {
             Section("Display") {
                 Toggle("Show camera name on live feed", isOn: bindable.showCameraNameOnFeed)
-                Text("Reolink cameras burn their own date / time / name overlay into the top of the frame, so by default Reolens hides its own camera-name badge. Turn this on if your cameras have OSD off and you want the label back.")
+                Text("Reolink cameras burn their own date / time / name overlay into the top of the frame, so by default DomusCam hides its own camera-name badge. Turn this on if your cameras have OSD off and you want the label back.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -244,12 +244,12 @@ public struct SettingsAboutBucket: View {
             Section("About") {
                 LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—")
                 LabeledContent("Build", value: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—")
-                Link("Project on GitHub", destination: URL(string: "https://github.com/jestatsio/reolens")!)
-                Link("Report an issue", destination: URL(string: "https://github.com/jestatsio/reolens/issues")!)
+                Link("Project on GitHub", destination: URL(string: "https://github.com/jslinowsky/DomusCam")!)
+                Link("Report an issue", destination: URL(string: "https://github.com/jslinowsky/DomusCam/issues")!)
             }
 
             Section {
-                Text("Reolens is a native client for Reolink cameras and NVRs. Camera list and grid preferences sync via iCloud. Passwords stay on each device's Keychain by default — opt in to iCloud Keychain Sync in Privacy & Sync to share them across your devices.")
+                Text("DomusCam is a native client for Reolink cameras and NVRs. Camera list and grid preferences sync via iCloud. Passwords stay on each device's Keychain by default — opt in to iCloud Keychain Sync in Privacy & Sync to share them across your devices.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

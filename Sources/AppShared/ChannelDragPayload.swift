@@ -21,7 +21,7 @@ public struct ChannelDragPayload: Codable, Transferable, Sendable {
     }
 
     public static var transferRepresentation: some TransferRepresentation {
-        CodableRepresentation(contentType: .reolensChannelDrag)
+        CodableRepresentation(contentType: .domuscamChannelDrag)
     }
 }
 
@@ -30,5 +30,5 @@ public extension UTType {
     /// the possibility of accidental drag-and-drop interop with other
     /// apps that publish plain `Int`s. Declared as an exported type in
     /// each app's `Info.plist`.
-    static let reolensChannelDrag = UTType(exportedAs: "com.reolens.channelDrag")
+    static let domuscamChannelDrag = UTType(exportedAs: "com.75-c.DomusCam.channelDrag")
 }
