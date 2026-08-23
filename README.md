@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/jslinowsky/DomusCam">GitHub</a> ·
+  <a href="https://github.com/jslnwsky/DomusCam">GitHub</a> ·
   <a href="#install">Install</a> ·
   <a href="docs/FEATURES.md">Features</a> ·
   <a href="CHANGELOG.md">What's new</a>
@@ -51,7 +51,7 @@ Build from source (Xcode 26 + Swift 6.2). App Store / TestFlight shipping uses
 bundle id `com.75-c.DomusCam` on team `NXVC3868F7`.
 
 ```sh
-git clone https://github.com/jslinowsky/DomusCam.git
+git clone https://github.com/jslnwsky/DomusCam.git
 cd DomusCam
 ./Scripts/build-app.sh run      # macOS — builds + signs + launches
 cd AppiOS && xcodegen generate  # iOS — then open in Xcode 26

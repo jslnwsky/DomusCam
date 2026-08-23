@@ -244,8 +244,8 @@ public struct SettingsAboutBucket: View {
             Section("About") {
                 LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—")
                 LabeledContent("Build", value: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—")
-                Link("Project on GitHub", destination: URL(string: "https://github.com/jslinowsky/DomusCam")!)
-                Link("Report an issue", destination: URL(string: "https://github.com/jslinowsky/DomusCam/issues")!)
+                Link("Project on GitHub", destination: URL(string: "https://github.com/jslnwsky/DomusCam")!)
+                Link("Report an issue", destination: URL(string: "https://github.com/jslnwsky/DomusCam/issues")!)
             }
 
             Section {

@@ -67,7 +67,7 @@ Sources/
 Tests/                   — ~675 tests across 117 suites
 Scripts/                 — build, sign, App Store (TestFlight) upload,
                            icon generation, coverage gate, version-check gate
-docs/                    — github.com/jslinowsky/DomusCam landing page (GitHub Pages),
+docs/                    — github.com/jslnwsky/DomusCam landing page (GitHub Pages),
                            FEATURES.md, ARCHITECTURE.md, API contract,
                            RELEASE.md + IOS_RELEASE.md + MAC_RELEASE.md runbooks
 .github/workflows/

@@ -1,5 +1,5 @@
 #!/usr/bin/env swift
-// Generate the social/OpenGraph image (1200×630) for github.com/jslinowsky/DomusCam.
+// Generate the social/OpenGraph image (1200×630) for github.com/jslnwsky/DomusCam.
 //
 // Centered app icon on the same slate-blue → indigo gradient as the icon
 // itself, with the wordmark to the right. Output: docs/assets/og.png.

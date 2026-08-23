@@ -53,9 +53,9 @@ struct AboutView: View {
                 .frame(maxWidth: 320)
 
             HStack(spacing: 12) {
-                Link("Website", destination: URL(string: "https://github.com/jslinowsky/DomusCam")!)
-                Link("GitHub",  destination: URL(string: "https://github.com/jslinowsky/DomusCam")!)
-                Link("Issues",  destination: URL(string: "https://github.com/jslinowsky/DomusCam/issues")!)
+                Link("Website", destination: URL(string: "https://github.com/jslnwsky/DomusCam")!)
+                Link("GitHub",  destination: URL(string: "https://github.com/jslnwsky/DomusCam")!)
+                Link("Issues",  destination: URL(string: "https://github.com/jslnwsky/DomusCam/issues")!)
                 Link("J&E Stats", destination: URL(string: "https://jestats.io")!)
             }
             .font(.system(size: 11))

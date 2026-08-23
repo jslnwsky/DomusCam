@@ -8,7 +8,7 @@
 //   - make-stock-camera-views.swift produces the inner camera-view
 //     imagery (front door, driveway, backyard, etc.).
 //   - this script wraps them in app chrome and writes the final PNGs
-//     to docs/screenshots/, ready to commit and serve from github.com/jslinowsky/DomusCam.
+//     to docs/screenshots/, ready to commit and serve from github.com/jslnwsky/DomusCam.
 //
 // The previous version produced labeled "Screenshot coming soon"
 // placeholders; this version renders something the user can actually
@@ -496,7 +496,7 @@ func renderAbout() {
     // Footer — subtle divider, then domain + copyright.
     let dividerY = content.minY + 70
     fill(ctx, CGRect(x: content.minX + 28, y: dividerY, width: content.width - 56, height: 1), strokeFaint)
-    drawTextCentered(ctx, "github.com/jslinowsky/DomusCam", fontSize: 12, weight: 0.3, centerX: centerX, y: dividerY - 22, color: textSecondary)
+    drawTextCentered(ctx, "github.com/jslnwsky/DomusCam", fontSize: 12, weight: 0.3, centerX: centerX, y: dividerY - 22, color: textSecondary)
     drawTextCentered(ctx, "© 2026 J&E Stats · MIT licensed", fontSize: 11, centerX: centerX, y: dividerY - 40, color: textTertiary)
 
     write(ctx, to: "about.png", width: aw, height: ah)

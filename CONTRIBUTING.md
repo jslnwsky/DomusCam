@@ -178,5 +178,5 @@ automatically from the tag.
 ## Code of conduct
 
 Be kind. Assume good faith. If someone's behavior in an issue or PR
-makes you uncomfortable, email `conduct@github.com/jslinowsky/DomusCam` and a maintainer
+makes you uncomfortable, open a private note to a maintainer and they
 will look at it.

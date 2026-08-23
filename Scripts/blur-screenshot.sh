@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Blur the camera-feed regions of a screenshot for publishing on
-# github.com/jslinowsky/DomusCam / in the README.
+# github.com/jslnwsky/DomusCam / in the README.
 #
 # The principle: cameras showing real footage must never ship in
 # screenshots. This script applies a strong Gaussian blur to one or more

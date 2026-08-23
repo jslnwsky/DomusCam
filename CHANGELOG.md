@@ -2251,7 +2251,7 @@ First public release.
 - JPEG-snapshot live preview with hardware-decoded streaming fallback
 - Rich macOS push notifications for motion / AI alarm events with trigger
   frame inline
-- Auto-update infrastructure via Sparkle (signed appcast on github.com/jslinowsky/DomusCam)
+- Auto-update infrastructure via Sparkle (signed appcast on github.com/jslnwsky/DomusCam)
 - About panel with version + Check-for-Updates menu item
 - Homebrew cask available via the `jestatsio/reolens` tap
 - Direct download as a signed, notarized DMG

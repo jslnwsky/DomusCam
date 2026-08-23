@@ -27,9 +27,9 @@ GitHub secrets the release workflow needs (all already configured):
 | `KEYCHAIN_PASSWORD` | temporary CI keychain |
 | `vars.TEAM_ID` | Apple Developer team id (`NXVC3868F7`) |
 
-The landing page at `github.com/jslinowsky/DomusCam` is GitHub Pages from `/docs` (DNS: apex `A`
+The landing page at `github.com/jslnwsky/DomusCam` is GitHub Pages from `/docs` (DNS: apex `A`
 records to GitHub's `185.199.108–111.153`, `CNAME www → erichare.github.io`;
-repo Settings → Pages → `main` `/docs`, custom domain `github.com/jslinowsky/DomusCam`).
+repo Settings → Pages → `main` `/docs`, custom domain `github.com/jslnwsky/DomusCam`).
 
 ## Per-release checklist
 

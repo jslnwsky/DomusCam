@@ -11,7 +11,7 @@ security reports seriously.
 Use one of these private channels instead:
 
 1. **GitHub Security Advisories.** Open a draft advisory:
-   https://github.com/jslinowsky/DomusCam/security/advisories/new
+   https://github.com/jslnwsky/DomusCam/security/advisories/new
    This keeps the discussion private until a fix is published.
 
 What to include in your report:
