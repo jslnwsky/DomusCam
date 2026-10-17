@@ -61,6 +61,7 @@ struct LiveTileView: View {
     /// before `player.state` flips off `.connecting`, and without an
     /// explicit indicator users double-tap thinking nothing happened.
     @State private var isWaking = false
+    @State private var connectionEditor: CameraEntry?
 
     var body: some View {
         let userRotation = store.rotation(for: session.entry.id, channel: channel.channel, stream: stream)
@@ -195,6 +196,16 @@ struct LiveTileView: View {
             } label: {
                 Label("Reconnect", systemImage: "arrow.clockwise.circle")
             }
+            Divider()
+            Button {
+                connectionEditor = session.entry
+            } label: {
+                Label("Edit Connection", systemImage: "network")
+            }
+            .accessibilityLabel("Edit Connection")
+        }
+        .sheet(item: $connectionEditor) { entry in
+            EditConnectionSheet(entry: entry)
         }
         .overlay(alignment: .bottom) {
             if let snapshotHUD {

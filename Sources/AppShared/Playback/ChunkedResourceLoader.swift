@@ -1,6 +1,7 @@
 import Foundation
 import AVFoundation
 import OSLog
+import ReolinkAPI
 
 private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "playback.loader")
 
@@ -196,7 +197,11 @@ public actor StreamingEngine {
         config.httpMaximumConnectionsPerHost = 8
         config.urlCache = nil
         config.networkServiceType = .responsiveData
-        return URLSession(configuration: config)
+        return URLSession(
+            configuration: config,
+            delegate: MediaRedirectDelegate.shared,
+            delegateQueue: nil
+        )
     }()
 
     public init(upstreamURL: URL) {
@@ -407,6 +412,14 @@ public actor StreamingEngine {
 
         guard let http = response as? HTTPURLResponse else {
             throw URLError(.badServerResponse)
+        }
+        if HTTPRedirectPolicy.mediaPayloadRejected(
+            requestURL: upstreamURL,
+            statusCode: http.statusCode,
+            responseURL: http.url,
+            contentType: http.value(forHTTPHeaderField: "Content-Type")
+        ) {
+            throw URLError(.badServerResponse, userInfo: ["status": http.statusCode])
         }
 
         // Probe path: resolve `totalBytes` from Content-Range. Reolink

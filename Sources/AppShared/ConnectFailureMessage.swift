@@ -23,12 +23,18 @@ public enum ConnectFailureMessage {
         case tls             // HTTPS handshake / certificate failure
         case offline         // this device isn't on a usable network
         case authRejected    // wrong username / password
+        case httpsRequired   // HTTP redirected (or failed) and HTTPS is required
         case generic         // anything else
     }
+
+    /// Shown when a camera redirects plain HTTP to HTTPS, or the automatic
+    /// HTTPS retry could not finish. Host- and credential-free (AGENTS.md §3).
+    public static let httpsRequired = "This camera requires HTTPS. Turn on Use HTTPS in Edit Connection if it doesn't switch over automatically."
 
     static func classify(_ error: any Error) -> Reason {
         // Canonical classifiers (also drive the connect retry decision).
         if CameraSession.isAuthFailure(error) { return .authRejected }
+        if CameraSession.suggestsHTTPSRequired(error) { return .httpsRequired }
         if CameraSession.suggestsClosedAPIPort(error) { return .refusedPort }
 
         // Unwrap a transport URLError, whether raw or wrapped by the CGI client.
@@ -76,6 +82,8 @@ public enum ConnectFailureMessage {
             return "Your device isn't on the camera's network. Reconnect to the same Wi-Fi, then try again."
         case .authRejected:
             return "The camera rejected the saved password. Update it in Settings → Cameras."
+        case .httpsRequired:
+            return Self.httpsRequired
         case .generic:
             return "Couldn't reach the camera. Check that it's powered on and on the same network, then try again."
         }

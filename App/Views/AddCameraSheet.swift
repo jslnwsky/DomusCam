@@ -72,6 +72,7 @@ private struct AutoDetectPane: View {
                 Divider()
                 CredentialsPane(
                     prefilledHost: selected.host,
+                    prefilledPort: selected.port,
                     prefilledName: selected.displayName == selected.host ? "" : selected.displayName,
                     kindHint: selected.kindHint,
                     controlTransport: selected.controlTransport,
@@ -208,6 +209,7 @@ private struct DeviceFoundRow: View {
 
 private struct CredentialsPane: View {
     let prefilledHost: String
+    let prefilledPort: Int
     let prefilledName: String
     let kindHint: String
     /// Control plane discovery detected for this device (`.baichuan` for a
@@ -221,8 +223,9 @@ private struct CredentialsPane: View {
     @State private var password = ""
     @State private var preferredCodec: VideoCodec = .h264
 
-    init(prefilledHost: String, prefilledName: String, kindHint: String, controlTransport: ControlTransport?, onAdd: @escaping (CameraEntry, String) -> Void) {
+    init(prefilledHost: String, prefilledPort: Int, prefilledName: String, kindHint: String, controlTransport: ControlTransport?, onAdd: @escaping (CameraEntry, String) -> Void) {
         self.prefilledHost = prefilledHost
+        self.prefilledPort = prefilledPort
         self.prefilledName = prefilledName
         self.kindHint = kindHint
         self.controlTransport = controlTransport
@@ -278,14 +281,18 @@ private struct CredentialsPane: View {
 
     private func submit() {
         let displayed = displayName.isEmpty ? prefilledHost : displayName
+        let preferred = PreferredCameraConnection(
+            discoveredPort: prefilledPort,
+            transport: controlTransport ?? .http
+        )
         let entry = CameraEntry(
             displayName: displayed,
             host: prefilledHost,
-            port: 80,
+            port: preferred.port,
             username: username,
-            useHTTPS: false,
+            useHTTPS: preferred.useHTTPS,
             preferredCodec: preferredCodec,
-            controlTransport: controlTransport
+            controlTransport: preferred.controlTransport
         )
         onAdd(entry, password)
     }

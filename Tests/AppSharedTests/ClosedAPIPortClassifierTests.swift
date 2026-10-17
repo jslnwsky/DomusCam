@@ -86,6 +86,7 @@ struct ClosedAPIPortClassifierTests {
             URLError(.cannotConnectToHost), URLError(.timedOut), URLError(.cannotFindHost),
             URLError(.secureConnectionFailed), URLError(.notConnectedToInternet),
             ReolinkClientError.http(status: 401, body: nil),
+            ReolinkClientError.httpsRequired,
         ]
         for error in errors {
             for bothPorts in [false, true] {

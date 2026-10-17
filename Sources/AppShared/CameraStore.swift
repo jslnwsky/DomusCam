@@ -222,6 +222,46 @@ public struct CameraEntry: Identifiable, Hashable, Sendable, Codable {
         // stay clean vs. a pre-0.9.0 cameras.json.
         try c.encodeIfPresent(controlTransport, forKey: .controlTransport)
     }
+
+    /// Entry to store after a connect that succeeded on HTTPS:443 because
+    /// plain HTTP redirected or did not answer. Port 443 matches the client
+    /// `CameraSession` actually logged in with. Non-credential metadata.
+    public func applyingSuccessfulHTTPSUpgrade() -> CameraEntry {
+        var copy = self
+        copy.useHTTPS = true
+        copy.port = 443
+        copy.controlTransport = .https
+        return copy
+    }
+
+    /// Apply an Edit Connection save without dropping layout, fingerprint,
+    /// or other fields. A Baichuan camera keeps that transport when the
+    /// address did not change and HTTPS stays off — otherwise the explicit
+    /// HTTPS toggle wins.
+    public func applyingConnectionEdit(
+        host: String,
+        port: Int,
+        username: String,
+        useHTTPS: Bool
+    ) -> CameraEntry {
+        var copy = self
+        let keepBaichuan = controlTransport == .baichuan
+            && !useHTTPS
+            && host == self.host
+            && port == self.port
+        copy.host = host
+        copy.port = port
+        copy.username = username
+        copy.useHTTPS = useHTTPS
+        if useHTTPS {
+            copy.controlTransport = .https
+        } else if keepBaichuan {
+            copy.controlTransport = .baichuan
+        } else {
+            copy.controlTransport = .http
+        }
+        return copy
+    }
 }
 
 @MainActor
@@ -500,6 +540,61 @@ public final class CameraStore {
         return true
     }
 
+    /// Replace the saved address, port, username, and HTTPS flag, and
+    /// optionally the Keychain password. Works whether or not the camera
+    /// is currently connected — the in-memory session is torn down and
+    /// rebuilt from the new entry. An empty `password` leaves the Keychain
+    /// item alone. Passwords are never written to `cameras.json`.
+    @discardableResult
+    public func updateConnection(
+        host: String,
+        port: String,
+        username: String,
+        useHTTPS: Bool,
+        password: String,
+        for id: CameraEntry.ID
+    ) -> ConnectionEditOutcome {
+        guard let index = cameras.firstIndex(where: { $0.id == id }) else {
+            return .missingCamera
+        }
+        let current = cameras[index]
+        let draft = CameraEntryDraft(
+            displayName: current.displayName,
+            host: host,
+            port: port,
+            username: username,
+            useHTTPS: useHTTPS,
+            preferredCodec: current.preferredCodec
+        )
+        switch draft.validate(existing: cameras, excluding: id) {
+        case .invalid(let errors):
+            return .invalid(errors)
+        case .valid(let validated):
+            cameras[index] = current.applyingConnectionEdit(
+                host: validated.host,
+                port: validated.port,
+                username: validated.username,
+                useHTTPS: validated.useHTTPS
+            )
+            save()
+            if !password.isEmpty {
+                guard keychainStore.set(password: password, for: id) else {
+                    replaceSession(for: id)
+                    return .passwordRejected
+                }
+            }
+            replaceSession(for: id)
+            return .saved
+        }
+    }
+
+    private func replaceSession(for id: CameraEntry.ID) {
+        if let existing = sessions.removeValue(forKey: id) {
+            Task { await existing.disconnect() }
+        }
+        _ = session(for: id)
+    }
+
     /// Latest password-save failure, surfaced from `setPassword(_:for:)`
     /// when Keychain reports the write succeeded but the read-back
     /// finds nothing (or both add and update outright fail). Views
@@ -756,7 +851,11 @@ public final class CameraStore {
         // actually connected over (notably `.baichuan` after a web-API-off
         // fallback) so the next connect can skip the 80/443 probes.
         session.onControlTransportObserved = { [weak self] transport in
-            self?.recordControlTransport(transport, for: id)
+            if transport == .https {
+                self?.recordHTTPSUpgrade(for: id)
+            } else {
+                self?.recordControlTransport(transport, for: id)
+            }
         }
         sessions[id] = session
         return session
@@ -807,6 +906,18 @@ public final class CameraStore {
     /// same transport is a no-op, so the session hook can fire on every connect
     /// without thrashing iCloud sync. Non-credential, non-hostname metadata
     /// (AGENTS.md §3/§7). GitHub #76.
+    /// Persist a successful HTTP→HTTPS upgrade: `useHTTPS`, port 443, and
+    /// `.https`. Idempotent. The certificate pin is recorded separately by
+    /// `recordTLSFingerprint` on the same TOFU handshake — this does not
+    /// trust any extra certificate. Non-credential (AGENTS.md §3/§7).
+    public func recordHTTPSUpgrade(for id: CameraEntry.ID) {
+        guard let i = cameras.firstIndex(where: { $0.id == id }) else { return }
+        let updated = cameras[i].applyingSuccessfulHTTPSUpgrade()
+        guard updated != cameras[i] else { return }
+        cameras[i] = updated
+        save()
+    }
+
     public func recordControlTransport(_ transport: ControlTransport, for id: CameraEntry.ID) {
         guard let i = cameras.firstIndex(where: { $0.id == id }) else { return }
         guard cameras[i].controlTransport != transport else { return }

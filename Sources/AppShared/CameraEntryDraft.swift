@@ -52,9 +52,10 @@ public struct CameraEntryDraft: Sendable {
     }
 
     /// Validate against the cameras already in the store (for duplicate
-    /// detection). Returns a ready-to-store `CameraEntry` with trimmed fields,
-    /// or per-field error messages.
-    public func validate(existing: [CameraEntry]) -> Result {
+    /// detection). Pass `excluding` when editing an existing camera so it
+    /// is not flagged as a duplicate of itself. Returns a ready-to-store
+    /// `CameraEntry` with trimmed fields, or per-field error messages.
+    public func validate(existing: [CameraEntry], excluding id: CameraEntry.ID? = nil) -> Result {
         var errors: [Field: String] = [:]
 
         let trimmedHost = host.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -82,7 +83,8 @@ public struct CameraEntryDraft: Sendable {
         // Duplicate check only when the address fields are otherwise valid.
         if errors[.host] == nil, errors[.username] == nil, let portValue {
             let isDuplicate = existing.contains { entry in
-                entry.host.trimmingCharacters(in: .whitespacesAndNewlines)
+                if let id, entry.id == id { return false }
+                return entry.host.trimmingCharacters(in: .whitespacesAndNewlines)
                     .caseInsensitiveCompare(trimmedHost) == .orderedSame
                     && entry.port == portValue
                     && entry.username.caseInsensitiveCompare(trimmedUser) == .orderedSame
@@ -106,4 +108,13 @@ public struct CameraEntryDraft: Sendable {
         )
         return .valid(entry)
     }
+}
+
+/// Result of saving Edit Connection. Field messages are the same static
+/// strings `CameraEntryDraft` uses for the add form.
+public enum ConnectionEditOutcome: Equatable, Sendable {
+    case saved
+    case missingCamera
+    case passwordRejected
+    case invalid([CameraEntryDraft.Field: String])
 }

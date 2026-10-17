@@ -42,8 +42,15 @@ public struct TimestampedAIEvent: Sendable, Hashable, Identifiable {
 @Observable
 public final class CameraSession {
     public let entry: CameraEntry
-    /// LAN credentials supplied at init time.
-    public let credentials: CameraCredentials
+    /// Credentials the session is using right now. Starts as the saved
+    /// entry and switches to HTTPS:443 when an HTTP camera redirects or
+    /// otherwise fails in a way HTTPS can recover. Callers that build
+    /// URLs should read this (or `client.credentials`) after connect.
+    public private(set) var credentials: CameraCredentials
+    /// Credentials from the saved camera entry, before any in-session
+    /// HTTPS upgrade. Restored when a speculative HTTPS attempt fails
+    /// so an HTTP-only camera is not left on the wrong scheme.
+    private let initialCredentials: CameraCredentials
     /// CGI client bound to `credentials`. External callers access
     /// fresh state each read.
     public private(set) var client: CGIClient
@@ -92,12 +99,21 @@ public final class CameraSession {
     private var batteryTask: Task<Void, Never>?
     private var connectTask: Task<Void, Never>?
     private var connectGeneration: Int = 0
-    /// One-shot guard so a single `connect()` only ever tries the
-    /// HTTP→HTTPS transport upgrade once. Newer Reolink firmware (3.1.0.x)
-    /// disables plain HTTP and leaves only HTTPS reachable; when an HTTP
-    /// attempt is refused at the port we rebuild the client over HTTPS:443
-    /// and retry. Reset at the start of every fresh connect. GitHub #76.
+    /// True once this connect has rebuilt the client over HTTPS:443.
+    /// Reset at the start of every fresh connect. Set for a refused HTTP
+    /// port, an HTTP→HTTPS redirect, and one speculative try when HTTP
+    /// fails in a way HTTPS might still work. GitHub #76.
     private var usingHTTPSFallback = false
+    /// The upgrade above is attempted at most once per connect.
+    private var didAttemptHTTPSUpgrade = false
+    /// When true, a failed HTTPS attempt stays on HTTPS (the camera
+    /// redirected, or the HTTP port was refused). A speculative try
+    /// restores HTTP if HTTPS does not answer.
+    private var httpsUpgradeIsSticky = false
+    /// Set when the camera redirected HTTP to HTTPS (or returned the HTML
+    /// page that redirect produces). The final error prefers the
+    /// "requires HTTPS" wording over a generic decode failure.
+    private var observedHTTPSRequirement = false
     /// Set when the session connected over the **Baichuan** control plane
     /// (port 9000) because the camera's HTTP/HTTPS CGI API is off entirely
     /// (newer firmware, e.g. CX410). Live video still rides RTSP and events
@@ -123,6 +139,7 @@ public final class CameraSession {
         tlsPolicy: TLSPinningPolicy = .alwaysAccept
     ) {
         self.entry = entry
+        self.initialCredentials = credentials
         self.credentials = credentials
         self.tlsPolicy = tlsPolicy
         self.client = CGIClient(credentials: credentials, tlsPolicy: tlsPolicy)
@@ -200,7 +217,16 @@ public final class CameraSession {
         status = .connecting
         connectionAttempt = 0
         usingHTTPSFallback = false
+        didAttemptHTTPSUpgrade = false
+        httpsUpgradeIsSticky = false
+        observedHTTPSRequirement = false
         usingBaichuanControl = false
+        // A previous attempt may have swapped the client onto HTTPS.
+        // Start each connect from the saved entry; a successful upgrade
+        // persists that entry so the next session is created on HTTPS.
+        credentials = initialCredentials
+        client = CGIClient(credentials: initialCredentials, tlsPolicy: tlsPolicy)
+        streamURLs = StreamURLs(credentials: initialCredentials)
         let deadline = Date().addingTimeInterval(policy.overallDeadlineSeconds)
 
         // iOS only: a missing Local Network permission silently
@@ -251,12 +277,12 @@ public final class CameraSession {
             connectionStage = .failed(reason: reason)
         case .unreachable(let err):
             if Self.suggestsClosedAPIPort(err), await tryBaichuanControlFallback() { return }
-            let reason = Self.connectionFailureMessage(for: err, bothWebPortsRefused: Self.suggestsClosedAPIPort(err) && usingHTTPSFallback)
+            let reason = failureReason(for: err)
             status = .error(reason)
             connectionStage = .failed(reason: reason)
         case .deadlineExceeded(let err?):
             if Self.suggestsClosedAPIPort(err), await tryBaichuanControlFallback() { return }
-            let reason = Self.connectionFailureMessage(for: err, bothWebPortsRefused: Self.suggestsClosedAPIPort(err) && usingHTTPSFallback)
+            let reason = failureReason(for: err)
             status = .error(reason)
             connectionStage = .failed(reason: reason)
         case .deadlineExceeded(nil):
@@ -317,24 +343,46 @@ public final class CameraSession {
                 // the stage to .connected immediately so the UI shows
                 // a working live tile.
                 connectionStage = .connected
+                if usingHTTPSFallback {
+                    onControlTransportObserved?(.https)
+                }
                 return .succeeded
             } catch {
                 lastError = error
+                if Self.suggestsHTTPSRequired(error) {
+                    observedHTTPSRequirement = true
+                }
                 if Self.isAuthFailure(error) {
+                    if usingHTTPSFallback {
+                        onControlTransportObserved?(.https)
+                    }
                     log.warning("connect attempt \(attempt) auth-failed; stopping retries")
                     return .authFailure(reason: ConnectFailureMessage.text(for: error))
                 }
                 log.warning("connect attempt \(attempt) failed: \(error.localizedDescription, privacy: .public)")
-                // Newer Reolink firmware (3.1.0.x, e.g. CX410) ships with the
-                // plain-HTTP API disabled and only HTTPS reachable. When an
-                // HTTP attempt is refused *at the port* (cannotConnectToHost),
-                // transparently rebuild the transport over HTTPS:443 and retry
-                // once before burning the rest of the attempt budget. GitHub
-                // #76.
-                if Self.suggestsClosedAPIPort(error), !credentials.useHTTPS, !usingHTTPSFallback {
+                // HTTP→HTTPS redirect, a refused HTTP port, or an HTTP
+                // failure HTTPS might still survive: rebuild over
+                // HTTPS:443 with the same TOFU pin and retry once.
+                // A redirect or a refused port stays on HTTPS. A
+                // speculative try (timeout, malformed body) goes back
+                // to HTTP if 443 does not answer, so an HTTP-only
+                // camera is not stranded. GitHub #76.
+                if !initialCredentials.useHTTPS, !didAttemptHTTPSUpgrade, Self.shouldAttemptHTTPSUpgrade(error) {
+                    didAttemptHTTPSUpgrade = true
+                    httpsUpgradeIsSticky = Self.httpsUpgradeIsSticky(error)
                     upgradeTransportToHTTPS()
-                    log.notice("HTTP API port refused; retrying over HTTPS:443")
+                    if Self.suggestsHTTPSRequired(error) {
+                        log.notice("Camera requires HTTPS; retrying over HTTPS:443")
+                    } else if Self.suggestsClosedAPIPort(error) {
+                        log.notice("HTTP API port refused; retrying over HTTPS:443")
+                    } else {
+                        log.notice("HTTP connect failed; trying HTTPS:443 once")
+                    }
                     continue
+                }
+                if usingHTTPSFallback, !httpsUpgradeIsSticky {
+                    restoreHTTPTransport()
+                    log.notice("HTTPS attempt did not succeed; continuing on HTTP")
                 }
                 if attempt >= policy.maxAttempts { break }
                 let backoff = policy.backoffSeconds(attempt: attempt)
@@ -431,6 +479,76 @@ public final class CameraSession {
         return false
     }
 
+    /// The camera redirected HTTP onto HTTPS, or URLSession already followed
+    /// that redirect and handed back a non-CGI body. Distinct from a refused
+    /// port: the web server is up and is telling us to use TLS.
+    nonisolated static func suggestsHTTPSRequired(_ error: any Error) -> Bool {
+        guard let reolink = error as? ReolinkClientError else { return false }
+        switch reolink {
+        case .httpsRequired:
+            return true
+        case .http(let status, _) where (300..<400).contains(status):
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Try HTTPS:443 once. Sticky cases (redirect, refused HTTP port) stay
+    /// on HTTPS. Timeout and a malformed HTTP body are speculative: HTTPS
+    /// is tried once and HTTP is restored if it does not answer, which is
+    /// how "HTTP failed but HTTPS works" recovers without stranding an
+    /// HTTP-only camera on a bad first packet.
+    nonisolated static func shouldAttemptHTTPSUpgrade(_ error: any Error) -> Bool {
+        if isAuthFailure(error) { return false }
+        if suggestsClosedAPIPort(error) || suggestsHTTPSRequired(error) { return true }
+        if let reolink = error as? ReolinkClientError, case .malformedResponse = reolink {
+            return true
+        }
+        let urlError: URLError? = {
+            if let urlError = error as? URLError { return urlError }
+            if let reolink = error as? ReolinkClientError,
+               case let .transport(inner) = reolink {
+                return inner as? URLError
+            }
+            return nil
+        }()
+        switch urlError?.code {
+        case .timedOut, .networkConnectionLost, .cancelled:
+            // `.cancelled` is what some URLSession versions report when a
+            // delegate refuses a redirect. It is not Task cancellation
+            // (that throws `CancellationError`), so one HTTPS try is safe.
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Redirects and a refused HTTP port are evidence the camera is not
+    /// going to answer on plain HTTP. Other failures are one speculative try.
+    nonisolated static func httpsUpgradeIsSticky(_ error: any Error) -> Bool {
+        suggestsClosedAPIPort(error) || suggestsHTTPSRequired(error)
+    }
+
+    /// User-facing wording for a connect that already observed an HTTP→HTTPS
+    /// redirect. TLS and password failures keep their own sentences; every
+    /// other follow-on error stays "this camera requires HTTPS" so a followed
+    /// redirect is never shown as a malformed response.
+    private func failureReason(for error: any Error) -> String {
+        if observedHTTPSRequirement {
+            switch ConnectFailureMessage.classify(error) {
+            case .tls, .authRejected:
+                break
+            default:
+                return ConnectFailureMessage.httpsRequired
+            }
+        }
+        return Self.connectionFailureMessage(
+            for: error,
+            bothWebPortsRefused: Self.suggestsClosedAPIPort(error) && usingHTTPSFallback
+        )
+    }
+
     /// Build the user-facing reason for a failed connect. Thin forwarder to the
     /// single source of truth (`ConnectFailureMessage`) so the connect path, the
     /// recordings path, and the auth path all word the same error identically.
@@ -448,15 +566,26 @@ public final class CameraSession {
     /// and Baichuan (9000) ride the unchanged host. GitHub #76.
     private func upgradeTransportToHTTPS() {
         let https = CameraCredentials(
-            host: credentials.host,
+            host: initialCredentials.host,
             port: 443,
-            username: credentials.username,
-            password: credentials.password,
+            username: initialCredentials.username,
+            password: initialCredentials.password,
             useHTTPS: true
         )
+        credentials = https
         client = CGIClient(credentials: https, tlsPolicy: tlsPolicy)
         streamURLs = StreamURLs(credentials: https)
         usingHTTPSFallback = true
+    }
+
+    /// Put the control plane back on the saved HTTP credentials after a
+    /// speculative HTTPS attempt failed. Does not clear
+    /// `didAttemptHTTPSUpgrade`, so the connect does not try 443 again.
+    private func restoreHTTPTransport() {
+        credentials = initialCredentials
+        client = CGIClient(credentials: initialCredentials, tlsPolicy: tlsPolicy)
+        streamURLs = StreamURLs(credentials: initialCredentials)
+        usingHTTPSFallback = false
     }
 
     /// Last-resort connect path for cameras whose HTTP/HTTPS CGI API is off

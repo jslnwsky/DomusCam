@@ -12,7 +12,7 @@ import SwiftUI
 /// The sheet is intentionally narrow in scope — only the password is
 /// editable. Host, port, and username appear as read-only context so the
 /// user can confirm they're entering the right credential for the right
-/// device. To change those, remove and re-add the camera.
+/// device. To change those, use Edit Connection.
 ///
 /// On submit, calls `CameraStore.setPassword(_:for:)`, which writes the
 /// password to Keychain and tears down any in-memory session so the next

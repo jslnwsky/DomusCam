@@ -85,6 +85,7 @@ struct DeviceSidebarRow: View {
     @Binding var passwordEntryEntry: CameraEntry?
     @Binding var isReordering: Bool
     @Binding var draggingDevice: UUID?
+    @State private var connectionEditor: CameraEntry?
 
     var body: some View {
         let session = store.session(for: entry.id)
@@ -96,8 +97,21 @@ struct DeviceSidebarRow: View {
             (ch.name?.isEmpty == false) || (ch.typeInfo?.isEmpty == false)
         }
 
-        if channels.count > 1 {
-            DisclosureGroup(isExpanded: bindingForExpansion(deviceID: entry.id)) {
+        Group {
+            if channels.count > 1 {
+                multiChannel(session: session, channels: channels)
+            } else {
+                deviceLabel(session: session, channelCount: channels.count)
+            }
+        }
+        .sheet(item: $connectionEditor) { editing in
+            EditConnectionSheet(entry: editing)
+        }
+    }
+
+    @ViewBuilder
+    private func multiChannel(session: CameraSession?, channels: [ChannelStatus]) -> some View {
+        DisclosureGroup(isExpanded: bindingForExpansion(deviceID: entry.id)) {
                 ForEach(channels) { channel in
                     ChannelSidebarRow(deviceID: entry.id, channel: channel)
                         // 0.5.1 — extend the hit-test region to the full
@@ -112,9 +126,6 @@ struct DeviceSidebarRow: View {
             } label: {
                 deviceLabel(session: session, channelCount: channels.count)
             }
-        } else {
-            deviceLabel(session: session, channelCount: channels.count)
-        }
     }
 
     /// 0.5.1 — Drag-and-drop is gated on `isReordering` so the
@@ -169,6 +180,10 @@ struct DeviceSidebarRow: View {
         Button(hasSession ? "Update Password…" : "Enter Password…", systemImage: "key.fill") {
             passwordEntryEntry = entry
         }
+        Button("Edit Connection…", systemImage: "network") {
+            connectionEditor = entry
+        }
+        .accessibilityLabel("Edit Connection")
         if hasSession {
             Button("Reconnect", systemImage: "arrow.clockwise.circle") {
                 store.reconnect(entry.id)

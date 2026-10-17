@@ -22,6 +22,7 @@ struct iPadSplitShell: View {
     /// updates) doesn't keep overriding the user's manual
     /// navigation back to .live / .recordings / etc.
     @State private var restoredLastCamera: Bool = false
+    @State private var connectionEditor: CameraEntry?
 
     enum SidebarSection: Hashable {
         case live
@@ -139,6 +140,9 @@ struct iPadSplitShell: View {
         .safeAreaInset(edge: .top) { HubOfflineBanner() }
         .sheet(isPresented: $showingAdd) {
             AddCameraView()
+        }
+        .sheet(item: $connectionEditor) { entry in
+            EditConnectionSheet(entry: entry)
         }
         .task {
             // 0.6.0 — restore the most-recently-viewed camera on
@@ -262,6 +266,10 @@ struct iPadSplitShell: View {
                 deviceLabel
                     .tag(SidebarSection.device(entry.id))
                     .contextMenu {
+                        Button("Edit Connection", systemImage: "network") {
+                            connectionEditor = entry
+                        }
+                        .accessibilityLabel("Edit Connection")
                         OpenInNewSceneButton(scene: .camera(id: entry.id, channel: channels.first?.channel ?? 0))
                     }
             }
@@ -269,6 +277,10 @@ struct iPadSplitShell: View {
             deviceLabel
                 .tag(SidebarSection.device(entry.id))
                 .contextMenu {
+                    Button("Edit Connection", systemImage: "network") {
+                        connectionEditor = entry
+                    }
+                    .accessibilityLabel("Edit Connection")
                     OpenInNewSceneButton(scene: .camera(id: entry.id, channel: channels.first?.channel ?? 0))
                 }
         }

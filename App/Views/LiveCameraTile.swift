@@ -59,6 +59,7 @@ struct LiveCameraTile: View {
     /// overlay during that window and double-taps thinking nothing
     /// happened.
     @State private var isWaking = false
+    @State private var connectionEditor: CameraEntry?
 
     var body: some View {
         // Effective rotation has two parts:
@@ -235,6 +236,16 @@ struct LiveCameraTile: View {
                     Label("Update Password…", systemImage: "key.fill")
                 }
             }
+            Divider()
+            Button {
+                connectionEditor = session.entry
+            } label: {
+                Label("Edit Connection…", systemImage: "network")
+            }
+            .accessibilityLabel("Edit Connection")
+        }
+        .sheet(item: $connectionEditor) { entry in
+            EditConnectionSheet(entry: entry)
         }
         .onAppear {
             isVisible = true

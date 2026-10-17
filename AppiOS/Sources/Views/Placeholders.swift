@@ -10,6 +10,7 @@ struct LivePlaceholderView: View {
     @Environment(CameraStore.self) private var store
     @State private var showingAdd = false
     @State private var passwordEntryEntry: CameraEntry?
+    @State private var connectionEditor: CameraEntry?
     @State private var searchText: String = ""
 
     var body: some View {
@@ -44,6 +45,9 @@ struct LivePlaceholderView: View {
         }
         .sheet(item: $passwordEntryEntry) { entry in
             EnterPasswordSheet(entry: entry)
+        }
+        .sheet(item: $connectionEditor) { entry in
+            EditConnectionSheet(entry: entry)
         }
         .searchable(text: $searchText, placement: .automatic, prompt: "Search cameras")
     }
@@ -98,6 +102,9 @@ struct LivePlaceholderView: View {
             passwordEntryEntry = entry
         }
         .tint(.accentColor)
+        Button("Edit Connection", systemImage: "network") {
+            connectionEditor = entry
+        }
     }
 
     @ViewBuilder
@@ -105,6 +112,10 @@ struct LivePlaceholderView: View {
         Button("Enter Password", systemImage: "key.fill") {
             passwordEntryEntry = entry
         }
+        Button("Edit Connection", systemImage: "network") {
+            connectionEditor = entry
+        }
+        .accessibilityLabel("Edit Connection")
         if hasSession {
             Button("Reconnect", systemImage: "arrow.clockwise.circle") {
                 store.reconnect(entry.id)
@@ -144,6 +155,7 @@ struct DevicesPlaceholderView: View {
     @Environment(CameraStore.self) private var store
     @State private var showingAdd = false
     @State private var passwordEntryEntry: CameraEntry?
+    @State private var connectionEditor: CameraEntry?
     @State private var searchText: String = ""
 
     var body: some View {
@@ -178,11 +190,18 @@ struct DevicesPlaceholderView: View {
                                     passwordEntryEntry = entry
                                 }
                                 .tint(.accentColor)
+                                Button("Edit Connection", systemImage: "network") {
+                                    connectionEditor = entry
+                                }
                             }
                             .contextMenu {
                                 Button("Enter Password", systemImage: "key.fill") {
                                     passwordEntryEntry = entry
                                 }
+                                Button("Edit Connection", systemImage: "network") {
+                                    connectionEditor = entry
+                                }
+                                .accessibilityLabel("Edit Connection")
                                 Divider()
                                 Button("Delete Camera", systemImage: "trash", role: .destructive) {
                                     store.remove(entry.id)
@@ -216,6 +235,9 @@ struct DevicesPlaceholderView: View {
         }
         .sheet(item: $passwordEntryEntry) { entry in
             EnterPasswordSheet(entry: entry)
+        }
+        .sheet(item: $connectionEditor) { entry in
+            EditConnectionSheet(entry: entry)
         }
         .searchable(text: $searchText, placement: .automatic, prompt: "Search cameras")
     }
@@ -275,6 +297,7 @@ struct DevicePlaceholderView: View {
     let entry: CameraEntry
     @Environment(CameraStore.self) private var store
     @State private var showingPasswordSheet = false
+    @State private var connectionEditor: CameraEntry?
 
     var body: some View {
         Group {
@@ -295,11 +318,18 @@ struct DevicePlaceholderView: View {
                 } actions: {
                     Button("Enter Password") { showingPasswordSheet = true }
                         .buttonStyle(.borderedProminent)
+                    Button("Edit Connection", systemImage: "network") {
+                        connectionEditor = entry
+                    }
+                    .accessibilityLabel("Edit Connection")
                 }
             }
         }
         .sheet(isPresented: $showingPasswordSheet) {
             EnterPasswordSheet(entry: entry)
+        }
+        .sheet(item: $connectionEditor) { editing in
+            EditConnectionSheet(entry: editing)
         }
     }
 }

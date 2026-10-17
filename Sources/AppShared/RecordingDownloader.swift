@@ -79,7 +79,14 @@ public final class RecordingDownloader {
         // isn't starved by background work when the user is staring
         // at a progress bar.
         config.networkServiceType = .responsiveData
-        self.session = URLSession(configuration: config)
+        // Refuse an HTTP→HTTPS redirect. Following it would hit the
+        // camera's certificate with the default trust store, or save
+        // the HTML page URLSession gets after rewriting a request.
+        self.session = URLSession(
+            configuration: config,
+            delegate: MediaRedirectDelegate.shared,
+            delegateQueue: nil
+        )
     }
 
     // MARK: - Cache
@@ -274,6 +281,10 @@ public final class RecordingDownloader {
                 await finishWithFailure("Server returned non-HTTP response")
                 return
             }
+            if Self.rejectedRedirect(requestURL: url, http: http) {
+                await finishWithFailure(ConnectFailureMessage.httpsRequired)
+                return
+            }
             if http.statusCode == 206,
                let total = parseContentRangeTotal(http: http),
                total >= Self.minSizeForParallel {
@@ -435,6 +446,9 @@ public final class RecordingDownloader {
                         // I/O buffer.
                         let (asyncBytes, response) = try await session.bytes(for: req)
                         let http = response as? HTTPURLResponse
+                        if let http, Self.rejectedRedirect(requestURL: url, http: http) {
+                            throw URLError(.badServerResponse, userInfo: ["status": http.statusCode])
+                        }
                         if let http, http.statusCode >= 400 {
                             throw URLError(.badServerResponse, userInfo: [
                                 "status": http.statusCode,
@@ -542,7 +556,7 @@ public final class RecordingDownloader {
                 // CRITICAL: URLSession deletes the temp file immediately after
                 // this closure returns. Move it SYNCHRONOUSLY here — do not
                 // hop to MainActor first or the file will already be gone.
-                let outcome = Self.relocateDownload(tmpURL: tmpURL, response: response, error: error)
+                let outcome = Self.relocateDownload(originalURL: url, tmpURL: tmpURL, response: response, error: error)
                 Task { @MainActor [weak self] in
                     self?.finishSingleStream(outcome: outcome, downloadURL: url)
                     cont.resume()
@@ -581,11 +595,23 @@ public final class RecordingDownloader {
     /// Runs on the URLSession callback thread (NOT MainActor). Moves the
     /// completion-handler tmp file out of URLSession's auto-delete window
     /// and into a stable path under our temp dir.
-    nonisolated private static func relocateDownload(tmpURL: URL?, response: URLResponse?, error: (any Error)?) -> SingleStreamOutcome {
+    nonisolated private static func rejectedRedirect(requestURL: URL, http: HTTPURLResponse) -> Bool {
+        HTTPRedirectPolicy.mediaPayloadRejected(
+            requestURL: requestURL,
+            statusCode: http.statusCode,
+            responseURL: http.url,
+            contentType: http.value(forHTTPHeaderField: "Content-Type")
+        )
+    }
+
+    nonisolated private static func relocateDownload(originalURL: URL, tmpURL: URL?, response: URLResponse?, error: (any Error)?) -> SingleStreamOutcome {
         if let error {
             let nsError = error as NSError
             if nsError.code == NSURLErrorCancelled { return .cancelled }
             return .failure("\(error.localizedDescription)")
+        }
+        if let http = response as? HTTPURLResponse, Self.rejectedRedirect(requestURL: originalURL, http: http) {
+            return .failure(ConnectFailureMessage.httpsRequired)
         }
         if let http = response as? HTTPURLResponse, http.statusCode >= 400 {
             // User-visible failure text must never carry the URL —

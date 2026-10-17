@@ -338,6 +338,20 @@ public final class BookmarkAutoDownloadDelegate: NSObject, URLSessionDownloadDel
 
     public func urlSession(
         _ session: URLSession,
+        task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest,
+        completionHandler: @escaping @Sendable (URLRequest?) -> Void
+    ) {
+        let follow = HTTPRedirectPolicy.shouldFollowMediaRedirect(
+            from: task.originalRequest?.url,
+            to: request.url
+        )
+        completionHandler(follow ? request : nil)
+    }
+
+    public func urlSession(
+        _ session: URLSession,
         downloadTask: URLSessionDownloadTask,
         didFinishDownloadingTo location: URL
     ) {

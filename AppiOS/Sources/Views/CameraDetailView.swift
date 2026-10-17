@@ -27,6 +27,7 @@ struct CameraDetailView: View {
     var focusedChannel: Int? = nil
 
     @State private var passwordEntryEntry: CameraEntry?
+    @State private var connectionEditor: CameraEntry?
     @State private var slowConnect = false
 
     /// How long the session may sit in `.connecting` before the UI
@@ -71,6 +72,17 @@ struct CameraDetailView: View {
         .sheet(item: $passwordEntryEntry) { entry in
             EnterPasswordSheet(entry: entry)
         }
+        .sheet(item: $connectionEditor) { entry in
+            EditConnectionSheet(entry: entry)
+        }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Edit Connection", systemImage: "network") {
+                    connectionEditor = session.entry
+                }
+                .accessibilityLabel("Edit Connection")
+            }
+        }
     }
 
     @ViewBuilder
@@ -87,6 +99,12 @@ struct CameraDetailView: View {
             } actions: {
                 VStack {
                     if session.status.isError {
+                        Button {
+                            connectionEditor = session.entry
+                        } label: {
+                            Label("Edit Connection", systemImage: "network")
+                        }
+                        .accessibilityLabel("Edit Connection")
                         Button {
                             passwordEntryEntry = session.entry
                         } label: {
@@ -116,7 +134,7 @@ struct CameraDetailView: View {
     private var retryDescription: String {
         switch session.status {
         case .error(let msg):
-            return "\(session.entry.host) returned an error: \(msg)"
+            return msg
         case .connecting:
             return "\(session.entry.host) hasn't responded yet. Check that the camera is on and on the same network."
         default:
