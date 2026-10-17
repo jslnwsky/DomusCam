@@ -10,8 +10,15 @@ lineage this project was forked from.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Saving or migrating a camera password no longer deletes the old Keychain item first.** If the replacement write fails, the existing password stays and Settings says so. Turning off iCloud Keychain sync saves a copy on this device and leaves the iCloud Keychain item in place, so your other devices are not wiped.
+
 ### Changed
 
+- **Run as Hub no longer turns on iCloud motion relay.** Hub keeps this Mac connected to your cameras and sends this Mac’s name in a heartbeat. Motion events and snapshot images are separate switches, both off until you turn them on, and each asks before the first enable. If relay was already on, it stays on so notifications you already chose don’t stop. Snapshot images, which used to be attached automatically, stay off until you turn them on.
+- **Apple TV password sync stays off unless you turn it on,** and the setting now says that the passwords leave this device and asks you to confirm. Installs that already turned it on are left on.
+- **The website no longer links to the upstream Reolens TestFlight invite.** A DomusCam invite is not published yet; the page says so. The retired Sparkle appcast is removed.
 - **Forked as DomusCam.** New bundle id `com.75-c.DomusCam`, iCloud container
   `iCloud.com.75-c.DomusCam`, App Group `group.com.75-c.DomusCam`, and Apple
   team `NXVC3868F7`. Display name, modules, loggers, and docs use DomusCam.

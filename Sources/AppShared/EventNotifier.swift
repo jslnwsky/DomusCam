@@ -497,11 +497,13 @@ public final class EventNotifier {
 
         #if os(macOS)
         if relayAllowed {
+            // The local notification keeps the JPEG. CloudKit gets it
+            // only when the user has opted in to snapshot upload.
             await dispatchRelay(
                 event: event,
                 cameraID: cameraID,
                 cameraName: cameraName,
-                snapshotFileURL: attachment?.url
+                snapshotFileURL: MotionEventRelaySettings.snapshotURLForRelay(attachment?.url)
             )
         }
         #endif

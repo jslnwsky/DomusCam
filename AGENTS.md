@@ -2,7 +2,7 @@
 
 This file is the source of truth for how to work on DomusCam. It applies to humans and to agentic coding tools (Claude Code, Codex, Cursor, etc.) — both should read it before making changes.
 
-DomusCam is a Reolink camera client for macOS, iPadOS, and iOS. It streams live video over RTSP from cameras the user owns, exposes recordings and PTZ, and syncs the camera list across the user's own Apple devices via iCloud Drive.
+DomusCam is a Reolink camera client for macOS, iPadOS, iOS, tvOS, and watchOS. It streams live video over RTSP from cameras the user owns, exposes recordings and PTZ, and syncs the camera list across the user's own Apple devices via iCloud Drive. Cloud features that send anything beyond that camera list stay off unless the user turns them on (§4, §5).
 
 The product is small, opinionated, and trust-sensitive. People install it because they want a clean, native, ad-free way to look at their own cameras. Every change should reinforce that.
 
@@ -14,12 +14,14 @@ Any user-visible feature shipped on one Apple platform must work on the others. 
 
 When you add a feature, ship it everywhere or open a tracking issue for the missing platform in the same PR.
 
-**Documented carve-outs (current as of 0.7.0):**
+**Documented carve-outs (current as of 0.9.0):**
 
-- App distribution — both platforms ship through the App Store / TestFlight under ONE multiplatform record (shared bundle id `com.75-c.DomusCam`). 0.7.0 retired the macOS Developer-ID DMG + Sparkle auto-updater; the Mac app now updates via the App Store like iOS. No carve-out — distribution is uniform. See `.github/workflows/release.yml` + `Scripts/build-mac.sh` / `build-ios.sh`.
+- App distribution — macOS, iPadOS, and iOS ship through the App Store / TestFlight under ONE multiplatform record (shared bundle id `com.75-c.DomusCam`). 0.7.0 retired the macOS Developer-ID DMG + Sparkle auto-updater; the Mac app now updates via the App Store like iOS. No carve-out — distribution is uniform. See `.github/workflows/release.yml` + `Scripts/build-mac.sh` / `build-ios.sh`.
 - Picture-in-Picture — iOS / iPadOS only (no macOS analog).
 - Menu-bar mode + Launch at Login — macOS only.
-- **DomusCam Hub (added in 0.7.0)** — macOS only. iPhone/iPad/Apple TV can't hold a persistent background camera connection, so one Mac acts as the listener that publishes motion events to the user's private CloudKit database; the other platforms consume those events. Explicit per-Mac opt-in (`AppPreferences.runAsHub`) starts the `HubEngine` (connect every camera + publish + CloudKit heartbeat). The engine keeps running after the window closes; pair it with "Launch at login" (the sandbox-safe `SMAppService.mainApp`) to restart after a reboot. The App Store build ships **no** headless `SMAppService.agent` LaunchAgent — a login agent that relaunches the binary itself isn't App Store compatible, so the always-on-while-logged-out tier was dropped when the Mac app moved to the App Store. There is still no DomusCam server — CloudKit-under-the-user's-own-iCloud remains "the server" (AGENTS.md §5). See `Sources/AppShared/HubEngine.swift` (cross-platform, testable reconcile logic) and `App/Hub/HubController.swift` (macOS lifecycle shell).
+- **DomusCam Hub (added in 0.7.0)** — macOS only. iPhone, iPad, Apple TV, and Watch can't hold a persistent background camera connection, so one Mac can stay connected to every camera after the window closes. Explicit per-Mac opt-in (`AppPreferences.runAsHub`) starts the `HubEngine` (connect every camera) and the CloudKit heartbeat (this Mac's name, app version, and whether motion relay is on). It does **not** turn on motion-event relay or snapshot upload — those are separate Settings toggles and default off (§5). The engine keeps running after the window closes; pair it with "Launch at login" (the sandbox-safe `SMAppService.mainApp`) to restart after a reboot. The App Store build ships **no** headless `SMAppService.agent` LaunchAgent — a login agent that relaunches the binary itself isn't App Store compatible, so the always-on-while-logged-out tier was dropped when the Mac app moved to the App Store. There is still no DomusCam server. See `Sources/AppShared/HubEngine.swift` (cross-platform, testable reconcile logic) and `App/Hub/HubController.swift` (macOS lifecycle shell).
+- **Apple TV (added in 0.7.0)** — living-room viewer. The camera list arrives via iCloud Drive. Camera passwords do not. "Sync camera passwords to iCloud for Apple TV" (`TVCredentialSync`, default off) is a separate opt-in that writes CloudKit `encryptedValues` (§4). tvOS holds those passwords in memory only.
+- **watchOS (added in 0.6.4)** — companion app. It does not open camera connections. The library reads the App Group container the iPhone app publishes; there is no `WCSession` in the tree.
 - Local-network Bonjour discovery sheet — historical iOS-only, gained macOS parity in 0.5.0.
 - **iOS Live Activities + Dynamic Island** — iOS / iPadOS only (ActivityKit has no macOS equivalent; macOS users see the menu-bar mode + desktop widget instead). Added in 0.5.0; 0.5.1 widened to hub-grouped semantics + APNs push-token registration (`pushType: .token`).
 - **Widgets** — ship on both platforms (Home Screen / Lock Screen / Control Center on iOS, desktop widgets on macOS). No carve-out needed for widgets themselves.
@@ -48,7 +50,7 @@ See `Sources/ReolinkStreaming/Player/LiveVideoView.swift` for the canonical exam
 Treat every change as touching live video feeds, authentication, and the user's home network.
 
 - Any PR that modifies authentication, RTSP, credential storage, or networking must explicitly call out the security implications in its description.
-- Run the `security-reviewer` agent before any release tag.
+- Before any release tag, review auth, RTSP, credential storage, and networking against this file and `SECURITY.md`. The upstream Reolens `security-reviewer` agent and its `.github/workflows/claude*.yml` jobs are not part of this repo; the PR Security section (§14) is the checklist.
 - Never log credentials, hostnames, or auth tokens at any level (`info`, `debug`, `verbose`).
 - Never include credentials in crash reports, error messages shown to the user, or diagnostic exports.
 
@@ -62,7 +64,9 @@ Don't blur this line:
 
 - Never write a password to `UserDefaults`, `cameras.json`, or any other persisted store.
 - Never write a password to a log.
-- Cross-device password sync is an **explicit user-facing opt-in to iCloud Keychain**, never a silent change. Surface the trade-off in the UI.
+- Cross-device password sync is an **explicit user-facing opt-in**, never a silent change. Surface the trade-off in the UI. There are two opt-ins, and they are not interchangeable:
+  - **iCloud Keychain** — Settings → Privacy → "Sync camera passwords to iCloud Keychain". Synchronizable Keychain items. Does not reach tvOS.
+  - **Apple TV** — Settings → Privacy → "Sync camera passwords to iCloud for Apple TV" (`TVCredentialSync`, default off). Writes passwords to CloudKit `encryptedValues` in the user's private database so tvOS can stream. Turning it off deletes those records. This is not the Keychain synchronizable flag.
 
 ### iCloud Keychain Sync opt-in (added in 0.4.0)
 
@@ -70,8 +74,9 @@ Settings → Privacy → "Sync camera passwords to iCloud Keychain" is the only 
 
 Behavior:
 
-- **Off (default):** writes set `kSecAttrSynchronizable: false`. Reads use `kSecAttrSynchronizableAny`, so a device that opted in earlier and then opted out still sees its previously-synced passwords on this device.
-- **On:** writes set `kSecAttrSynchronizable: true`. The user's existing local-only passwords are migrated to the synced side via `Keychain.migrate(accounts:toSync:)` so the toggle isn't ambient — it takes effect immediately.
+- **Off (default):** new writes set `kSecAttrSynchronizable: false`. Turning the toggle off copies each password into a device-local item and **leaves the synchronizable item in place**. Deleting that item would propagate through iCloud Keychain and remove the password on the user's other devices. Reads prefer the local item, then fall back to the synchronizable one, so this device still sees a previously synced password when no local copy exists.
+- **On:** writes set `kSecAttrSynchronizable: true`. `Keychain.migrate(accounts:toSync:)` copies each password onto the synchronizable item first and only then deletes the device-local item. A failed write deletes nothing, is counted as `failed`, and is logged with the OSStatus (`privacy: .public`) and account UUID (`privacy: .private`) — never the password.
+- A sync-on save that the Keychain rejects (ad-hoc builds without the iCloud Keychain entitlement) falls back to a device-local write and sets `com.75-c.DomusCam.iCloudKeychainSyncFellBackToLocal` so this device reads the password it just saved. The synchronizable item is not deleted.
 
 Don't add a third state ("partial" / "per-camera"). The opt-in is one flag for the whole device.
 
@@ -91,6 +96,7 @@ This is allowed to be per-camera because the data is non-credential and the user
 - No remote crash reporting that captures screen contents, network payloads, or PII.
 - The app must function fully without any network call to non-Reolink hosts. The only exceptions are Apple's own services (iCloud, TestFlight, App Store). DomusCam does not use Reolink's P2P/cloud cluster.
 - No telemetry pings. No A/B testing infrastructure. No silent background fetches to our servers — there are no "our servers."
+- **Off-LAN camera data is opt-in and off by default.** "Run as Hub" does not enable it. Motion-event relay (`MotionEventRelaySettings.publisherEnabled`) and snapshot upload (`includeSnapshots`) are separate Settings toggles, each default off, each confirmed before the first enable. A relayed event can include camera id, channel, detection type, time, and camera name. A snapshot JPEG is attached only when snapshot upload is on. While Hub mode is on, a heartbeat writes this Mac's name, app version, and the relay flag to a private-database `HubStatus` record — that is the Hub confirmation's subject, and it is not a motion event or a picture. Apple TV password sync is the §4 opt-in, also default off.
 
 If you find yourself wanting to add a network call, ask whether it can be avoided. If it cannot, document why in the PR.
 
@@ -142,7 +148,7 @@ When you bump the schema, write the migration in the PR description.
 
 **0.5.1 introductions:**
 
-- `live-activity-tokens_v1.json` — APNs push tokens per in-flight Live Activity. Stored in the iCloud Drive ubiquity container (`Documents/live-activity-tokens/`). Schema is a `[String: Token]` dict keyed by `Activity.id`; bump the suffix on any breaking shape change. **0.7.0:** this is a **device-local diagnostic index**, not server fuel — there is no APNs provider and never will be (a true Live Activity push needs a `.p8`-signed server, forbidden by §5). The Live Activity "relay" is the receiver updating its own activity locally when the Hub's `MotionEvent` arrives (`LiveActivityRelayUpdater`); the local Baichuan-event-driven path keeps running regardless.
+- `live-activity-tokens_v1.json` — APNs push tokens per in-flight Live Activity. `LiveActivityPushTokenRegistry` writes this under the iCloud Drive ubiquity container (`Documents/live-activity-tokens/`) when that container is available, and under local Documents otherwise. The file can therefore sync via iCloud Drive; it is not an App Group file. Schema is a `[String: Token]` dict keyed by `Activity.id`; bump the suffix on any breaking shape change. There is no APNs provider and never will be (a true Live Activity push needs a `.p8`-signed server, forbidden by §5). The tokens are not uploaded by a DomusCam sender. The Live Activity "relay" is the receiver updating its own activity locally when a relayed `MotionEvent` arrives (`LiveActivityRelayUpdater`); the local Baichuan-event-driven path keeps running regardless.
 - `com.75-c.DomusCam.collapsedHubs` (`NSUbiquitousKeyValueStore` key) — `[String]` of UUIDs for currently-collapsed sidebar hub groups. Empty set is the default "every hub expanded" state. UserDefaults mirror for offline / no-iCloud devices.
 - `com.75-c.DomusCam.mutedCameraNotifications` (`NSUbiquitousKeyValueStore` key) — `[String]` of UUIDs for cameras the user has silenced. Default empty = every camera notifies.
 - `com.75-c.DomusCam.bookmarkDL.allowCellular` (`UserDefaults` key) — bool, default false. **Device-local only** (no iCloud sync) — cellular plans differ device-to-device, so per-device is the safer default.
@@ -160,6 +166,8 @@ When you bump the schema, write the migration in the PR description.
 **0.9.0 introductions:**
 
 - `CameraEntry.controlTransport: ControlTransport?` — additive optional field in synced `cameras.json` (`.http` / `.https` / `.baichuan`, `nil` = auto/unknown). Forward-compat decode-and-ignore; an unrecognized future enum string decodes to `nil` (`try? decodeIfPresent`), so older apps tolerate a newer transport value. Encoded only when set, so an un-probed camera produces no `controlTransport` key and iCloud-sync diffs stay clean vs. a pre-0.9.0 `cameras.json`. Persisted after a successful Baichuan fallback so a web-API-off camera reconnects straight over port 9000 (GitHub #76). Non-credential, non-hostname metadata — never logged with a host.
+- `com.75-c.DomusCam.cloudKitRelay.includeSnapshots` (`UserDefaults`, device-local) — bool, default false. When false, relayed `MotionEvent` records omit the snapshot `CKAsset`. Existing `publisherEnabled` values are left as stored; this key is not backfilled to true.
+- `com.75-c.DomusCam.iCloudKeychainSyncFellBackToLocal` (`UserDefaults`, device-local) — bool. Set when a sync-on password save had to fall back to a device-local Keychain item. Not a credential.
 
 Bump the suffix on any breaking field change in a future minor release; never overload an existing `_v1` field's semantics.
 
@@ -199,7 +207,7 @@ Bump the suffix on any breaking field change in a future minor release; never ov
 ## 12. Testing
 
 - Use Swift Testing (`import Testing`, `@Test`, `#expect`). New tests should not be XCTest.
-- 80% coverage **long-term target** on `AppShared`, `ReolinkAPI`, `ReolinkStreaming`, and `ReolinkBaichuan`. The 0.5.0 release introduced `Scripts/coverage-gate.sh` and wired it into CI. **0.6.0 flipped the gate to enforced** with a different strategy: per-target *baselines* in `Scripts/coverage-baselines.txt` rather than a single global 80% floor. CI now blocks on coverage *regression* against the baseline (with a 1 pp slack); intentional regressions require running `COVERAGE_FORCE_UPDATE_BASELINE=1 ./Scripts/coverage-gate.sh` locally and committing the updated baselines file. The 80% goal is still tracked in the script header — baselines ratchet upward as new tests land. **0.6.0 baseline is ~340 tests across 68 suites** (AppShared 13.81%, ReolinkAPI 56.47%, ReolinkStreaming 23.70%, ReolinkBaichuan 32.70%). The bar moves on every new feature.
+- 80% coverage **long-term target** on `AppShared`, `ReolinkAPI`, `ReolinkStreaming`, and `ReolinkBaichuan`. The 0.5.0 release introduced `Scripts/coverage-gate.sh` and wired it into CI. **0.6.0 flipped the gate to enforced** with a different strategy: per-target *baselines* in `Scripts/coverage-baselines.txt` rather than a single global 80% floor. CI now blocks on coverage *regression* against the baseline (with a 1 pp slack); intentional regressions require running `COVERAGE_FORCE_UPDATE_BASELINE=1 ./Scripts/coverage-gate.sh` locally and committing the updated baselines file. The 80% goal is still tracked in the script header — baselines ratchet upward as new tests land. Current baselines in that file: AppShared 14.31%, ReolinkAPI 58.82%, ReolinkStreaming 23.82%, ReolinkBaichuan 32.70%. The bar moves on every new feature.
 - **XCUITest harness (added in 0.6.0)** — `AppiOS/UITests/DomusCamiOSUITests.swift` covers the high-risk navigation journeys (cold-launch → primary navigation, Settings → Notifications, Notification log push). Wired into CI as a best-effort step that auto-selects the first available iPhone simulator. New journeys should land here when they cover regressions a unit test couldn't catch.
 - No real network in tests. Use fixture servers (`URLProtocol` stubs, in-process HTTP servers) or protocol-injected fakes.
 - Each test gets a fresh instance — `init`/`deinit`, no shared mutable state.
@@ -218,17 +226,9 @@ Bump the suffix on any breaking field change in a future minor release; never ov
 - PRs reference the originating issue when there is one.
 - PRs touching auth, network, credentials, or sync MUST include a "Security" section explicitly stating what was reviewed.
 
-## 15. Agent usage
+## 15. Review before release
 
-Default to delegating to subagents for parallel exploration. Specifically:
-
-- `planner` — new features, refactors, anything where the design isn't obvious.
-- `tdd-guide` — bug fixes, write the failing test first.
-- `code-reviewer` — after writing code, before committing.
-- `security-reviewer` — before tagging any release, plus any PR touching auth/network/credentials.
-- `Explore` — broad codebase research that would take more than 3 lookups.
-
-Subagents protect the main context window and parallelize work. Use them.
+Auth, network, credential, and sync changes need a Security section in the PR (§14). Read this file and `SECURITY.md` before tagging a release. The upstream Reolens Claude reviewer workflows (`planner`, `tdd-guide`, `code-reviewer`, `security-reviewer`, `.github/workflows/claude*.yml`) were not carried into this fork — do not treat those names as jobs that exist here.
 
 ## 16. Widgets & Live Activities (added in 0.5.0)
 
@@ -251,7 +251,7 @@ The WidgetKit and ActivityKit extensions are special-purpose bundles with signif
 
 - One activity **per hub** (not per camera). A fresh fire on the **same hub** *merges* into the existing activity — dedup `aiTags`, bump `coalescedCount`, refresh `lastUpdatedAt`. Activities never stack; previous-per-camera replacement semantics from 0.5.0 are gone.
 - 8-hour stale-date window (was 4h in 0.5.0). `SharedContainer.purgeStaleActivityAssets()` still runs on every activity start to keep the trigger-frame directory bounded.
-- `Activity.request(... pushType: .token)` opts the activity in to APNs push updates; iOS hands us a token via `for await tokenData in activity.pushTokenUpdates`, which `MotionEventActivityController` forwards to `LiveActivityPushTokenRegistry`. **0.7.0:** those tokens stay device-local — DomusCam has no push provider (§5). Activities are updated by the local `update(...)` path: the device's own Baichuan events, and — new in 0.7.0 — relayed `MotionEvent`s from the Hub, applied locally by `LiveActivityRelayUpdater` in the silent-push handler. `EventNotifier.liveActivityBridge` must be assigned at launch (`AppDelegate.didFinishLaunchingWithOptions`) or no activity starts at all.
+- `Activity.request(... pushType: .token)` opts the activity in to APNs push updates; iOS hands us a token via `for await tokenData in activity.pushTokenUpdates`, which `MotionEventActivityController` forwards to `LiveActivityPushTokenRegistry`. DomusCam has no push provider (§5). The registry file lives in the iCloud Drive ubiquity container when that container exists (§7); the app does not send the tokens anywhere. Activities are updated by the local `update(...)` path: the device's own Baichuan events, and relayed `MotionEvent`s when iCloud relay is on, applied locally by `LiveActivityRelayUpdater`. `EventNotifier.liveActivityBridge` must be assigned at launch (`AppDelegate.didFinishLaunchingWithOptions`) or no activity starts at all.
 - `relevanceScore` is recency-decayed (linear over the stale window) so Dynamic Island prefers the currently-active hub when multiple activities are running.
 
 **Why this matters:** widgets and Live Activities run in user-visible OS-managed surfaces (Home Screen, Lock Screen, Dynamic Island). A leaked URL or credential here is visible system-wide. The constraints above are deliberate and non-negotiable. AGENTS.md §3, §5, §11 all apply double in this directory.

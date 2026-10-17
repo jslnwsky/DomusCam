@@ -77,11 +77,13 @@ public final class AppPreferences {
     }
 
     /// 0.7.0 — "Run this Mac as a DomusCam Hub" opt-in. When on, this
-    /// Mac connects every camera and publishes motion events to the
-    /// user's private CloudKit database even with no window open, so it
-    /// can act as the always-on listener that drives notifications,
-    /// Live Activities, and the hub-health heartbeat for the user's
-    /// other devices. See `HubEngine` / `HubController`.
+    /// Mac connects every camera and keeps those connections after the
+    /// window closes, and it writes a CloudKit heartbeat (this Mac's
+    /// name, app version, and whether motion relay is on) so other
+    /// devices can tell the Hub is alive. It does **not** publish
+    /// motion events or snapshot images — those are
+    /// `MotionEventRelaySettings`, default off. See `HubEngine` /
+    /// `HubController`.
     ///
     /// Device-local on purpose (like `developerMode` and the menu-bar
     /// keys): each Mac decides independently whether it is the Hub —
@@ -93,6 +95,13 @@ public final class AppPreferences {
         didSet {
             defaults.set(runAsHub, forKey: Self.runAsHubKey)
         }
+    }
+
+    /// Persist Hub mode and nothing else. Does not write
+    /// `MotionEventRelaySettings.publisherEnabledKey` or
+    /// `includeSnapshotsKey` — those stay at the user's values.
+    public func setRunAsHub(_ enabled: Bool) {
+        runAsHub = enabled
     }
 
     /// 0.9.0 — "Run the Local HTTP API on this Mac" opt-in. When on, this

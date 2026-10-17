@@ -6,12 +6,12 @@ import SwiftUI
 /// both platforms.
 ///
 /// The default behavior remains device-local — this section is a
-/// gateway to opt in. When the user flips the toggle on, every
-/// existing camera password is migrated to the iCloud-synced side of
-/// Keychain (and the local-only copy is removed by
-/// `Keychain.migrate(...)`). Flipping it off only changes where *new*
-/// writes go; existing iCloud-synced entries are left alone because
-/// deleting them would harm the user's other devices.
+/// gateway to opt in. Turning the toggle on copies every password onto
+/// the iCloud Keychain side and, only after that write succeeds,
+/// removes the device-local copy. Turning it off copies each password
+/// into a device-local item and leaves the iCloud Keychain item in
+/// place, because deleting it would remove the password on the user's
+/// other devices. A failed write leaves the previous item alone.
 public struct ICloudKeychainSyncSection: View {
     @Environment(CameraStore.self) private var store
     @State private var lastMigration: MigrationFeedback?
@@ -32,7 +32,8 @@ public struct ICloudKeychainSyncSection: View {
                     lastMigration = MigrationFeedback(
                         toSync: newValue,
                         migrated: result.migrated,
-                        skipped: result.skipped
+                        skipped: result.skipped,
+                        failed: result.failed
                     )
                 }
             ))
@@ -58,25 +59,38 @@ public struct ICloudKeychainSyncSection: View {
         "Turning this off later only changes where new password edits are stored. Passwords already synced to iCloud Keychain stay there so your other devices keep working."
     }
 
-    @ViewBuilder
     private func feedbackRow(for feedback: MigrationFeedback) -> some View {
-        let symbol = feedback.toSync ? "icloud.fill" : "lock.shield.fill"
-        let summary: String = {
-            if feedback.migrated == 0 && feedback.skipped == 0 {
-                return "No cameras to migrate yet."
-            }
-            let where_ = feedback.toSync ? "to iCloud Keychain" : "to device-only Keychain"
-            return "Moved \(feedback.migrated) password\(feedback.migrated == 1 ? "" : "s") \(where_)."
-        }()
-        HStack(spacing: 6) {
-            Image(systemName: symbol).foregroundStyle(.tint)
-            Text(summary).font(.footnote).foregroundStyle(.secondary)
+        let symbol = feedback.failed > 0
+            ? "exclamationmark.triangle"
+            : (feedback.toSync ? "icloud.fill" : "lock.shield.fill")
+        return Label(summary(for: feedback), systemImage: symbol)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .accessibilityElement(children: .combine)
+    }
+
+    private func summary(for feedback: MigrationFeedback) -> String {
+        var parts: [String] = []
+        if feedback.migrated == 0 && feedback.failed == 0 {
+            parts.append("No saved camera passwords to update.")
+        } else if feedback.toSync, feedback.migrated > 0 {
+            let noun = feedback.migrated == 1 ? "password" : "passwords"
+            parts.append("Copied \(feedback.migrated) \(noun) to iCloud Keychain.")
+        } else if feedback.migrated > 0 {
+            let noun = feedback.migrated == 1 ? "password" : "passwords"
+            parts.append("Saved \(feedback.migrated) \(noun) on this device. Passwords already in iCloud Keychain were left there so your other devices keep working.")
         }
+        if feedback.failed > 0 {
+            let noun = feedback.failed == 1 ? "password" : "passwords"
+            parts.append("\(feedback.failed) \(noun) could not be saved. The previous copies are still in the Keychain.")
+        }
+        return parts.joined(separator: " ")
     }
 
     private struct MigrationFeedback: Equatable {
         let toSync: Bool
         let migrated: Int
         let skipped: Int
+        let failed: Int
     }
 }

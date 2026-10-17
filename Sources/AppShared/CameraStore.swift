@@ -568,14 +568,15 @@ public final class CameraStore {
     /// chosen side rather than staying on the old one until the user
     /// happens to re-enter the password.
     ///
-    /// Returns the count of entries that were migrated and skipped
-    /// (skipped means no password was stored on this device for that
-    /// camera — common for newly-synced cameras awaiting "Enter
-    /// Password"). Never throws; OSStatus errors are logged.
+    /// Returns migrated, skipped, and failed counts. Skipped means no
+    /// password was stored on this device for that camera. Failed means
+    /// the replacement write did not read back; the previous item is
+    /// still in the Keychain. Never throws; OSStatus errors are logged
+    /// without the password.
     @discardableResult
-    public func migrateKeychainSync(toSync syncOn: Bool) -> (migrated: Int, skipped: Int) {
+    public func migrateKeychainSync(toSync syncOn: Bool) -> (migrated: Int, skipped: Int, failed: Int) {
         let result = keychainStore.migrate(accounts: cameras.map(\.id), toSync: syncOn)
-        return (result.migrated, result.skipped)
+        return (result.migrated, result.skipped, result.failed)
     }
 
     /// Look up the user's persisted rotation for a specific (channel, stream).
