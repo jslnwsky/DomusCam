@@ -90,6 +90,11 @@ public protocol BcMessageTransport: Sendable {
         stage: String
     ) async throws -> BcMessage
 
+    /// Write `message` and do not wait for a reply. Used for ping responses
+    /// and other camera-initiated exchanges where a reply slot would swallow
+    /// the next packet that reuses the message number.
+    func send(_ message: BcMessage) async throws
+
     /// Subscribe to server-initiated messages (events, status
     /// pushes, anything the camera sends without a prior
     /// request from this client). The returned stream finishes

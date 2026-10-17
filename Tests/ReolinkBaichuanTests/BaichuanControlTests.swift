@@ -26,6 +26,10 @@ actor ScriptedTransport: BcMessageTransport {
     func setCipher(_ new: BcCipher) async { cipher = new }
     func setReplyCode(_ code: UInt16) { replyCode = code }
 
+    func send(_ message: BcMessage) async throws {
+        sent.append(message)
+    }
+
     func sendAndAwait(_ message: BcMessage, timeout: TimeInterval, stage: String) async throws -> BcMessage {
         sent.append(message)
         let header = BcHeader(

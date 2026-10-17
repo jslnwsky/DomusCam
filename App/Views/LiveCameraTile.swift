@@ -60,6 +60,8 @@ struct LiveCameraTile: View {
     /// happened.
     @State private var isWaking = false
     @State private var connectionEditor: CameraEntry?
+    @State private var confirmEnableRTSP = false
+    @State private var rtspEnableFailed = false
 
     var body: some View {
         // Effective rotation has two parts:
@@ -343,6 +345,17 @@ struct LiveCameraTile: View {
             player = nil
             didStart = false
         }
+        .alert("Turn on RTSP?", isPresented: $confirmEnableRTSP) {
+            Button("Enable RTSP") { Task { await enableRTSPAndRetry() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This turns on the camera's RTSP service so live video can play. The stream stays on your home network.")
+        }
+        .alert("Couldn't turn on RTSP", isPresented: $rtspEnableFailed) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("The camera didn't accept the change.")
+        }
     }
 
     /// Compact "live unavailable" badge shown over the cached preview
@@ -360,6 +373,13 @@ struct LiveCameraTile: View {
                 Text(liveFailureTitle(error: message))
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.white)
+                if message == LiveVideoPlayer.rtspOffMessage, session.usingBaichuanControl {
+                    Button("Enable RTSP") { confirmEnableRTSP = true }
+                        .buttonStyle(.plain)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .accessibilityLabel("Enable RTSP on this camera")
+                }
                 if authenticationFailureIsLikely(error: message), let onEnterPassword {
                     Button {
                         onEnterPassword()
@@ -397,7 +417,8 @@ struct LiveCameraTile: View {
     }
 
     private func liveFailureTitle(error message: String) -> String {
-        authenticationFailureIsLikely(error: message) ? "Check password" : "Live unavailable"
+        if message == LiveVideoPlayer.rtspOffMessage { return "RTSP is off" }
+        return authenticationFailureIsLikely(error: message) ? "Check password" : "Live unavailable"
     }
 
     private func authenticationFailureIsLikely(error message: String) -> Bool {
@@ -614,7 +635,32 @@ struct LiveCameraTile: View {
             rotationDegrees: rotation
         )
         self.player = p
-        p.start()
+        let portOpen = await TCPPortProbe.isAccepting(host: credentials.host, port: 554, timeout: 0.5)
+        switch LiveVideoRoute.choose(usingBaichuanControl: session.usingBaichuanControl, rtspPortOpen: portOpen) {
+        case .rtsp:
+            p.start(portAlreadyVerifiedOpen: true)
+        case .baichuan:
+            if let frames = await session.baichuanLiveFrames(channel: channel.channel, stream: stream) {
+                p.start(frames: frames)
+            } else {
+                p.reportRTSPOff()
+            }
+        case .rtspOff:
+            p.reportRTSPOff()
+        }
+    }
+
+    private func enableRTSPAndRetry() async {
+        do {
+            try await session.enableRTSP()
+        } catch {
+            rtspEnableFailed = true
+            return
+        }
+        player?.stop()
+        player = nil
+        didStart = false
+        await startPlayer()
     }
 
     /// Auto-rotation correction for a portrait-oriented decoded stream.

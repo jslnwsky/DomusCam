@@ -117,6 +117,10 @@ public actor BaichuanClient {
         try await transport.sendAndAwait(message, timeout: timeout, stage: stage)
     }
 
+    public func send(_ message: BcMessage) async throws {
+        try await transport.send(message)
+    }
+
     public func nextMessageNumber() async -> UInt16 {
         await transport.nextMessageNumber()
     }

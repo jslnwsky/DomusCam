@@ -334,6 +334,13 @@ public actor CameraDiscovery {
         )
     }
 
+    /// A web probe is only worth a `URLSession` task when something is
+    /// already accepting TCP on that port. Closed and silent ports used to
+    /// fan out into a burst of timed-out tasks.
+    nonisolated static func shouldIssueWebProbe(tcpPortAcceptsConnections: Bool) -> Bool {
+        tcpPortAcceptsConnections
+    }
+
     /// Single-endpoint probe: GET the Reolink CGI on `scheme://host:port`
     /// and classify the response. Returns `nil` on any transport error or
     /// non-Reolink-looking reply. A `"cmd"` + `"rspCode"` envelope confirms
@@ -352,6 +359,11 @@ public actor CameraDiscovery {
         components.path = "/cgi-bin/api.cgi"
         components.queryItems = [URLQueryItem(name: "cmd", value: "GetDevInfo")]
         guard let url = components.url else { return nil }
+        // Don't open a URLSession task unless the port accepts TCP. A /24
+        // sweep otherwise creates two tasks per address (about 500), and the
+        // silent ones all fail together with NSURLErrorTimedOut.
+        let accepts = await TCPPortProbe.isAccepting(host: host, port: UInt16(port), timeout: 0.4)
+        guard Self.shouldIssueWebProbe(tcpPortAcceptsConnections: accepts) else { return nil }
 
         var req = URLRequest(url: url)
         req.httpMethod = "GET"

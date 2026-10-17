@@ -78,6 +78,9 @@ public struct LiveCameraAPI: CameraAPI {
 
     public func reboot(_ id: CameraID) async throws {
         let session = try await connectedSession(id)
+        guard CameraSession.shouldPollWebAPI(usingBaichuanControl: session.usingBaichuanControl) else {
+            throw APIError.upstreamUnreachable("This camera's web API is off")
+        }
         // Best-effort: a reboot tears down the control connection, so a
         // transport error right after dispatch is the expected outcome, not a
         // failure. `connectedSession` already verified the camera is reachable
@@ -233,6 +236,25 @@ public struct LiveCameraAPI: CameraAPI {
 
     @MainActor
     private func loadChannels(_ session: CameraSession) async throws -> [ChannelResource] {
+        if !CameraSession.shouldPollWebAPI(usingBaichuanControl: session.usingBaichuanControl) {
+            return session.liveChannels.map { ch in
+                ChannelResource(
+                    id: ch.channel,
+                    name: ch.name,
+                    online: ch.isOnline,
+                    isDualLens: session.isDualLens(channel: ch.channel),
+                    isBatteryPowered: session.isBatteryPowered(channel: ch.channel),
+                    battery: session.batteryByChannel[ch.channel].map {
+                        BatteryInfo(
+                            percent: $0.percent,
+                            charging: $0.chargeStatus.lowercased() == "charging",
+                            pluggedIn: $0.isPluggedIn
+                        )
+                    },
+                    capabilities: ChannelCapabilities(ptz: false, talk: false, ai: [])
+                )
+            }
+        }
         // One ability fetch for the whole device covers ptz/talk per channel.
         let ability = try? await session.client
             .send(Commands.getAbility(username: session.credentials.username), as: AbilityEnvelope.self)
@@ -277,6 +299,9 @@ public struct LiveCameraAPI: CameraAPI {
 
     @MainActor
     private func fetchSnapshot(_ session: CameraSession, channel: Int) async throws -> Data {
+        guard CameraSession.shouldPollWebAPI(usingBaichuanControl: session.usingBaichuanControl) else {
+            throw APIError.upstreamUnreachable("This camera's web API is off")
+        }
         do {
             return try await session.client.snapshotData(channel: channel)
         } catch {
@@ -286,6 +311,9 @@ public struct LiveCameraAPI: CameraAPI {
 
     @MainActor
     private func searchRecordings(_ session: CameraSession, channel: Int, query: RecordingQuery) async throws -> RecordingPage {
+        guard CameraSession.shouldPollWebAPI(usingBaichuanControl: session.usingBaichuanControl) else {
+            throw APIError.upstreamUnreachable("This camera's web API is off")
+        }
         let envelope: SearchEnvelope
         do {
             envelope = try await session.client.send(
@@ -323,7 +351,8 @@ public struct LiveCameraAPI: CameraAPI {
     private func readSettings(_ session: CameraSession, channel: Int) async -> ChannelSettings {
         var name = session.liveChannels.first(where: { $0.channel == channel })?.name
         var osd: OSDSettings?
-        if let envelope = try? await session.client.send(Commands.getOsd(channel: channel), as: OsdEnvelope.self) {
+        if CameraSession.shouldPollWebAPI(usingBaichuanControl: session.usingBaichuanControl),
+           let envelope = try? await session.client.send(Commands.getOsd(channel: channel), as: OsdEnvelope.self) {
             osd = OSDSettings(
                 showName: envelope.Osd.osdChannel?.isEnabled,
                 showDate: envelope.Osd.osdTime?.isEnabled
@@ -340,7 +369,8 @@ public struct LiveCameraAPI: CameraAPI {
         if let enabled = patch.notificationsEnabled {
             CameraNotificationPreferences.shared.setNotificationsEnabled(enabled, for: session.entry.id, channel: channel)
         }
-        if patch.osd != nil || patch.name != nil {
+        if CameraSession.shouldPollWebAPI(usingBaichuanControl: session.usingBaichuanControl),
+           patch.osd != nil || patch.name != nil {
             // Read-modify-write the device OSD block so we only touch the
             // requested fields.
             if var osd = try? await session.client.send(Commands.getOsd(channel: channel), as: OsdEnvelope.self).Osd {

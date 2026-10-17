@@ -595,11 +595,12 @@ public final class CameraSession {
     /// camera the CGI path can reach — normal cameras are unaffected.
     ///
     /// Confirms reachability + credentials with a Baichuan login, then brings
-    /// the session up in Baichuan control mode: live video rides RTSP:554 and
-    /// motion/AI events ride the Baichuan push stream (both independent of
-    /// CGI), and PTZ routes through `BaichuanClient.ptzControl`. Recording
-    /// search and CGI snapshots degrade gracefully until their Baichuan
-    /// equivalents land. Returns `true` when the session is now connected.
+    /// the session up in Baichuan control mode. Motion and AI events ride the
+    /// Baichuan push stream. Live video uses RTSP when port 554 accepts a
+    /// connection, and the same Baichuan session's preview (msg_id 3) when it
+    /// does not. PTZ routes through `BaichuanClient.ptzControl`. Recording
+    /// search stays on the web API, which this camera does not answer.
+    /// Returns `true` when the session is now connected.
     private func tryBaichuanControlFallback() async -> Bool {
         log.notice("HTTP and HTTPS refused; attempting Baichuan control over port 9000")
         connectionStage = .establishingPushChannel
@@ -718,10 +719,14 @@ public final class CameraSession {
                     // and msgID=252 (battery) on a single TCP
                     // connection it already gave us.
                     self.startBatterySubscriber(client: client)
+                    let keepalive = Task { @MainActor [weak self] in
+                        await self?.runBaichuanKeepalive(client)
+                    }
                     let events = try await client.subscribeToAlarmEvents()
                     for await event in events {
                         self.recordAIEvent(event)
                     }
+                    keepalive.cancel()
                     // Stream finished cleanly (Baichuan TCP dropped).
                     // Fall through to the retry below.
                     log.info("Baichuan alarm stream ended; will retry in \(backoffSeconds, privacy: .public)s")
@@ -739,6 +744,26 @@ public final class CameraSession {
             }
             self.baichuanClient = nil
         }
+    }
+
+    /// Cameras drop a quiet port-9000 session after about 30 seconds
+    /// ("TCP receive reports complete"). Reply to their pings and send one
+    /// of our own well inside that window. The task ends when the alarm
+    /// stream ends; `startBaichuanEvents` then opens a fresh connection.
+    private func runBaichuanKeepalive(_ client: BaichuanClient) async {
+        let inbound = await client.subscribe()
+        let replies = Task {
+            for await message in inbound {
+                guard message.header.msgID == BcMessageID.ping else { continue }
+                await client.replyToPing(echoing: message)
+            }
+        }
+        while !Task.isCancelled {
+            await client.sendKeepalivePing()
+            if Task.isCancelled { break }
+            try? await Task.sleep(for: .seconds(15))
+        }
+        replies.cancel()
     }
 
     private func startBatterySubscriber(client: BaichuanClient) {
@@ -932,7 +957,14 @@ public final class CameraSession {
         pollManager.start()
     }
 
+    /// CGI motion polling hits port 80/443. A camera whose web API is off
+    /// must not be polled — those requests sit until `NSURLErrorTimedOut`.
+    nonisolated static func shouldPollWebAPI(usingBaichuanControl: Bool) -> Bool {
+        !usingBaichuanControl
+    }
+
     private func pollOnce() async {
+        guard Self.shouldPollWebAPI(usingBaichuanControl: usingBaichuanControl) else { return }
         for ch in liveChannels where ch.isOnline && !Task.isCancelled {
             // safe: best-effort capability probe. Failure → keep the
             // last-known state for this channel; the next poll retries
