@@ -78,6 +78,14 @@ public struct LiveCameraAPI: CameraAPI {
 
     public func reboot(_ id: CameraID) async throws {
         let session = try await connectedSession(id)
+        try await rebootIfWebAPI(session)
+    }
+
+    /// `reboot` is a nonisolated `CameraAPI` method. Once `connectedSession`
+    /// returns, the caller is off the main actor, so `usingBaichuanControl`
+    /// and `client` are read in this hop.
+    @MainActor
+    private func rebootIfWebAPI(_ session: CameraSession) async throws {
         guard CameraSession.shouldPollWebAPI(usingBaichuanControl: session.usingBaichuanControl) else {
             throw APIError.upstreamUnreachable("This camera's web API is off")
         }
