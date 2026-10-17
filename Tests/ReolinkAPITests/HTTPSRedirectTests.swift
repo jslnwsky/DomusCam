@@ -116,7 +116,7 @@ struct HTTPSRedirectTests {
 /// Returns 301 from HTTP POST, and an HTML page if a client follows it to HTTPS.
 /// A `.loginJSON` mode returns a normal CGI login body so the decode path stays covered.
 final class RedirectURLProtocol: URLProtocol, @unchecked Sendable {
-    enum Behavior: Sendable { case redirectToHTTPS, case loginJSON }
+    enum Behavior: Sendable { case redirectToHTTPS, loginJSON }
     struct Counts: Sendable { var httpPosts = 0; var httpsRequests = 0 }
 
     private static let lock = NSLock()
