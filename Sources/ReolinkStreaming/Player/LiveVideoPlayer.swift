@@ -128,7 +128,9 @@ public final class LiveVideoPlayer {
 
     /// User-facing line when port 554 does not accept TCP. The tile pairs
     /// this with an Enable RTSP action. No host or URL.
-    public static let rtspOffMessage = RTSPStartDecision.offMessage
+    /// `nonisolated` so a test or other non-UI caller can read it; the
+    /// value does not touch player state. The class is `@MainActor`.
+    public nonisolated static let rtspOffMessage = RTSPStartDecision.offMessage
 
     public func start(portAlreadyVerifiedOpen: Bool = false) {
         guard task == nil else { return }

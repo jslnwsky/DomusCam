@@ -2,6 +2,7 @@ import Foundation
 import Network
 import OSLog
 import Darwin
+import ReolinkAPI
 import ReolinkBaichuan
 
 private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "discovery")
