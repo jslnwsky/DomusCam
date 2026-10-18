@@ -134,7 +134,12 @@ struct HTTPSRedirectEdgeTests {
 
     // MARK: CGI client, stubbed transport
 
-    @Test func aSameScheme307StillLogsIn() async throws {
+    @Test func a307ThatReachesTheClientIsHTTPSRequired() async {
+        // A custom URLProtocol does not follow redirects, so this 307 is
+        // delivered to the CGI client. Any 3xx is "HTTPS required" rather
+        // than a decoded login, and the second hop is not issued. The
+        // decision to follow a same-scheme 307 on a real connection is
+        // pinned by the delegate test above.
         ScriptedHTTPProtocol.reset([
             .http(status: 307, headers: [
                 "Location": "http://127.0.0.1/cgi-bin/api.cgi?cmd=Login&followed=1",
@@ -143,9 +148,8 @@ struct HTTPSRedirectEdgeTests {
             .http(status: 200, headers: ["Content-Type": "application/json"], body: Self.loginJSON)
         ])
         let client = client(refusingRedirects: true)
-        let token = try await client.login()
-        #expect(token.name == "tok-edge")
-        #expect(ScriptedHTTPProtocol.snapshot().count == 2)
+        await expectHTTPSRequired(client)
+        #expect(ScriptedHTTPProtocol.snapshot().count == 1)
     }
 
     @Test func a302IsHTTPSRequiredAndIsNotFollowed() async throws {
