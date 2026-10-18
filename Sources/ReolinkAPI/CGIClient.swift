@@ -12,6 +12,10 @@ public enum ReolinkClientError: Error, CustomStringConvertible {
     case notLoggedIn
     case commandFailed(cmd: String, error: CGIError)
     case emptyResponse
+    /// The camera answered with a redirect (or the HTML page URLSession
+    /// landed on after following one). The login POST must not be treated
+    /// as a successful CGI body. Host-free on purpose (AGENTS.md §3).
+    case httpsRequired
 
     public var description: String {
         switch self {
@@ -22,7 +26,17 @@ public enum ReolinkClientError: Error, CustomStringConvertible {
         case .notLoggedIn: return "Not logged in"
         case .commandFailed(let cmd, let e): return "Command \(cmd) failed: \(e.description)"
         case .emptyResponse: return "Empty response"
+        case .httpsRequired: return "This camera requires HTTPS."
         }
+    }
+}
+
+extension ReolinkClientError: LocalizedError {
+    public var errorDescription: String? {
+        if case .httpsRequired = self {
+            return "This camera requires HTTPS."
+        }
+        return nil
     }
 }
 
@@ -158,6 +172,9 @@ public actor CGIClient {
         guard let http = response as? HTTPURLResponse else {
             throw ReolinkClientError.malformedResponse("non-HTTP response")
         }
+        if Self.httpsRequired(method: request.httpMethod, request: request, response: http) {
+            throw ReolinkClientError.httpsRequired
+        }
         guard (200..<300).contains(http.statusCode) else {
             throw ReolinkClientError.http(status: http.statusCode, body: nil)
         }
@@ -273,10 +290,30 @@ public actor CGIClient {
         guard let http = response as? HTTPURLResponse else {
             throw ReolinkClientError.malformedResponse("non-HTTP response")
         }
+        // A 301/302 from HTTP to HTTPS must surface here. Following it
+        // rewrites this POST as a GET, drops the JSON body, and the
+        // camera's HTML page then fails JSON decode as malformedResponse.
+        if Self.httpsRequired(method: request.httpMethod, request: request, response: http) {
+            throw ReolinkClientError.httpsRequired
+        }
         guard (200..<300).contains(http.statusCode) else {
             throw ReolinkClientError.http(status: http.statusCode, body: String(data: data, encoding: .utf8))
         }
         return data
+    }
+
+    /// True when `response` is a redirect, or the HTML/HTTPS result of
+    /// URLSession having already followed one. The body is intentionally
+    /// not inspected beyond the content type — it can be the camera's
+    /// web page and must not be logged.
+    static func httpsRequired(method: String?, request: URLRequest, response: HTTPURLResponse) -> Bool {
+        HTTPRedirectPolicy.isHTTPSRequiredCGI(
+            method: method,
+            requestURL: request.url,
+            statusCode: response.statusCode,
+            responseURL: response.url,
+            contentType: response.value(forHTTPHeaderField: "Content-Type")
+        )
     }
 
     /// Reolink hubs are very easy to overload with overlapping CGI
@@ -396,7 +433,7 @@ public struct TLSPinningPolicy: Sendable {
 /// CGIClient. Cert mismatches reject the challenge — the URLSession
 /// request fails with a transport error, which surfaces in
 /// `CameraSession.connect()` as a `.error("trust changed")` status.
-final class PinningTLSDelegate: NSObject, URLSessionDelegate, @unchecked Sendable {
+final class PinningTLSDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
     private let policy: TLSPinningPolicy
 
     init(policy: TLSPinningPolicy) {
@@ -441,5 +478,24 @@ final class PinningTLSDelegate: NSObject, URLSessionDelegate, @unchecked Sendabl
             policy.onObserved(fingerprint)
             completionHandler(.useCredential, URLCredential(trust: trust))
         }
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest,
+        completionHandler: @escaping @Sendable (URLRequest?) -> Void
+    ) {
+        // Refuse 301/302/303. URLSession would turn the CGI POST into a
+        // GET, drop the body, and return the camera's HTML page.
+        // Cross-scheme redirects are refused too: HTTPS is a new
+        // connection that must be pinned, not followed from HTTP.
+        let follow = HTTPRedirectPolicy.shouldFollowCGIRedirect(
+            from: task.originalRequest?.url,
+            status: response.statusCode,
+            to: request.url
+        )
+        completionHandler(follow ? request : nil)
     }
 }

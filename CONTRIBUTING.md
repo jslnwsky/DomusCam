@@ -77,7 +77,7 @@ the diagram. The short version:
 | iOS / iPadOS SwiftUI views | `AppiOS/Sources/Views/` |
 | iOS WidgetKit + Control Center + ActivityKit extension | `AppiOS/Widgets/` |
 | iOS Live Activity controller + bridge adapter | `AppiOS/Sources/LiveActivities/` |
-| Build/sign/notarize/DMG | `Scripts/` |
+| Build / sign | `Scripts/` |
 | Landing page | `docs/` |
 
 **If you find yourself about to write the same function twice** (once
@@ -171,9 +171,10 @@ one. Short version:
    [`CHANGELOG.md`](CHANGELOG.md).
 4. Tag and push: `git tag v0.6.0 && git push --tags`.
 
-The `release.yml` workflow handles signing, notarization, DMG
-packaging, appcast regeneration, and publishing the GitHub Release
-automatically from the tag.
+The `release.yml` workflow signs the App Store / TestFlight builds and
+publishes the GitHub Release from the tag. The Sparkle appcast and
+Developer-ID DMG path were retired in 0.7.0; do not revive
+`docs/appcast.xml`.
 
 ## Code of conduct
 

@@ -84,12 +84,30 @@ public struct BcMessage: Sendable {
             let extEnd = rawBody.startIndex + Int(po)
             let extBytes = rawBody.subdata(in: rawBody.startIndex..<extEnd)
             let bodyBytes = rawBody.subdata(in: extEnd..<rawBody.endIndex)
-            extensionBody = cipher.decrypt(extBytes, encOffset: encOffset)
-            body = cipher.decrypt(bodyBytes, encOffset: encOffset)
+            extensionBody = Self.readablePayload(cipher.decrypt(extBytes, encOffset: encOffset), raw: extBytes)
+            body = Self.readablePayload(cipher.decrypt(bodyBytes, encOffset: encOffset), raw: bodyBytes)
         } else {
             extensionBody = nil
-            body = cipher.decrypt(rawBody, encOffset: encOffset)
+            body = Self.readablePayload(cipher.decrypt(rawBody, encOffset: encOffset), raw: rawBody)
         }
         return (BcMessage(header: header, body: body, extensionBody: extensionBody), consumed: totalLength)
+    }
+
+    /// Prefer whichever copy is XML or a BcMedia packet.
+    ///
+    /// Control messages are encrypted after login. Some firmware still sends
+    /// the preview's binary frames in the clear, and decrypting those bytes
+    /// destroys the `1001` / `00dc` header. If the decrypted bytes don't look
+    /// like a payload we understand and the raw bytes do, keep the raw bytes.
+    static func readablePayload(_ decrypted: Data, raw: Data) -> Data {
+        if looksReadable(decrypted) { return decrypted }
+        if looksReadable(raw) { return raw }
+        return decrypted
+    }
+
+    private static func looksReadable(_ data: Data) -> Bool {
+        if data.first == UInt8(ascii: "<") { return true }
+        guard data.count >= 4 else { return false }
+        return BaichuanMediaParser.isMediaMagic(data.readLE(at: 0, as: UInt32.self))
     }
 }

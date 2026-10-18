@@ -497,11 +497,13 @@ public final class EventNotifier {
 
         #if os(macOS)
         if relayAllowed {
+            // The local notification keeps the JPEG. CloudKit gets it
+            // only when the user has opted in to snapshot upload.
             await dispatchRelay(
                 event: event,
                 cameraID: cameraID,
                 cameraName: cameraName,
-                snapshotFileURL: attachment?.url
+                snapshotFileURL: MotionEventRelaySettings.snapshotURLForRelay(attachment?.url)
             )
         }
         #endif
@@ -973,9 +975,24 @@ public final class EventNotifier {
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = 2
         config.timeoutIntervalForResource = 4
-        let session = URLSession(configuration: config)
+        let session = URLSession(
+            configuration: config,
+            delegate: MediaRedirectDelegate.shared,
+            delegateQueue: nil
+        )
+        defer { session.finishTasksAndInvalidate() }
         do {
             let (data, response) = try await session.data(from: url)
+            if let http = response as? HTTPURLResponse,
+               HTTPRedirectPolicy.mediaPayloadRejected(
+                   requestURL: url,
+                   statusCode: http.statusCode,
+                   responseURL: http.url,
+                   contentType: http.value(forHTTPHeaderField: "Content-Type")
+               ) {
+                log.warning("Snap rejected (HTTP \(http.statusCode, privacy: .public)); skipping attachment")
+                return nil
+            }
             if let http = response as? HTTPURLResponse, http.statusCode >= 400 {
                 log.warning("Snap returned HTTP \(http.statusCode); skipping attachment")
                 return nil

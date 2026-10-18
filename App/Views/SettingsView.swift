@@ -24,6 +24,7 @@ struct SettingsView: View {
     @AppStorage(AppPreferences.runAsHubKey) private var runAsHub: Bool = false
     @AppStorage(AppPreferences.runLocalAPIKey) private var runLocalAPI: Bool = false
     @State private var hubEngine: HubEngine?
+    @State private var confirmRunAsHub: Bool = false
     @State private var apiToken: String?
     @Environment(CameraStore.self) private var store
 
@@ -119,22 +120,38 @@ struct SettingsView: View {
     }
 
     /// 0.7.0 — macOS-only "DomusCam Hub" section. Designating this Mac as
-    /// the Hub makes it the active listener: it connects every camera and
-    /// publishes motion events to the user's private CloudKit database so
-    /// their other Apple devices get notifications, Live Activities, and
-    /// remote viewing. The engine keeps running after the window closes;
-    /// pair with "Launch at login" so it restarts automatically after a
-    /// reboot. One Mac per home should be the Hub; others stay passive
-    /// viewers. No iOS analog (iPhone/iPad can't hold a background
-    /// listener) — AGENTS.md §1 carve-out.
+    /// the Hub makes it the always-on listener: it connects every camera
+    /// and keeps those connections after the window closes. Motion-event
+    /// relay and snapshot upload are separate Notifications settings and
+    /// stay off until the user turns them on. The heartbeat (this Mac's
+    /// name) does go to the user's private iCloud while Hub is on, which
+    /// is why enabling asks for confirmation. Pair with "Launch at login"
+    /// to restart after a reboot. No iOS analog — AGENTS.md §1 carve-out.
     private var hubSection: some View {
         Section("DomusCam Hub") {
-            Toggle("Run this Mac as a DomusCam Hub", isOn: $runAsHub)
-                .onChange(of: runAsHub) { _, newValue in
-                    HubController.shared.setRunAsHub(newValue, store: store)
+            Toggle("Run this Mac as a DomusCam Hub", isOn: Binding(
+                get: { runAsHub },
+                set: { newValue in
+                    if newValue {
+                        confirmRunAsHub = true
+                    } else {
+                        HubController.shared.setRunAsHub(false, store: store)
+                        runAsHub = false
+                        hubEngine = HubController.shared.activeEngine
+                    }
+                }
+            ))
+            .alert("Run this Mac as a Hub?", isPresented: $confirmRunAsHub) {
+                Button("Run as Hub") {
+                    HubController.shared.setRunAsHub(true, store: store)
+                    runAsHub = true
                     hubEngine = HubController.shared.activeEngine
                 }
-            Text("New in 0.7.0. Pick one Mac (a Mac mini is ideal) as your Hub — it watches every camera and relays motion to your iPhone, iPad, Apple TV, and Watch using your own iCloud, no DomusCam server. It keeps watching after you close the window; turn on “Launch at login” to have it start automatically. Turn it off here anytime.")
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This Mac stays connected to your cameras after you close the window. It also sends this Mac’s name and a heartbeat to your private iCloud so your other devices can tell the Hub is online. Motion events and snapshot images are not included. Those are separate switches under Notifications, and they stay off until you turn them on.")
+            }
+            Text("Keeps this Mac connected to every camera, including after you close the window. Turn on “Launch at login” to start it after a reboot. Motion alerts to your other devices are a separate choice under Notifications — this switch does not turn them on. While Hub is on, this Mac’s name and a heartbeat go to your private iCloud. Camera video stays on this Mac.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             if runAsHub, let engine = hubEngine {

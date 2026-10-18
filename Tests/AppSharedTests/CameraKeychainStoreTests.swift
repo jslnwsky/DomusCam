@@ -68,5 +68,6 @@ struct CameraKeychainStoreTests {
         let result = store.migrate(accounts: [], toSync: false)
         #expect(result.migrated == 0)
         #expect(result.skipped == 0)
+        #expect(result.failed == 0)
     }
 }

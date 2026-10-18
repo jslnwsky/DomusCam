@@ -87,14 +87,22 @@ public final class CameraKeychainStore {
         set { UserDefaults.standard.set(newValue, forKey: Keychain.syncDefaultsKey) }
     }
 
-    /// Re-save each known password on the requested sync side. Used
-    /// when the user toggles iCloud Keychain Sync — the previous
-    /// items on the other side are removed, so this device's
-    /// Keychain ends up with one canonical copy per camera.
+    /// Re-save each known password on the requested sync side.
+    ///
+    /// Turning sync on copies onto the synchronizable item and then
+    /// removes the device-local copy. Turning sync off copies onto a
+    /// device-local item and leaves the synchronizable item in place
+    /// so iCloud Keychain does not propagate a deletion. `failed`
+    /// counts writes that did not read back; those passwords are still
+    /// in the Keychain.
     @discardableResult
     public func migrate(accounts: [UUID], toSync syncOn: Bool) -> MigrationResult {
         let kcResult = Keychain.migrate(accounts: accounts, toSync: syncOn)
-        return MigrationResult(migrated: kcResult.migrated, skipped: kcResult.skipped)
+        return MigrationResult(
+            migrated: kcResult.migrated,
+            skipped: kcResult.skipped,
+            failed: kcResult.failed
+        )
     }
 
     /// Public-API mirror of `Keychain.MigrationResult` so call sites
@@ -102,10 +110,12 @@ public final class CameraKeychainStore {
     public struct MigrationResult: Sendable, Equatable {
         public let migrated: Int
         public let skipped: Int
+        public let failed: Int
 
-        public init(migrated: Int, skipped: Int) {
+        public init(migrated: Int, skipped: Int, failed: Int) {
             self.migrated = migrated
             self.skipped = skipped
+            self.failed = failed
         }
     }
 }

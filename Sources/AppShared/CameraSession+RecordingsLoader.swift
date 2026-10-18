@@ -55,6 +55,9 @@ extension CameraSession: RecordingsDataSource {
         end: Date,
         captureRaw: Bool
     ) async -> RecordingsSearchOutcome {
+        if !Self.shouldPollWebAPI(usingBaichuanControl: usingBaichuanControl) {
+            return .failure("This camera's web API is off, so the recording list isn't available.")
+        }
         let startedAt = Date()
         let command = Commands.search(
             channel: channel,

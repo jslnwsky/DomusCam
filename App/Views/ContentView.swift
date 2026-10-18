@@ -98,6 +98,7 @@ struct EmptyDetailView: View {
 struct MissingPasswordDetailView: View {
     let entry: CameraEntry
     let onEnterPassword: () -> Void
+    @State private var connectionEditor: CameraEntry?
 
     var body: some View {
         ContentUnavailableView {
@@ -107,6 +108,13 @@ struct MissingPasswordDetailView: View {
         } actions: {
             Button("Enter Password…", action: onEnterPassword)
                 .buttonStyle(.borderedProminent)
+            Button("Edit Connection…", systemImage: "network") {
+                connectionEditor = entry
+            }
+            .accessibilityLabel("Edit Connection")
+        }
+        .sheet(item: $connectionEditor) { editing in
+            EditConnectionSheet(entry: editing)
         }
     }
 }

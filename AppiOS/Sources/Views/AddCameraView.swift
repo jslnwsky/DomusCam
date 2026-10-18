@@ -131,16 +131,16 @@ struct AddCameraView: View {
         if displayName.isEmpty || displayName == host {
             displayName = device.displayName
         }
-        pickedTransport = device.controlTransport
-        // For a web-API-off (Baichuan) camera, discovery reports port 9000 —
-        // that's the Baichuan listener, not a CGI port. Store the CGI default
-        // (80); the persisted `.baichuan` transport makes the connect go
-        // straight to port 9000 internally. GitHub #76. For HTTP/HTTPS cameras,
-        // keep the port discovery responded on. The user can override either.
-        port = device.controlTransport == .baichuan ? "80" : "\(device.port)"
-        // Reolink cameras don't advertise HTTPS-only by default; the
-        // discovery sweep is HTTP. Leave `useHTTPS` at whatever the
-        // user picked.
+        // HTTPS when 443 answered, HTTP when that is the only web port,
+        // and port 80 plus `.baichuan` when the web API is off. The user
+        // can still override the toggle before saving.
+        let preferred = PreferredCameraConnection(
+            discoveredPort: device.port,
+            transport: device.controlTransport
+        )
+        pickedTransport = preferred.controlTransport
+        port = "\(preferred.port)"
+        useHTTPS = preferred.useHTTPS
     }
 }
 

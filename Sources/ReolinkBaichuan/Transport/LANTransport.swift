@@ -159,6 +159,12 @@ public actor LANTransport: BcMessageTransport {
         return msg
     }
 
+    public func send(_ message: BcMessage) async throws {
+        let bytes = message.encode(cipher: cipher)
+        guard let connection else { throw BaichuanError.connectionFailed("Not connected") }
+        try await sendRaw(bytes, via: connection)
+    }
+
     public func nextMessageNumber() -> UInt16 {
         let n = nextMsgNum
         nextMsgNum &+= 1
@@ -214,7 +220,10 @@ public actor LANTransport: BcMessageTransport {
         if let error {
             log.warning("Receive error: \(error.localizedDescription, privacy: .public)")
         }
-        if isComplete {
+        // `close()` sets `isClosed` before cancelling the socket. A receive
+        // completion after that is our own teardown (the login probe does
+        // this on purpose). Only a still-open connection ending is the peer.
+        if isComplete, !isClosed {
             log.warning("TCP receive reports complete (peer closed)")
         }
         if isComplete || error != nil {

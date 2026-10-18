@@ -9,8 +9,10 @@ import OSLog
 /// `CameraSession.connect()`. A headless, window-less launch therefore
 /// connects *nothing*. `HubEngine` closes that gap: when this Mac is the
 /// designated Hub it eagerly connects **every** camera and keeps them
-/// connected, so motion events flow to the user's private CloudKit
-/// database — and on to the user's other devices — with no window open.
+/// connected, so motion events reach this Mac's notifier with no
+/// window open. Publishing those events to CloudKit is a separate,
+/// default-off setting (`MotionEventRelaySettings.publisherEnabled`);
+/// Hub mode does not turn it on.
 ///
 /// It deliberately holds no camera logic of its own. All connect /
 /// disconnect / status work routes through the ``HubCameraHosting``

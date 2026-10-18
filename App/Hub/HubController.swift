@@ -8,15 +8,13 @@ import os
 /// notifications, Live Activities, and the hub-health heartbeat for the
 /// user's other devices.
 ///
-/// Enabling Hub mode couples two things that together *are* the Hub:
+/// Enabling Hub mode starts the always-on listener and the CloudKit
+/// heartbeat (this Mac's name and whether motion relay is on). It does
+/// **not** enable motion-event relay or snapshot upload. Those are
+/// separate Settings toggles, default off
+/// (`MotionEventRelaySettings`).
 ///
-/// 1. `AppPreferences.runAsHub` — read at launch (by `syncFromDefaults`)
-///    to decide whether to start hosting.
-/// 2. `MotionEventRelaySettings.publisherEnabled` — the existing
-///    CloudKit publisher gate (`EventNotifier` already checks it); being
-///    the Hub *is* being the publisher.
-///
-/// The Hub keeps publishing as long as DomusCam is running, including
+/// The Hub keeps its camera connections as long as DomusCam is running, including
 /// after the last window closes (see
 /// `applicationShouldTerminateAfterLastWindowClosed`). To have it come
 /// back automatically after a reboot, pair it with "Launch at login"
@@ -25,8 +23,9 @@ import os
 /// headless background LaunchAgent — a login agent that relaunches the
 /// binary itself isn't App Store compatible (AGENTS.md §1 carve-out).
 ///
-/// macOS-only by intent: iOS/iPadOS can't hold a background listener and
-/// rely on the Hub Mac + CloudKit. The reconcile/connect logic itself
+/// macOS-only by intent: iOS/iPadOS can't hold a background listener.
+/// Other devices receive motion events only when iCloud relay is also
+/// on. The reconcile/connect logic itself
 /// lives in the cross-platform `HubEngine` so it stays unit-testable;
 /// this controller is the thin macOS lifecycle shell around it.
 @MainActor
@@ -78,16 +77,14 @@ final class HubController {
         startEngine(store: store)
     }
 
-    /// Apply the user's "Run this Mac as a DomusCam Hub" toggle. Flips the
-    /// runAsHub flag + the CloudKit publisher flag together, and starts /
-    /// stops the engine.
+    /// Apply the user's "Run this Mac as a DomusCam Hub" toggle.
+    ///
+    /// Starts or stops the engine and the heartbeat. Does not write the
+    /// CloudKit motion-relay or snapshot keys — `AppPreferences.setRunAsHub`
+    /// only persists `runAsHub`. Relay stays whatever the user set under
+    /// Notifications.
     func setRunAsHub(_ enabled: Bool, store: CameraStore) {
-        store.preferences.runAsHub = enabled
-        // Being the Hub implies publishing motion events to CloudKit —
-        // that is the point. Write the existing publisher key so
-        // `EventNotifier`'s relay gate and the publisher Settings toggle
-        // both reflect it without new plumbing.
-        UserDefaults.standard.set(enabled, forKey: MotionEventRelaySettings.publisherEnabledKey)
+        store.preferences.setRunAsHub(enabled)
         if enabled {
             startEngine(store: store)
         } else {

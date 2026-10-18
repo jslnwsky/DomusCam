@@ -10,8 +10,17 @@ lineage this project was forked from.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A camera with RTSP turned off can still show live video.** When only the Baichuan port (9000) is open, DomusCam plays the camera's own preview on that connection instead of trying six RTSP addresses. If that preview does not start, the tile says RTSP is off and can turn RTSP on after you confirm. A closed RTSP port is checked once, so the tile does not sit through half a minute of timeouts. Finding cameras on the network no longer opens a web request to addresses that are not listening, and a camera already known to have its web API off is not polled over HTTP. The Baichuan connection sends a keepalive so the camera does not drop it for being idle.
+- **A camera that redirects HTTP to HTTPS can be connected, and its connection settings can be edited while it is offline.** DomusCam no longer follows that redirect (it was turning the login request into a download of the camera's web page and reporting a malformed response). It switches the camera to HTTPS, pins the certificate the same way as any other HTTPS camera, and remembers the change. If that still fails, the error says the camera requires HTTPS. Edit Connection is on the connection error, the camera's menu, and the sidebar, on Mac and iPhone/iPad. A camera found on port 443 is added with HTTPS on; a camera that only answers on HTTP stays on HTTP.
+- **Saving or migrating a camera password no longer deletes the old Keychain item first.** If the replacement write fails, the existing password stays and Settings says so. Turning off iCloud Keychain sync saves a copy on this device and leaves the iCloud Keychain item in place, so your other devices are not wiped.
+
 ### Changed
 
+- **Run as Hub no longer turns on iCloud motion relay.** Hub keeps this Mac connected to your cameras and sends this Mac’s name in a heartbeat. Motion events and snapshot images are separate switches, both off until you turn them on, and each asks before the first enable. If relay was already on, it stays on so notifications you already chose don’t stop. Snapshot images, which used to be attached automatically, stay off until you turn them on.
+- **Apple TV password sync stays off unless you turn it on,** and the setting now says that the passwords leave this device and asks you to confirm. Installs that already turned it on are left on.
+- **The website no longer links to the upstream Reolens TestFlight invite.** A DomusCam invite is not published yet; the page says so. The retired Sparkle appcast is removed.
 - **Forked as DomusCam.** New bundle id `com.75-c.DomusCam`, iCloud container
   `iCloud.com.75-c.DomusCam`, App Group `group.com.75-c.DomusCam`, and Apple
   team `NXVC3868F7`. Display name, modules, loggers, and docs use DomusCam.

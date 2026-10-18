@@ -632,9 +632,35 @@ public actor CloudKitMotionEventSubscriber {
 /// without needing to plumb the value through.
 public enum MotionEventRelaySettings {
     /// Master toggle for the macOS publisher. Off by default.
+    /// "Run as Hub" does not write this key.
     public static let publisherEnabledKey = "com.75-c.DomusCam.cloudKitRelay.publisherEnabled"
     public static var publisherEnabled: Bool {
-        UserDefaults.standard.bool(forKey: publisherEnabledKey)
+        isPublisherEnabled()
+    }
+
+    public static func isPublisherEnabled(in defaults: UserDefaults = .standard) -> Bool {
+        defaults.bool(forKey: publisherEnabledKey)
+    }
+
+    /// Snapshot JPEG on a relayed `MotionEvent`. Off by default, including
+    /// for installs that already had the metadata relay on — images used
+    /// to ride along with every event, and uploading them is now its own
+    /// choice. Device-local. Absence of the key means false.
+    public static let includeSnapshotsKey = "com.75-c.DomusCam.cloudKitRelay.includeSnapshots"
+
+    public static var includeSnapshots: Bool {
+        areSnapshotsIncluded()
+    }
+
+    public static func areSnapshotsIncluded(in defaults: UserDefaults = .standard) -> Bool {
+        defaults.bool(forKey: includeSnapshotsKey)
+    }
+
+    /// File URL to attach as a CloudKit asset, or nil when snapshot
+    /// upload is off. The local notification may still use the JPEG.
+    public static func snapshotURLForRelay(_ url: URL?, defaults: UserDefaults = .standard) -> URL? {
+        guard areSnapshotsIncluded(in: defaults) else { return nil }
+        return url
     }
     /// Subscriber side. iOS only — `installSubscriptionIfNeeded` is
     /// gated on this so users who don't want CloudKit subscriptions

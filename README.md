@@ -87,13 +87,18 @@ Full step-by-step in **[docs/remote-connectivity.md](docs/remote-connectivity.md
 ## Privacy
 
 DomusCam runs on your devices. The only network surface is your Reolink
-devices (LAN), your own iCloud (camera-list sync + optional Hub motion-event
-relay), and Apple's App Store / TestFlight for updates. No third-party
-analytics, crash reporting, telemetry, or accounts.
+devices (LAN), your own iCloud, and Apple's App Store / TestFlight for
+updates. Camera-list sync uses iCloud Drive. Motion-event relay, snapshot
+images, and Apple TV password sync each stay off until you turn them on.
+"Run as Hub" does not turn those on; while Hub is on, this Mac's name goes
+out in a heartbeat. No third-party analytics, crash reporting, telemetry,
+or accounts.
 
 **Credentials are device-local** — camera passwords live in each device's
-Keychain (`kSecAttrSynchronizable: false` by default). iCloud sync carries
-metadata only. The full model is in [AGENTS.md](AGENTS.md) §3, §4.
+Keychain (`kSecAttrSynchronizable: false` by default). They leave the device
+only if you turn on iCloud Keychain sync or Apple TV password sync. The
+camera list in iCloud does not include passwords. The full model is in
+[AGENTS.md](AGENTS.md) §3, §4 and [SECURITY.md](SECURITY.md).
 
 ## Attribution
 

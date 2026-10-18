@@ -2,6 +2,7 @@ import Foundation
 import Network
 import OSLog
 import Darwin
+import ReolinkAPI
 import ReolinkBaichuan
 
 private let log = Logger(subsystem: "com.75-c.DomusCam.app", category: "discovery")
@@ -32,6 +33,33 @@ public struct DiscoveredDevice: Identifiable, Hashable, Sendable {
     public let controlTransport: ControlTransport
 }
 
+/// How a discovered device should be stored. HTTPS when the probe got a
+/// real answer on 443, HTTP when that is all that answered, and the CGI
+/// placeholder port for a Baichuan-only camera (the connect path uses
+/// port 9000 from `controlTransport`, not this port).
+public struct PreferredCameraConnection: Sendable, Equatable {
+    public let port: Int
+    public let useHTTPS: Bool
+    public let controlTransport: ControlTransport
+
+    public init(discoveredPort: Int, transport: ControlTransport) {
+        switch transport {
+        case .https:
+            self.port = discoveredPort > 0 ? discoveredPort : 443
+            self.useHTTPS = true
+            self.controlTransport = .https
+        case .baichuan:
+            self.port = 80
+            self.useHTTPS = false
+            self.controlTransport = .baichuan
+        case .http:
+            self.port = discoveredPort > 0 ? discoveredPort : 80
+            self.useHTTPS = false
+            self.controlTransport = .http
+        }
+    }
+}
+
 /// Scans the local /24 subnet for Reolink HTTP endpoints by sending a
 /// `GET /cgi-bin/api.cgi?cmd=GetDevInfo` request to each candidate IP in
 /// parallel. The scanner short-circuits on the first byte of any non-empty
@@ -60,7 +88,14 @@ public actor CameraDiscovery {
     public static let concurrentProbeLimit: Int = 32
 
     private init() {
-        self.session = URLSession(configuration: Self.probeConfiguration())
+        // Refuse redirects so an HTTP:80 → HTTPS:443 hop is not counted as
+        // a plain-HTTP hit (URLSession would follow it and return the
+        // camera's HTML page with status 200).
+        self.session = URLSession(
+            configuration: Self.probeConfiguration(),
+            delegate: ProbeRedirectDelegate.shared,
+            delegateQueue: nil
+        )
         self.tlsTolerantSession = URLSession(
             configuration: Self.probeConfiguration(),
             delegate: AcceptAllTLSDelegate(),
@@ -235,9 +270,15 @@ public actor CameraDiscovery {
         webHits: [DiscoveredDevice],
         baichuanConfirmed: Bool
     ) -> DiscoveredDevice? {
-        // 1. A confirmed-Reolink CGI endpoint is the most capable path.
-        if let confirmed = webHits.first(where: { $0.confirmedReolink }) {
-            return confirmed
+        // 1. A confirmed HTTPS CGI endpoint wins when both 80 and 443
+        //    answer, so a new camera is added on HTTPS. An HTTP-only
+        //    camera (no HTTPS hit) still uses the HTTP result.
+        let confirmed = webHits.filter(\.confirmedReolink)
+        if let https = confirmed.first(where: { $0.controlTransport == .https }) {
+            return https
+        }
+        if let http = confirmed.first {
+            return http
         }
         // 2. A confirmed Baichuan port (9000) is a stronger Reolink signal
         //    than an unconfirmed bare-200 web hit, and the only path for
@@ -252,8 +293,53 @@ public actor CameraDiscovery {
                 controlTransport: .baichuan
             )
         }
-        // 3. Fall back to any web response (legacy behavior).
+        // 3. Fall back to any web response. Prefer HTTPS when both
+        //    schemes returned a bare hit, matching the confirmed path.
+        if let https = webHits.first(where: { $0.controlTransport == .https }) {
+            return https
+        }
         return webHits.first
+    }
+
+    /// Classify one probe response without a live socket. A 3xx, a
+    /// followed cross-scheme redirect, or an HTML page is not a hit on
+    /// the scheme we asked for — that is how an HTTP→HTTPS redirect used
+    /// to look like a working HTTP camera. A real CGI envelope (or a
+    /// bare 200 that is not HTML) still counts.
+    nonisolated static func deviceFromProbe(
+        host: String,
+        port: Int,
+        requestedScheme: String,
+        statusCode: Int,
+        body: String,
+        contentType: String? = nil,
+        finalScheme: String? = nil
+    ) -> DiscoveredDevice? {
+        if (300..<400).contains(statusCode) { return nil }
+        if let finalScheme, finalScheme.lowercased() != requestedScheme.lowercased() {
+            return nil
+        }
+        let isReolinkJSON = body.contains("\"cmd\"") && body.contains("rspCode")
+        let type = contentType?.lowercased() ?? ""
+        let looksLikeHTML = type.contains("text/html") || body.lowercased().contains("<html")
+        if looksLikeHTML && !isReolinkJSON { return nil }
+        guard isReolinkJSON || statusCode == 200 else { return nil }
+        let scheme = requestedScheme.lowercased() == "https" ? "https" : "http"
+        return DiscoveredDevice(
+            host: host,
+            port: port,
+            displayName: host,
+            kindHint: Self.parseKindHint(body: body, headers: [:]),
+            confirmedReolink: isReolinkJSON,
+            controlTransport: scheme == "https" ? .https : .http
+        )
+    }
+
+    /// A web probe is only worth a `URLSession` task when something is
+    /// already accepting TCP on that port. Closed and silent ports used to
+    /// fan out into a burst of timed-out tasks.
+    nonisolated static func shouldIssueWebProbe(tcpPortAcceptsConnections: Bool) -> Bool {
+        tcpPortAcceptsConnections
     }
 
     /// Single-endpoint probe: GET the Reolink CGI on `scheme://host:port`
@@ -274,6 +360,11 @@ public actor CameraDiscovery {
         components.path = "/cgi-bin/api.cgi"
         components.queryItems = [URLQueryItem(name: "cmd", value: "GetDevInfo")]
         guard let url = components.url else { return nil }
+        // Don't open a URLSession task unless the port accepts TCP. A /24
+        // sweep otherwise creates two tasks per address (about 500), and the
+        // silent ones all fail together with NSURLErrorTimedOut.
+        let accepts = await TCPPortProbe.isAccepting(host: host, port: UInt16(port), timeout: 0.4)
+        guard Self.shouldIssueWebProbe(tcpPortAcceptsConnections: accepts) else { return nil }
 
         var req = URLRequest(url: url)
         req.httpMethod = "GET"
@@ -283,23 +374,19 @@ public actor CameraDiscovery {
             let (data, response) = try await session.data(for: req)
             guard let http = response as? HTTPURLResponse else { return nil }
             let body = String(data: data, encoding: .utf8) ?? ""
-            // Look for Reolink's CGI envelope shape. Even an auth-failed reply
-            // includes `"cmd":"GetDevInfo"` and `"rspCode"` — that's enough.
-            let isReolinkJSON = body.contains("\"cmd\"") && body.contains("rspCode")
-            if isReolinkJSON || http.statusCode == 200 {
-                let kind = Self.parseKindHint(body: body, headers: http.allHeaderFields)
-                // Without auth, the probe can't get a marketing name.
-                // Use the host until Bonjour merges in something prettier.
-                return DiscoveredDevice(
-                    host: host,
-                    port: port,
-                    displayName: host,
-                    kindHint: kind,
-                    confirmedReolink: isReolinkJSON,
-                    controlTransport: scheme == "https" ? .https : .http
-                )
-            }
-            return nil
+            // Without auth, the probe can't get a marketing name.
+            // Use the host until Bonjour merges in something prettier.
+            // Redirects and HTML login pages are not hits — see
+            // `deviceFromProbe`.
+            return Self.deviceFromProbe(
+                host: host,
+                port: port,
+                requestedScheme: scheme,
+                statusCode: http.statusCode,
+                body: body,
+                contentType: http.value(forHTTPHeaderField: "Content-Type"),
+                finalScheme: http.url?.scheme
+            )
         } catch {
             return nil
         }
@@ -686,14 +773,41 @@ private final class ProbeOnceBox: @unchecked Sendable {
     }
 }
 
+/// Discovery-only. Refuses every redirect so each probed port is judged
+/// on the response it actually produced.
+private final class ProbeRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+    static let shared = ProbeRedirectDelegate()
+
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest,
+        completionHandler: @escaping @Sendable (URLRequest?) -> Void
+    ) {
+        completionHandler(nil)
+    }
+}
+
 /// URLSession delegate that accepts any server certificate. Used ONLY by
 /// the discovery sweep's HTTPS:443 probe — Reolink devices ship self-signed
 /// certs, and discovery sends no credentials and only checks for a
 /// Reolink-shaped JSON envelope, so trusting the cert here leaks nothing.
 /// The authenticated camera connection uses `PinningTLSDelegate` (TOFU pin,
 /// rejects mismatches) instead — AGENTS.md §3 still holds for every real
-/// camera session. GitHub #76.
-private final class AcceptAllTLSDelegate: NSObject, URLSessionDelegate, @unchecked Sendable {
+/// camera session. Redirects are refused so a 301 is not counted as a
+/// successful HTTPS hit. GitHub #76.
+private final class AcceptAllTLSDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest,
+        completionHandler: @escaping @Sendable (URLRequest?) -> Void
+    ) {
+        completionHandler(nil)
+    }
+
     func urlSession(
         _ session: URLSession,
         didReceive challenge: URLAuthenticationChallenge,

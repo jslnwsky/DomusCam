@@ -126,13 +126,47 @@ public final class LiveVideoPlayer {
         self.rotationDegrees = rotationDegrees
     }
 
-    public func start() {
+    /// User-facing line when port 554 does not accept TCP. The tile pairs
+    /// this with an Enable RTSP action. No host or URL.
+    /// `nonisolated` so a test or other non-UI caller can read it; the
+    /// value does not touch player state. The class is `@MainActor`.
+    public nonisolated static let rtspOffMessage = RTSPStartDecision.offMessage
+
+    public func start(portAlreadyVerifiedOpen: Bool = false) {
         guard task == nil else { return }
         state = .connecting
         let urls = self.urls
         let user = self.username
         let pass = self.password
+        beginTTFF()
+        task = Task { [weak self] in
+            await self?.runSession(
+                urls: urls,
+                username: user,
+                password: pass,
+                portAlreadyVerifiedOpen: portAlreadyVerifiedOpen
+            )
+        }
+    }
 
+    /// Play access units that did not come from RTSP (Baichuan preview).
+    /// Stopping the player cancels the iteration, which ends the stream.
+    public func start(frames: AsyncStream<LiveEncodedFrame>) {
+        guard task == nil else { return }
+        state = .connecting
+        beginTTFF()
+        task = Task { [weak self] in
+            await self?.runEncoded(frames)
+        }
+    }
+
+    /// Port 554 is closed and there is no other picture to show.
+    public func reportRTSPOff() {
+        guard task == nil else { return }
+        state = .failed(Self.rtspOffMessage)
+    }
+
+    private func beginTTFF() {
         // 0.6.1 TTFF — begin an Instruments-visible interval. Ended in
         // `enqueue(_:)` when the first sample lands on the display
         // layer. Each `start()` gets a fresh signpost ID so concurrent
@@ -142,10 +176,6 @@ public final class LiveVideoPlayer {
             "TTFF",
             id: ttffSignpostID!
         )
-
-        task = Task { [weak self] in
-            await self?.runSession(urls: urls, username: user, password: pass)
-        }
     }
 
     public func stop() {
@@ -168,7 +198,24 @@ public final class LiveVideoPlayer {
         state = .stopped
     }
 
-    private func runSession(urls: [URL], username: String, password: String) async {
+    private func runSession(
+        urls: [URL],
+        username: String,
+        password: String,
+        portAlreadyVerifiedOpen: Bool
+    ) async {
+        if !portAlreadyVerifiedOpen, let url = urls.first {
+            let host = url.host ?? ""
+            let port = UInt16(url.port ?? 554)
+            if !host.isEmpty {
+                let open = await TCPPortProbe.isAccepting(host: host, port: port, timeout: 0.5)
+                if !RTSPStartDecision.shouldTryCandidates(portOpen: open) {
+                    log.warning("RTSP port is not accepting connections; not cycling candidates")
+                    state = .failed(Self.rtspOffMessage)
+                    return
+                }
+            }
+        }
         var attempts: [String] = []
         for (index, url) in urls.enumerated() {
             if Task.isCancelled { return }
@@ -271,6 +318,57 @@ public final class LiveVideoPlayer {
         if state == .playing { state = .stopped }
     }
 
+    /// Baichuan (or any other) access units through the same assemblers
+    /// the RTSP path uses. The producer ends the stream if no frame arrives,
+    /// so a closed preview does not sit on a candidate list.
+    private func runEncoded(_ frames: AsyncStream<LiveEncodedFrame>) async {
+        await decodeEncoded(frames)
+        if Task.isCancelled { return }
+        if state == .connecting || enqueuedSampleCount == 0 {
+            state = .failed(Self.rtspOffMessage)
+        } else if state == .playing {
+            state = .stopped
+        }
+    }
+
+    private func decodeEncoded(_ frames: AsyncStream<LiveEncodedFrame>) async {
+        var h264: H264SampleBufferAssembler?
+        var h265: H265SampleBufferAssembler?
+        var lastTimestamp: UInt32 = 0
+        for await frame in frames {
+            if Task.isCancelled { break }
+            var stamp = frame.timestamp
+            if stamp == lastTimestamp { stamp &+= 1 }
+            lastTimestamp = stamp
+            switch frame.codec {
+            case .h264:
+                if h264 == nil { h264 = H264SampleBufferAssembler() }
+                guard let assembler = h264 else { continue }
+                for nal in frame.nalUnits {
+                    let nalType = nal.first.map { $0 & 0b0001_1111 } ?? 0
+                    if let sample = try? assembler.ingest(nalType: nalType, bytes: nal, rtpTimestamp: stamp) {
+                        enqueue(sample)
+                    }
+                }
+                if let sample = try? assembler.flush() {
+                    enqueue(sample)
+                }
+            case .h265:
+                if h265 == nil { h265 = H265SampleBufferAssembler() }
+                guard let assembler = h265 else { continue }
+                for nal in frame.nalUnits {
+                    let nalType = nal.first.map { ($0 & 0b0111_1110) >> 1 } ?? 0
+                    if let sample = try? assembler.ingest(nalType: nalType, bytes: nal, rtpTimestamp: stamp) {
+                        enqueue(sample)
+                    }
+                }
+                if let sample = try? assembler.flush() {
+                    enqueue(sample)
+                }
+            }
+        }
+    }
+
     /// Maximum number of seconds without any new decoded sample before we
     /// consider the stream stalled and trigger URL fallback.
     private nonisolated static let stallTimeout: TimeInterval = 6
@@ -356,6 +454,7 @@ public final class LiveVideoPlayer {
     private var ttffSignpostState: OSSignpostIntervalState?
 
     private func enqueue(_ sample: CMSampleBuffer) {
+        if state == .connecting { state = .playing }
         if !didSetTimebase {
             // Pin the layer's clock to the first sample's PTS so that the camera's
             // arbitrary RTP-timestamp-derived PTS values render in real time

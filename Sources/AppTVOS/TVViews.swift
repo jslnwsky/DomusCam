@@ -85,6 +85,12 @@ struct TVCameraCard: View {
 
 /// Fullscreen live view. Builds an RTSP `LiveVideoPlayer` directly from
 /// the camera + its synced password — no `CameraSession` needed.
+///
+/// Apple TV does not run the Baichuan control session (no persistent
+/// background connection, same reason as the Hub carve-out). When RTSP
+/// is off, the player fails fast with "RTSP is off on this camera"
+/// instead of cycling candidates. Turning RTSP on is done from the
+/// iPhone or Mac tile, which holds the Baichuan login.
 struct TVLiveFullscreenView: View {
     let camera: TVCameraEntry
     let password: String?

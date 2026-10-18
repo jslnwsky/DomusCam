@@ -165,6 +165,12 @@ h1 {
   transform: translateY(-1px);
   background: linear-gradient(180deg, #6cdcff, #29bce4);
 }
+.btn-static,
+.btn-static:hover {
+  cursor: default;
+  transform: none;
+  background: linear-gradient(180deg, var(--accent-bright), var(--accent));
+}
 
 .btn-secondary {
   background: transparent;

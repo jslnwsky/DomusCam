@@ -9,6 +9,7 @@ struct CameraDetailView: View {
     let focusedChannel: Int?
     @Environment(CameraStore.self) private var store
     @State private var passwordEntryEntry: CameraEntry?
+    @State private var connectionEditor: CameraEntry?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,6 +30,17 @@ struct CameraDetailView: View {
         .navigationSubtitle(session.deviceInfo?.model ?? session.entry.host)
         .sheet(item: $passwordEntryEntry) { entry in
             EnterPasswordSheet(entry: entry)
+        }
+        .sheet(item: $connectionEditor) { entry in
+            EditConnectionSheet(entry: entry)
+        }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Edit Connection…", systemImage: "network") {
+                    connectionEditor = session.entry
+                }
+                .accessibilityLabel("Edit Connection")
+            }
         }
     }
 
@@ -61,6 +73,10 @@ struct CameraDetailView: View {
                 .multilineTextAlignment(.center)
         } actions: {
             HStack {
+                Button("Edit Connection…", systemImage: "network") {
+                    connectionEditor = session.entry
+                }
+                .accessibilityLabel("Edit Connection")
                 Button("Update Password…", systemImage: "key.fill") {
                     passwordEntryEntry = session.entry
                 }

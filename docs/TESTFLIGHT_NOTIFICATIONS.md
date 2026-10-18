@@ -47,7 +47,7 @@ You need **all** of these:
    ```
 
    You should see `CloudKit` and `CloudDocuments` listed. If not, reinstall
-   from the latest [GitHub Release](https://github.com/jestatsio/reolens/releases/latest).
+   from the latest [GitHub Release](https://github.com/jslnwsky/DomusCam/releases/latest).
 
 2. **TestFlight DomusCam on the iPhone / iPad.** No special setup; the iOS
    build ships with `aps-environment = production` and the

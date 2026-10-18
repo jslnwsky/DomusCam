@@ -60,22 +60,25 @@ In scope:
   (c) daily digest records into that container, or that lets the
   extensions write *back* to the container, is in scope.
 - **CloudKit motion-event relay regressions.** The relay publishes
-  to the user's private CloudKit database. Any change that increases
-  the per-record payload beyond the documented `MotionEvent` /
-  `MotionEventRecordID` shape, that bypasses the per-camera rate
-  limit, or that publishes after the multi-account guard has fired
-  is in scope.
+  to the user's private CloudKit database only when the user has
+  turned it on. Any change that enables relay or snapshot upload
+  from "Run as Hub" alone, that attaches a snapshot JPEG when
+  `includeSnapshots` is off, that increases the per-record payload
+  beyond the documented `MotionEvent` / `MotionEventRecordID` shape,
+  that bypasses the per-camera rate limit, or that publishes after
+  the multi-account guard has fired is in scope.
 - **Live Activity push token leakage (0.5.1).**
   `LiveActivityPushTokenRegistry` persists per-activity APNs tokens
-  to the iCloud Drive ubiquity container
-  (`live-activity-tokens_v1.json`). Tokens are tied to specific
-  Activity IDs and rotate when iOS tears down and rebuilds the
-  activity. Any path that (a) logs the raw token at any level,
-  (b) writes the token outside this designated file, or (c)
-  serializes anything beyond `activityID + cameraID + pushTokenHex
-  + issuedAt` is in scope. Token storage outside iCloud Drive
-  (e.g. into `cameras.json`, `UserDefaults`, or the App Group) is
-  a regression.
+  to the iCloud Drive ubiquity container when it is available
+  (`Documents/live-activity-tokens/live-activity-tokens_v1.json`),
+  with a local Documents fallback otherwise. Tokens are tied to
+  specific Activity IDs and rotate when iOS tears down and rebuilds
+  the activity. DomusCam does not send them to an APNs provider.
+  Any path that (a) logs the raw token at any level, (b) writes the
+  token outside this designated file, or (c) serializes anything
+  beyond `activityID + cameraID + pushTokenHex + issuedAt` is in
+  scope. Token storage in `cameras.json`, `UserDefaults`, or the
+  App Group is a regression.
 - **Background bookmark-download payload widening (0.5.1).** The
   background URLSession at identifier `com.75-c.DomusCam.bookmarkDL`
   downloads recording clips to
@@ -109,40 +112,57 @@ Out of scope:
 DomusCam enforces these properties at the architectural level. A bug
 report alleging any of them is broken is automatically in scope:
 
-1. **Camera passwords never leave the device.** They live in Keychain
-   with `kSecAttrSynchronizable: false`; they are not written to
-   `cameras.json`, `UserDefaults`, logs at any level, or any network
-   payload other than RTSP/HTTP authentication to the specific
-   Reolink device.
-2. **iCloud sync carries metadata only.** `cameras.json` contains
-   display name, host, port, username, grid layout, channel order,
-   rotations — never a password.
-3. **No third-party analytics, no remote crash reporting.** The app
-   talks to your Reolink devices, iCloud, and Apple's TestFlight /
-   App Store — that's it. No Reolink cloud, no P2P discovery cluster.
-4. **Drag and intent payloads carry IDs, never credentials.** The
+1. **Camera passwords stay on the device unless you opt in.** By
+   default they live in Keychain with `kSecAttrSynchronizable: false`.
+   They are not written to `cameras.json`, `UserDefaults`, or logs.
+   Two settings can copy them off the device, both default **off**:
+   - "Sync camera passwords to iCloud Keychain" — iCloud Keychain.
+     Turning it off copies a device-local item and leaves the
+     synchronizable item in place, so other devices are not wiped.
+   - "Sync camera passwords to iCloud for Apple TV" — passwords in
+     CloudKit `encryptedValues` in your private database, because
+     tvOS cannot read those Keychain items. Turning it off deletes
+     those CloudKit records.
+   Passwords are also sent to the specific Reolink camera on the LAN
+   as that camera's login.
+2. **iCloud camera-list sync carries metadata only.** `cameras.json`
+   contains display name, host, port, username, grid layout, channel
+   order, rotations — never a password.
+3. **Motion relay, snapshot upload, and Hub are separate.** "Run as
+   Hub" keeps this Mac connected to your cameras and writes a
+   heartbeat (this Mac's name, app version, and whether relay is on)
+   to your private CloudKit database. It does not publish motion
+   events or pictures. "Relay motion events" (default off) can send
+   camera id, channel, detection type, time, and camera name.
+   "Include snapshot images" (default off, including on installs that
+   already relay events) attaches a JPEG. Apple TV password sync is
+   baseline #1. None of this goes to a DomusCam server.
+4. **No third-party analytics, no remote crash reporting.** The app
+   talks to your Reolink devices, iCloud (only for the features
+   above), and Apple's TestFlight / App Store — that's it. No
+   Reolink cloud, no P2P discovery cluster.
+5. **Drag and intent payloads carry IDs, never credentials.** The
    `com.75-c.DomusCam.channelDrag`, `com.75-c.DomusCam.deviceDrag`, and App
    Intents `OpenCameraIntent` paths all transport only UUIDs / channel
    integers.
-5. **Widget / Live Activity extensions are filesystem-only.** They
+6. **Widget / Live Activity extensions are filesystem-only.** They
    have no `com.apple.security.network.client` entitlement and no
    Keychain access. Their only data source is the
    `group.com.75-c.DomusCam` App Group container, which is
    device-local and never CloudKit-synced. AGENTS.md §16 codifies
    the full constraint set.
-6. **On-device-only AI (0.5.1).** The Today digest uses Apple's
+7. **On-device-only AI (0.5.1).** The Today digest uses Apple's
    `FoundationModels` framework, which runs **on-device**. No
    recording metadata, AI tags, camera names, or any other data
    crosses the device boundary. The `FoundationModels` framework
    itself enforces this contract; we never proxy the inference to a
    cloud model.
-7. **Live Activity push channel is opt-in-by-OS.**
+8. **Live Activity push tokens are not sent by DomusCam.**
    `pushType: .token` tells iOS to issue a push token for the
-   activity; the OS decides whether to honor it. DomusCam does not
-   send pushes today (no server infrastructure); the registry
-   merely persists tokens for a future sender. Until that sender
-   exists, the local Baichuan-event-driven update path is the only
-   updater.
+   activity. DomusCam has no APNs provider. The registry stores
+   tokens in the iCloud Drive ubiquity container when that container
+   is available (`live-activity-tokens_v1.json`); it does not
+   transmit them. Activities update locally.
 
 See [`AGENTS.md`](AGENTS.md) for the full engineering principles.
 
@@ -161,12 +181,13 @@ Once a fix is released:
 
 | Release | Platform floors                | Status                                                                                  |
 |---------|--------------------------------|-----------------------------------------------------------------------------------------|
-| 0.6.x   | macOS 26 / iOS 26 / iPadOS 26  | **Current.** Receives all security fixes and feature work.                              |
-| 0.5.x   | macOS 26 / iOS 26 / iPadOS 26  | **Maintenance.** Security fixes only, through ~6 months after 0.6.0 release.            |
-| 0.4.x   | macOS 14 / iOS 18 / iPadOS 18  | **Security backports only**, through the end of the 0.5 cycle (~6 months after 0.5.0). |
+| 0.9.x   | macOS 26 / iOS 26 / iPadOS 26 / tvOS 26 / watchOS 11 | **Current** tree on `main`. |
+| 0.6.x–0.8.x | macOS 26 / iOS 26 / iPadOS 26 | Superseded by 0.9.x. |
+| 0.5.x   | macOS 26 / iOS 26 / iPadOS 26  | Older 26-SDK line. Not the current tree. |
+| 0.4.x   | macOS 14 / iOS 18 / iPadOS 18  | Last line for those OS floors. |
 | ≤ 0.3.x | various                        | End of life. No backports.                                                              |
 
-The 0.5.0 deployment-floor bump exists so the app can adopt Liquid Glass plus the ActivityKit / WidgetKit / ControlWidget APIs Apple shipped in iOS 26 / macOS 26. Users who can't upgrade their OS should stay on the 0.4.x track. Any security fix that applies to both tracks will land on `main` (which targets 0.6.x) and be cherry-picked to the `release/0.4.x` branch for backport.
+The 0.5.0 deployment-floor bump exists so the app can adopt Liquid Glass plus the ActivityKit / WidgetKit / ControlWidget APIs Apple shipped in iOS 26 / macOS 26. Users who can't upgrade their OS should stay on the 0.4.x track. Security fixes land on `main` (0.9.x).
 
 **HomeKit bridge (added in 0.6.0):** the bridge is scaffolding pending Apple MFi certification — the stub `registerAccessoryIfNeeded(for:)` has no live attack surface today. Any security finding would apply to the completed implementation; report it the same way regardless.
 

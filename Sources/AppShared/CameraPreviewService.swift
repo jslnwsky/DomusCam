@@ -1,4 +1,5 @@
 import Foundation
+import ReolinkAPI
 import CoreGraphics
 import ImageIO
 import UniformTypeIdentifiers
@@ -40,7 +41,11 @@ public actor CameraPreviewService {
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = 4
         config.timeoutIntervalForResource = 8
-        self.session = URLSession(configuration: config)
+        self.session = URLSession(
+            configuration: config,
+            delegate: MediaRedirectDelegate.shared,
+            delegateQueue: nil
+        )
         let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
         self.directory = caches
@@ -80,6 +85,16 @@ public actor CameraPreviewService {
         let task = Task<Data?, Never> { [self, log] in
             do {
                 let (data, response) = try await session.data(from: snapshotURL)
+                if let http = response as? HTTPURLResponse,
+                   HTTPRedirectPolicy.mediaPayloadRejected(
+                       requestURL: snapshotURL,
+                       statusCode: http.statusCode,
+                       responseURL: http.url,
+                       contentType: http.value(forHTTPHeaderField: "Content-Type")
+                   ) {
+                    log.warning("Snap rejected (HTTP \(http.statusCode, privacy: .public)); preview not updated")
+                    return nil
+                }
                 if let http = response as? HTTPURLResponse, http.statusCode >= 400 {
                     // AGENTS.md §11 — don't log the URL (contains credentials
                     // as fallback when no token is available). Status only.

@@ -11,7 +11,13 @@ public enum TVCredentialSync {
     public static let enabledKey = "com.75-c.DomusCam.tvOSCredentialSync"
 
     public static var isEnabled: Bool {
-        UserDefaults.standard.bool(forKey: enabledKey)
+        isEnabled(in: .standard)
+    }
+
+    /// `false` when the key is absent. Tests pass an isolated suite;
+    /// the settings toggle reads `.standard`.
+    public static func isEnabled(in defaults: UserDefaults) -> Bool {
+        defaults.bool(forKey: enabledKey)
     }
 
     /// Apply the toggle: publish all current credentials when turning on,
@@ -51,6 +57,7 @@ public enum TVCredentialSync {
 /// device (encrypted) for your private iCloud so the Apple TV can stream.
 public struct CameraCredentialSyncSection: View {
     @AppStorage(TVCredentialSync.enabledKey) private var enabled: Bool = false
+    @State private var confirmEnable: Bool = false
     @Environment(CameraStore.self) private var store
 
     public init() {}
@@ -60,16 +67,30 @@ public struct CameraCredentialSyncSection: View {
             containerID: "iCloud.com.75-c.DomusCam"
         )
         Section("Apple TV") {
-            Toggle("Stream on Apple TV", isOn: $enabled)
-                .disabled(!cloudKitAvailable)
-                .onChange(of: enabled) { _, newValue in
-                    TVCredentialSync.setEnabled(newValue, store: store)
+            Toggle("Sync camera passwords to iCloud for Apple TV", isOn: Binding(
+                get: { enabled },
+                set: { newValue in
+                    if newValue {
+                        confirmEnable = true
+                    } else {
+                        TVCredentialSync.setEnabled(false, store: store)
+                    }
                 }
+            ))
+            .disabled(!cloudKitAvailable)
+            .alert("Copy camera passwords to iCloud?", isPresented: $confirmEnable) {
+                Button("Sync passwords") {
+                    TVCredentialSync.setEnabled(true, store: store)
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Your camera passwords will leave this device. They are encrypted in your private iCloud so the Apple TV can stream. iCloud Keychain does not reach Apple TV, which is why this is a separate switch. Turning it off later deletes those copies from iCloud. There is no DomusCam server.")
+            }
             if cloudKitAvailable {
-                Text("New in 0.7.0. The Apple TV app can show your camera list from iCloud, but Apple doesn't sync camera passwords to tvOS. Turn this on to sync your camera passwords — encrypted, through your own iCloud account, with no DomusCam server — so the Apple TV can stream live video.")
+                Text("Off by default. The Apple TV can show your camera list from iCloud, but Apple does not sync camera passwords to tvOS. Turn this on only if you want those passwords copied, encrypted, into your private iCloud so the Apple TV can stream live video.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Text("Passwords are stored encrypted in your private iCloud (CloudKit) and held only in memory on the Apple TV. Turning this off removes them from iCloud.")
+                Text("Passwords are stored in CloudKit’s encrypted fields and held only in memory on the Apple TV. This is not iCloud Keychain sync. Turning this off removes them from iCloud.")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             } else {
